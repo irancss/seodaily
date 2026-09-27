@@ -69,7 +69,7 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
           </div>
           {imageUrl ? (
             <div className="relative h-[250px] sm:h-[300px] lg:h-[340px]">
-              <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-top" />
+              <img src={imageUrl} alt="" fetchPriority="high" className="absolute inset-0 size-full object-cover object-top" />
             </div>
           ) : (
             <SkeletonSite />
