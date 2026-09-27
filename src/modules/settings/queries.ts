@@ -12,7 +12,13 @@ async function readSetting<T extends object>(key: string, defaults: T): Promise<
   // No try/catch: a failed read must not be cached as "defaults".
   const row = await db.query.settings.findFirst({ where: eq(schema.settings.key, key) });
   if (!row) return defaults;
-  return { ...defaults, ...(row.value as Partial<T>) };
+  const merged = { ...defaults } as Record<string, unknown>;
+  for (const [field, value] of Object.entries(row.value as Record<string, unknown>)) {
+    // A text field emptied in the admin falls back to the default, as page texts do.
+    if (typeof value === "string" && !value.trim() && typeof merged[field] === "string") continue;
+    merged[field] = value;
+  }
+  return merged as T;
 }
 
 export async function writeSetting(key: string, value: unknown) {
