@@ -67,6 +67,26 @@
 
 ## راه‌اندازی سریع با Docker
 
+### روش یک‌دستوری ویندوز (پیشنهادی)
+
+با Git و Docker Desktop نصب‌شده و روشن، در PowerShell:
+
+```powershell
+git clone --config core.autocrlf=false https://github.com/irancss/seodaily.git C:\cloude\seodaily
+powershell -ExecutionPolicy Bypass -File C:\cloude\seodaily\scripts\windows\setup.ps1 -AutoUpdate
+```
+
+اسکریپت `scripts/windows/setup.ps1`:
+
+- کد را در `C:\cloude\seodaily` می‌گیرد یا به آخرین نسخه به‌روز می‌کند؛
+- بار اول `.env` را با رمزهای تصادفی می‌سازد و **ایمیل و رمز مدیر را نمایش می‌دهد**؛
+- سایت را با Docker بالا می‌آورد، تا سالم شدن صبر می‌کند و مرورگر را باز می‌کند؛
+- با `-AutoUpdate` یک Scheduled Task می‌سازد که هر ۱۵ دقیقه تغییرات جدید را می‌گیرد و فقط در صورت تغییر دوباره build می‌کند.
+
+هر وقت خواستید دستی به‌روز کنید، همان دستور دوم را دوباره اجرا کنید. اگر Docker Hub در دسترس نیست (مثلاً از ایران)، ‏`-Mirror docker.arvancloud.ir` را اضافه کنید. اگر پورت ۳۰۰۰ اشغال است، ‏`-Port 3001`.
+
+### روش دستی
+
 ### ۱. دریافت کد
 
 ویندوز (PowerShell):
