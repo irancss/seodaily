@@ -64,6 +64,23 @@ function Set-EnvValue([string]$File, [string]$Key, [string]$Value) {
     [System.IO.File]::WriteAllLines($File, [string[]]$lines, (New-Object System.Text.UTF8Encoding $false))
 }
 
+function Get-EnvValue([string]$File, [string]$Key) {
+    $line = Get-Content $File | Where-Object { $_ -match "^\s*$Key=" } | Select-Object -First 1
+    if ($line) { return ($line -split "=", 2)[1].Trim() }
+    return $null
+}
+
+function Test-PortFree([int]$Number) {
+    try {
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $Number)
+        $listener.Start()
+        $listener.Stop()
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 Require git "Install Git for Windows: https://git-scm.com/download/win"
 Require docker "Install Docker Desktop: https://www.docker.com/products/docker-desktop/"
 
@@ -132,21 +149,45 @@ if ($Mirror) {
     $changed = $true
 }
 
-# ---------------------------------------------------------------- containers
+# ---------------------------------------------------------------- port
 $running = (docker compose ps --status running --services 2>$null) -join ","
+if ($PSBoundParameters.ContainsKey("Port")) {
+    Set-EnvValue $envFile "APP_PORT" "$Port"
+    $changed = $true
+}
+$appPort = [int]((Get-EnvValue $envFile "APP_PORT") -replace "^.*:", "")
+if (-not $appPort) { $appPort = 3000 }
+# Our own running container holds its port; anything else on it means "busy".
+if ($running -notmatch "app" -and -not (Test-PortFree $appPort)) {
+    $old = $appPort
+    $appPort = 0
+    for ($candidate = 3001; $candidate -le 3099; $candidate++) {
+        if (Test-PortFree $candidate) { $appPort = $candidate; break }
+    }
+    if (-not $appPort) {
+        $probe = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, 0)
+        $probe.Start(); $appPort = $probe.LocalEndpoint.Port; $probe.Stop()
+    }
+    Set-EnvValue $envFile "APP_PORT" "$appPort"
+    $siteUrl = Get-EnvValue $envFile "SITE_URL"
+    if (-not $siteUrl -or $siteUrl -match "^http://localhost(:\d+)?/?$") {
+        Set-EnvValue $envFile "SITE_URL" "http://localhost:$appPort"
+    }
+    Say "Port $old is in use; using free port $appPort (saved in .env)." Yellow
+    $changed = $true
+}
+
+# ---------------------------------------------------------------- containers
 if ($changed -or $running -notmatch "app") {
     Say "Building and starting containers (the first build takes a few minutes) ..." Cyan
     docker compose up -d --build
     if ($LASTEXITCODE -ne 0) {
-        throw "docker compose failed (see the output above). If images could not be downloaded, run again with -Mirror docker.arvancloud.ir; if the port is busy, use -Port 3001; if a network or subnet clashes, set DOCKER_SUBNET in .env."
+        throw "docker compose failed (see the output above). If images could not be downloaded, run again with -Mirror docker.arvancloud.ir; if the port is busy, pass -Port with a free port; if a network or subnet clashes, set DOCKER_SUBNET in .env."
     }
 } else {
     Say "Already up to date and running." Green
 }
 
-$appPort = $Port
-$portLine = Get-Content $envFile | Where-Object { $_ -match "^\s*APP_PORT=" } | Select-Object -First 1
-if ($portLine) { $appPort = ($portLine -split "=", 2)[1].Trim() -replace "^.*:", "" }
 $url = "http://localhost:$appPort"
 
 $healthy = $false
