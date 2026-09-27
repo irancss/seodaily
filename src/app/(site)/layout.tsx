@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteShell } from "@/components/templates";
+import { getMenus } from "@/modules/menus/queries";
 import { getSiteUrl, organizationJsonLd } from "@/modules/seo/metadata";
 import { getContact, getGeneral } from "@/modules/settings/queries";
 
@@ -22,9 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const [general, contact, orgLd] = await Promise.all([getGeneral(), getContact(), organizationJsonLd()]);
+  const [general, contact, menus, orgLd] = await Promise.all([getGeneral(), getContact(), getMenus(), organizationJsonLd()]);
   return (
-    <SiteShell general={general} contact={contact} jsonLd={orgLd}>
+    <SiteShell general={general} contact={contact} menus={menus} jsonLd={orgLd}>
       {children}
     </SiteShell>
   );

@@ -23,62 +23,6 @@ function GridBox({ className, size = 24 }: { className?: string; size?: number }
   return <span className={cx("grid-bg block bg-soft", className)} style={{ ["--grid" as string]: `${size}px` }} />;
 }
 
-/** Home hero: desktop browser with an overlapping phone. */
-export function HomeHeroMockup({ imageUrl }: { imageUrl?: string }) {
-  return (
-    <div className="relative lg:pb-10" aria-hidden={imageUrl ? undefined : true}>
-      <BrowserFrame>
-        {imageUrl ? (
-          <div className="relative h-[220px] lg:h-[396px]">
-            <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-top" />
-          </div>
-        ) : (
-          <div className="relative flex h-[220px] flex-col gap-5 bg-white p-4 lg:h-[396px] lg:p-6">
-            <div className="flex items-center justify-between">
-              <Bar w={88} h={12} strong />
-              <span className="hidden gap-3 sm:flex">
-                <Bar w={40} /> <Bar w={40} /> <Bar w={40} />
-                <span className="block h-5 w-16 rounded-sm bg-brand/25" />
-              </span>
-            </div>
-            <div className="grid grid-cols-2 items-center gap-6">
-              <div className="flex flex-col gap-3">
-                <Bar w="90%" h={16} strong />
-                <Bar w="70%" h={16} strong />
-                <Bar w="95%" className="mt-2" />
-                <Bar w="80%" />
-                <span className="mt-2 block h-7 w-24 rounded-sm bg-brand/25" />
-              </div>
-              <GridBox className="h-[120px] rounded-md lg:h-[170px]" />
-            </div>
-            <div className="hidden grid-cols-3 gap-4 lg:grid">
-              <span className="h-24 rounded-md border border-line bg-page" />
-              <span className="h-24 rounded-md border border-line bg-page" />
-              <span className="h-24 rounded-md border border-line bg-page" />
-            </div>
-            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <PlaceholderChip icon>جای تصویر پروژه واقعی</PlaceholderChip>
-            </span>
-          </div>
-        )}
-      </BrowserFrame>
-      <div
-        aria-hidden="true"
-        className="absolute bottom-0 -left-8 hidden h-[288px] w-[148px] rounded-xl border border-line bg-white p-2 shadow-md lg:block"
-      >
-        <div className="flex h-full flex-col gap-2.5 rounded-[16px] border border-line bg-page px-3 py-3.5">
-          <Bar w={48} strong />
-          <GridBox className="mt-1.5 h-12 w-full rounded-sm lg:h-[72px]" size={12} />
-          <Bar w="90%" strong />
-          <Bar w="70%" h={6} />
-          <Bar w="80%" h={6} />
-          <span className="mt-auto block h-6 w-full rounded-sm bg-brand/25" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /** Services page, web design block. */
 export function DesignFrame() {
   return (

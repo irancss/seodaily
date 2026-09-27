@@ -4,6 +4,15 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/atoms/icon";
 import { cx } from "@/lib/utils";
 
+const VARIANTS = {
+  primary: "btn-primary",
+  secondary: "btn-secondary",
+  /** Translucent button for dark sections. */
+  glass: "btn-glass",
+  /** Solid white button for dark sections. */
+  white: "btn-white",
+};
+
 export function ButtonLink({
   href,
   children,
@@ -14,7 +23,7 @@ export function ButtonLink({
 }: {
   href: string;
   children: ReactNode;
-  variant?: "primary" | "secondary";
+  variant?: keyof typeof VARIANTS;
   size?: "sm" | "md" | "lg";
   arrow?: boolean;
   className?: string;
@@ -25,7 +34,7 @@ export function ButtonLink({
       href={href}
       className={cx(
         "btn",
-        variant === "primary" ? "btn-primary" : "btn-secondary",
+        VARIANTS[variant],
         sizes[size],
         size === "lg" && variant === "primary" && "shadow-brand",
         className,

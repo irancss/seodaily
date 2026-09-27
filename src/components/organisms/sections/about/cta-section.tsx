@@ -9,11 +9,10 @@ type Props = {
 export function AboutCtaSection({ text }: Props) {
   return (
     <CtaSection
-      grid={false}
       title={text.ctaTitle}
       text={text.ctaText}
       secondary={
-        <ButtonLink href="/portfolio" variant="secondary" size="lg" className="w-full lg:w-auto">
+        <ButtonLink href="/portfolio" variant="glass" size="lg" className="w-full sm:w-auto lg:w-full">
           مشاهده نمونه‌کارها
         </ButtonLink>
       }

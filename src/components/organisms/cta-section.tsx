@@ -1,69 +1,77 @@
 import type { ReactNode } from "react";
 
-import { ButtonLink, GridBackdrop } from "@/components/atoms";
-import { cx } from "@/lib/utils";
+import { ButtonLink, Highlight, PhoneLink } from "@/components/atoms";
+import { cx, vars } from "@/lib/utils";
+import { getContact } from "@/modules/settings/queries";
 
 /**
- * Closing call-to-action. `soft` is the blue panel (web design, about),
- * `white` the bordered panel (service template), `open` has no panel (SEO,
- * portfolio).
+ * Closing call-to-action: a dark panel with drifting glows, the main button
+ * and the site's phone number. `light` is the soft-blue variant for pages that
+ * already end on a dark section.
  */
-export function CtaSection({
+export async function CtaSection({
   title,
   text,
+  eyebrow,
   button = "درخواست مشاوره",
   href = "/contact",
-  variant = "soft",
   secondary,
+  tone = "dark",
   padTop = false,
-  grid = true,
 }: {
   title: string;
   text: string;
+  eyebrow?: string;
   button?: string;
   href?: string;
-  variant?: "soft" | "white" | "open";
   secondary?: ReactNode;
+  tone?: "dark" | "light";
   /** Panels that follow a white section need their own top spacing. */
   padTop?: boolean;
-  /** Faint grid behind the panel (the about page panel has none). */
-  grid?: boolean;
 }) {
-  if (variant === "open") {
-    return (
-      <section className="relative flex grow items-center overflow-hidden py-16 lg:py-24">
-        <GridBackdrop fade="radial" className="opacity-60" />
-        <div className="container-site relative flex flex-col items-center text-center">
-          <h2 className="t-h2 max-w-[760px]">{title}</h2>
-          <p className="body-lg mt-3 max-w-[680px] lg:mt-4">{text}</p>
-          <div className="mt-6 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:flex-wrap lg:mt-8 lg:gap-4">
-            <ButtonLink href={href} size="lg" arrow className="w-full sm:w-auto">
-              {button}
-            </ButtonLink>
-            {secondary}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const { phone } = await getContact();
+  const dark = tone === "dark";
 
   return (
     <section className={cx("flex grow items-center pb-16 lg:pb-24", padTop && "pt-16 lg:pt-24")}>
       <div className="container-site">
         <div
           className={cx(
-            "relative flex flex-col items-start overflow-hidden rounded-xl border border-line px-6 py-7 lg:items-center lg:rounded-2xl lg:p-16 lg:text-center",
-            variant === "soft" ? "bg-soft" : "bg-white",
+            "reveal-scale relative overflow-hidden rounded-xl px-6 py-10 lg:rounded-2xl lg:px-16 lg:py-16",
+            dark ? "surface-dark" : "surface-soft-gradient isolate border border-line",
           )}
         >
-          {grid && <GridBackdrop size={32} className={variant === "white" ? "opacity-60" : undefined} />}
-          <h2 className="t-h2 relative max-w-[760px]">{title}</h2>
-          <p className="body-lg relative mt-3 max-w-[640px] lg:mt-4">{text}</p>
-          <div className="relative mt-6 flex w-full flex-col gap-3 lg:mt-8 lg:w-auto lg:flex-row lg:items-center lg:justify-center lg:gap-4">
-            <ButtonLink href={href} size="lg" arrow className="w-full lg:w-auto">
-              {button}
-            </ButtonLink>
-            {secondary}
+          <div
+            aria-hidden="true"
+            className={cx("fade-radial pointer-events-none absolute inset-0 -z-10", dark ? "grid-bg-dark" : "grid-bg opacity-70")}
+            style={vars({ grid: "40px" })}
+          />
+          <span aria-hidden="true" className={cx("orb -top-44 -right-28 size-[440px]", dark ? "orb-blue" : "orb-soft-blue")} />
+          <span
+            aria-hidden="true"
+            className={cx("orb -bottom-52 -left-28 size-[480px]", dark ? "orb-cyan" : "orb-soft-cyan")}
+            style={vars({ i: 1 })}
+          />
+          <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
+            <div className="flex flex-col items-start gap-3 lg:gap-4">
+              {eyebrow && <span className="eyebrow">{eyebrow}</span>}
+              <h2 className="t-h2 max-w-[720px]">
+                <Highlight text={title} />
+              </h2>
+              <p className="body-lg max-w-[620px]">{text}</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:flex-col lg:flex-nowrap">
+              <ButtonLink href={href} size="lg" variant={dark ? "white" : "primary"} arrow className="w-full sm:w-auto lg:w-full">
+                {button}
+              </ButtonLink>
+              {phone && (
+                <PhoneLink
+                  phone={phone}
+                  className={cx("btn h-14 w-full px-8 sm:w-auto lg:w-full", dark ? "btn-glass" : "btn-secondary")}
+                />
+              )}
+              {secondary}
+            </div>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ export function ServiceFaqSection({ service, jsonLd }: Props) {
       <div className="mx-auto w-full max-w-[920px] px-5">
         <SectionHeading align="center" title="سؤال‌های متداول" text={`پرسش‌های رایج درباره ${service.title}`} />
         <div className="mt-6 lg:mt-10">
-          <FaqList items={service.faqs} variant="panel" />
+          <FaqList items={service.faqs} />
         </div>
       </div>
       <JsonLd data={jsonLd} />

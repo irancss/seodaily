@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   // The Docker image runs the traced standalone server (see Dockerfile).
   output: "standalone",
   poweredByHeader: false,
+  // Do not write AGENTS.md / CLAUDE.md into the repository during `next dev`.
+  agentRules: false,
   compress: true,
   experimental: {
     serverActions: {

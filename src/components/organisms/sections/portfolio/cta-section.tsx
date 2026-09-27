@@ -6,5 +6,5 @@ type Props = {
 };
 
 export function PortfolioCtaSection({ text }: Props) {
-  return <CtaSection variant="open" title={text.ctaTitle} text={text.ctaText} />;
+  return <CtaSection title={text.ctaTitle} text={text.ctaText} />;
 }

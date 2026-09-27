@@ -1,5 +1,12 @@
+import type { CSSProperties } from "react";
+
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
+}
+
+/** Inline CSS custom properties: `vars({ i: 2 })` → `--i: 2` (stagger index, sizes…). */
+export function vars(values: Record<string, string | number>): CSSProperties {
+  return Object.fromEntries(Object.entries(values).map(([key, value]) => [`--${key}`, value])) as CSSProperties;
 }
 
 /** Two-digit Persian-friendly step number (the font renders Farsi digits). */
@@ -41,4 +48,9 @@ export function formatPhone(raw: string) {
   if (/^09\d{9}$/.test(digits)) return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
   if (/^0\d{10}$/.test(digits)) return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`;
   return raw.trim();
+}
+
+/** Title text without the *highlight* markers (for meta tags and structured data). */
+export function plainText(text: string) {
+  return text.replace(/\*([^*]+)\*/g, "$1");
 }

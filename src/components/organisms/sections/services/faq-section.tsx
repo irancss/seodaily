@@ -17,7 +17,7 @@ export function ServicesFaqSection({ faqs, jsonLd }: Props) {
       <div className="mx-auto w-full max-w-[840px] px-5">
         <SectionHeading align="center" title="سؤال‌های متداول" text="پاسخ چند سؤال رایج درباره انتخاب و ترکیب خدمات." />
         <div className="mt-6 lg:mt-12">
-          <FaqList items={faqs} variant="boxed" />
+          <FaqList items={faqs} />
         </div>
         <div className="mt-6 flex lg:mt-8 lg:justify-center">
           <Link href="/contact" className="text-link lg:text-center">

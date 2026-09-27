@@ -25,7 +25,7 @@ export const DEFAULT_GENERAL: GeneralSettings = {
 };
 
 export const DEFAULT_CONTACT: ContactSettings = {
-  phone: "",
+  phone: "09124607630",
   email: "",
   address: "",
   socials: [],

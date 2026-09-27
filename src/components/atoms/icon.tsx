@@ -79,6 +79,8 @@ const ICONS = {
   "corner-down": '<path d="M9 10l-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/>',
   copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
   "arrow-up": '<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>',
+  calculator:
+    '<rect x="4" y="2" width="16" height="20" rx="2"/><rect x="7.5" y="5.5" width="9" height="4" rx="1"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
 } as const;
 

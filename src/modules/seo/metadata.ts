@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Metadata } from "next";
 
+import { phoneE164, plainText } from "@/lib/utils";
+
 import { getContact, getGeneral, getPageText } from "@/modules/settings/queries";
 import { type PageKey } from "@/modules/settings/types";
 
@@ -30,8 +32,10 @@ type MetaInput = {
  * A title that already names the site is used as-is; otherwise the layout's
  * «… | سئو دیلی» template applies.
  */
-export async function buildMetadata({ title, description, path, image, type = "website", noindex }: MetaInput): Promise<Metadata> {
+export async function buildMetadata({ title: rawTitle, description, path, image, type = "website", noindex }: MetaInput): Promise<Metadata> {
   const [general, base] = await Promise.all([getGeneral(), getSiteUrl()]);
+  // Editable titles may mark a highlighted word with *stars*.
+  const title = plainText(rawTitle);
   const ogImage = image || general.ogImage;
   const fullTitle = title.includes(general.siteName) ? title : `${title} | ${general.siteName}`;
   const url = absoluteUrl(base, path);
@@ -80,7 +84,7 @@ export async function organizationJsonLd() {
       description: general.footerDescription,
       url: base,
       ...(general.ogImage ? { image: absoluteUrl(base, general.ogImage) } : {}),
-      ...(contact.phone ? { telephone: contact.phone } : {}),
+      ...(contact.phone ? { telephone: phoneE164(contact.phone) } : {}),
       ...(contact.email ? { email: contact.email } : {}),
       ...(contact.address ? { address: contact.address } : {}),
       ...(contact.socials.length ? { sameAs: contact.socials.map((s) => s.url) } : {}),
