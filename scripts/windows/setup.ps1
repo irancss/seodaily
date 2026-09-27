@@ -71,8 +71,25 @@ function Get-EnvValue([string]$File, [string]$Key) {
 }
 
 function Test-PortFree([int]$Number) {
+    # A bind test alone is not enough on Windows: a port that Docker publishes
+    # with SO_REUSEADDR can still be bound a second time. Look for a listener
+    # and try to connect first.
+    if (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue) {
+        $listening = Get-NetTCPConnection -State Listen -LocalPort $Number -ErrorAction SilentlyContinue
+        if ($listening) { return $false }
+    }
+    $client = New-Object System.Net.Sockets.TcpClient
+    try {
+        $attempt = $client.ConnectAsync("127.0.0.1", $Number)
+        if ($attempt.Wait(500) -and $client.Connected) { return $false }
+    } catch {
+        # connection refused: nothing is listening
+    } finally {
+        $client.Dispose()
+    }
     try {
         $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $Number)
+        $listener.ExclusiveAddressUse = $true
         $listener.Start()
         $listener.Stop()
         return $true
