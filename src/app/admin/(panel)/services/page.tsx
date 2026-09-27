@@ -1,16 +1,13 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/atoms";
-import { Flash, PageHeader } from "@/components/molecules";
+import { PageHeader } from "@/components/molecules";
 import { ServicesByCategory } from "@/components/organisms/admin";
 import { listCategories, listServices } from "@/modules/admin/services-queries";
 
 export const metadata = { title: "خدمات" };
 
-type Props = { searchParams: Promise<{ ok?: string; error?: string }> };
-
-export default async function ServicesAdmin({ searchParams }: Props) {
-  const sp = await searchParams;
+export default async function ServicesAdmin() {
   const [categories, services] = await Promise.all([listCategories(), listServices()]);
 
   return (
@@ -25,7 +22,6 @@ export default async function ServicesAdmin({ searchParams }: Props) {
           </Link>
         }
       />
-      <Flash ok={sp.ok} error={sp.error} />
       <ServicesByCategory categories={categories} services={services} />
     </>
   );

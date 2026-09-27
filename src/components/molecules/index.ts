@@ -2,7 +2,6 @@ export * from "./breadcrumb";
 export * from "./browser-frame";
 export * from "./card";
 export * from "./counted-field";
-export * from "./flash";
 export * from "./form-field";
 export * from "./image-field";
 export * from "./page-header";

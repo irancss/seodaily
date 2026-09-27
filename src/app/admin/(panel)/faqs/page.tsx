@@ -1,4 +1,4 @@
-import { Flash, PageHeader } from "@/components/molecules";
+import { PageHeader } from "@/components/molecules";
 import { FaqEditor, FaqPageTabs } from "@/components/organisms/admin";
 import { FAQ_PAGES, type FaqPage } from "@/db/schema";
 import { listFaqs } from "@/modules/admin/faqs-queries";
@@ -16,7 +16,6 @@ export default async function FaqsAdmin({ searchParams }: Props) {
   return (
     <>
       <PageHeader title="سؤال‌های متداول" description="سؤال‌های هر صفحه؛ سؤال‌های هر زیرخدمت داخل فرم همان خدمت ویرایش می‌شوند. این سؤال‌ها با اسکیمای FAQPage برای گوگل هم ارسال می‌شوند." />
-      <Flash ok={sp.ok} error={sp.error} />
       <FaqPageTabs current={page} />
 
       <div className="flex flex-col gap-4">

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 
 import { Icon } from "@/components/atoms";
+import { toast } from "@/lib/toast";
 import { SERVICE_CHOICE_LABELS } from "@/modules/leads/constants";
 
 import { submitConsultation, type ContactState } from "@/modules/leads/submit-action";
@@ -35,8 +36,14 @@ export function ContactForm({ budgets, defaultService }: { budgets: string[]; de
   const e = state.errors ?? {};
 
   useEffect(() => {
-    if (state.status === "success") successRef.current?.focus();
-    if (state.status === "error") errorRef.current?.focus();
+    if (state.status === "success") {
+      successRef.current?.focus();
+      toast.success("درخواست مشاوره ثبت شد. به‌زودی با شما تماس می‌گیریم.");
+    }
+    if (state.status === "error") {
+      errorRef.current?.focus();
+      if (state.message) toast.error(state.message);
+    }
   }, [state]);
 
   if (state.status === "success") {

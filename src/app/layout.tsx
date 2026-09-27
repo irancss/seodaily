@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { Toaster } from "@/components/organisms/toaster";
+
 import "./globals.css";
 
 // Site-wide defaults; the public layout overrides them from the admin settings.
@@ -23,7 +25,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="preload" href="/fonts/Vazir-Regular-FD-WOL.woff2" as="font" type="font/woff2" crossOrigin="" />
         <link rel="preload" href="/fonts/Vazir-Bold-FD-WOL.woff2" as="font" type="font/woff2" crossOrigin="" />
       </head>
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

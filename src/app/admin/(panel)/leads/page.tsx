@@ -1,4 +1,4 @@
-import { Flash, PageHeader } from "@/components/molecules";
+import { PageHeader } from "@/components/molecules";
 import { LeadsFilter, LeadsTable, Pagination } from "@/components/organisms/admin";
 import { LEAD_STATUSES, type LeadStatus } from "@/db/schema";
 import { listLeads } from "@/modules/admin/leads-queries";
@@ -17,7 +17,6 @@ export default async function LeadsPage({ searchParams }: Props) {
   return (
     <>
       <PageHeader title="درخواست‌های مشاوره" description="فرم‌هایی که از صفحه تماس ارسال شده‌اند." />
-      <Flash ok={sp.ok} error={sp.error} />
       <LeadsFilter status={status} />
       <LeadsTable leads={rows} />
       <Pagination page={page} pages={pages} href={(p) => leadsHref(status, p)} />

@@ -1,4 +1,4 @@
-import { Flash, PageHeader } from "@/components/molecules";
+import { PageHeader } from "@/components/molecules";
 import { PageTextEditor } from "@/components/organisms/admin";
 import { getStoredPageTexts } from "@/modules/admin/pages-queries";
 import { getSiteUrl } from "@/modules/seo/metadata";
@@ -29,7 +29,6 @@ export default async function PagesAdmin({ searchParams }: Props) {
         title="متن و سئوی صفحات"
         description="عنوان سئو (Title)، توضیحات متا و متن‌های اصلی هر صفحه. فیلدی که خالی بماند، متن پیش‌فرض طرح را نشان می‌دهد."
       />
-      <Flash ok={sp.ok} error={sp.error} />
       <div className="flex flex-col gap-4">
         {PAGE_KEYS.map((key) => (
           <PageTextEditor

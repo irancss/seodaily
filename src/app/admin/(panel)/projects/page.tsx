@@ -1,14 +1,13 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/atoms";
-import { Flash, PageHeader } from "@/components/molecules";
+import { PageHeader } from "@/components/molecules";
 import { ProjectsGrid } from "@/components/organisms/admin";
 import { listProjects } from "@/modules/admin/projects-queries";
 
 export const metadata = { title: "نمونه‌کارها" };
 
-export default async function ProjectsAdmin({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
-  const sp = await searchParams;
+export default async function ProjectsAdmin() {
   const projects = await listProjects();
 
   return (
@@ -23,7 +22,6 @@ export default async function ProjectsAdmin({ searchParams }: { searchParams: Pr
           </Link>
         }
       />
-      <Flash ok={sp.ok} error={sp.error} />
       <ProjectsGrid projects={projects} />
     </>
   );

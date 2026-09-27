@@ -1,14 +1,18 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { Icon } from "@/components/atoms";
 import { AdminNav } from "@/components/organisms";
+import { FlashToaster } from "@/components/organisms/flash-toaster";
 import { logout } from "@/modules/auth/actions";
 
 /** Admin panel skeleton: sidebar (brand, nav, account) and the main column. */
 export function AdminShell({ user, newLeads, children }: { user: { email: string }; newLeads: number; children: ReactNode }) {
   return (
     <div className="lg:grid lg:min-h-dvh lg:grid-cols-[260px_minmax(0,1fr)]">
+      <Suspense fallback={null}>
+        <FlashToaster />
+      </Suspense>
       <aside className="sticky top-0 z-20 border-b border-line bg-white lg:h-dvh lg:border-b-0 lg:border-l">
         <div className="flex h-full flex-col gap-4 p-4">
           <div className="flex items-center justify-between gap-2">
