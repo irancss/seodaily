@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { JsonLd } from "@/components/json-ld";
-import { SiteFooter } from "@/components/site/footer";
-import { SiteHeader } from "@/components/site/header";
-import { getSiteUrl, organizationJsonLd } from "@/lib/seo";
-import { getContact, getGeneral } from "@/lib/settings";
+import { JsonLd } from "@/components/atoms";
+import { SiteFooter, SiteHeader } from "@/components/organisms";
+import { getSiteUrl, organizationJsonLd } from "@/modules/seo/metadata";
+import { getContact, getGeneral } from "@/modules/settings/queries";
 
 // Pages render per request from the tagged data cache (see lib/cache.ts), so
 // admin edits show up immediately without a rebuild.

@@ -1,23 +1,15 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { FaqList } from "@/components/site/faq";
-import { HomeHeroMockup } from "@/components/site/mockups";
-import { ProjectCard } from "@/components/site/project-card";
-import {
-  ArrowBadge,
-  ButtonLink,
-  GridBackdrop,
-  HeroBadge,
-  IconTile,
-  SectionHeading,
-  stepNo,
-} from "@/components/site/ui";
-import { COLLAB_PROCESS } from "@/lib/content";
-import { getCategories, getFaqs, getPublishedProjects, getServicesByCategory } from "@/lib/data";
-import { faqJsonLd, pageMetadata } from "@/lib/seo";
-import { getGeneral, getPageText } from "@/lib/settings";
+import { ArrowBadge, ButtonLink, GridBackdrop, HeroBadge, Icon, IconTile, JsonLd } from "@/components/atoms";
+import { FaqList, HomeHeroMockup } from "@/components/organisms";
+import { ProjectCard, SectionHeading } from "@/components/molecules";
+import { stepNo } from "@/lib/utils";
+import { COLLAB_PROCESS } from "@/modules/services/content";
+import { getCategories, getServicesByCategory } from "@/modules/services/queries";
+import { getFaqs } from "@/modules/faqs/queries";
+import { getPublishedProjects } from "@/modules/projects/queries";
+import { faqJsonLd, pageMetadata } from "@/modules/seo/metadata";
+import { getGeneral, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("home", "/");

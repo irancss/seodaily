@@ -1,12 +1,14 @@
 import { count, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 
-import { Badge, EmptyState, Flash, formatDate, PageHeader, cx } from "@/components/admin/ui";
+import { Badge, EmptyState } from "@/components/atoms";
+import { Flash, PageHeader } from "@/components/molecules";
+import { formatDate, cx } from "@/lib/utils";
 import { db, schema } from "@/db";
 import { LEAD_STATUSES, type LeadStatus } from "@/db/schema";
-import { SERVICE_CHOICE_LABELS } from "@/lib/content";
+import { SERVICE_CHOICE_LABELS } from "@/modules/leads/constants";
 
-import { STATUS_LABELS, STATUS_TONES } from "./status";
+import { STATUS_LABELS, STATUS_TONES } from "@/modules/leads/status";
 
 export const metadata = { title: "درخواست‌های مشاوره" };
 

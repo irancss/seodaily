@@ -1,12 +1,13 @@
 import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 
-import { ConfirmButton, SubmitButton } from "@/components/admin/client";
-import { Card, cx, Field, Flash, PageHeader } from "@/components/admin/ui";
+import { ConfirmButton, SubmitButton } from "@/components/atoms";
+import { Card, Field, Flash, PageHeader } from "@/components/molecules";
+import { cx } from "@/lib/utils";
 import { db, schema } from "@/db";
 import { FAQ_PAGES, type FaqPage } from "@/db/schema";
 
-import { deleteFaq, saveFaq } from "./actions";
+import { deleteFaq, saveFaq } from "@/modules/faqs/actions";
 
 export const metadata = { title: "سؤال‌های متداول" };
 

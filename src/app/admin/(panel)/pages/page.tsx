@@ -1,13 +1,13 @@
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 
-import { CountedField, SubmitButton } from "@/components/admin/client";
-import { Card, Field, Flash, PageHeader } from "@/components/admin/ui";
+import { Card, CountedField, Field, Flash, PageHeader } from "@/components/molecules";
+import { SubmitButton } from "@/components/atoms";
 import { db, schema } from "@/db";
-import { getSiteUrl } from "@/lib/seo";
-import { DEFAULT_PAGES, PAGE_KEYS, PAGE_LABELS, type PageKey, type PageText } from "@/lib/settings";
+import { getSiteUrl } from "@/modules/seo/metadata";
+import { DEFAULT_PAGES, PAGE_KEYS, PAGE_LABELS, type PageKey, type PageText } from "@/modules/settings/queries";
 
-import { savePage } from "./actions";
+import { savePage } from "@/modules/settings/page-actions";
 
 export const metadata = { title: "متن و سئوی صفحات" };
 

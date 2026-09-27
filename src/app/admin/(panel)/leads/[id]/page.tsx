@@ -1,14 +1,15 @@
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
-import { ConfirmButton, SubmitButton } from "@/components/admin/client";
-import { Card, Flash, formatDate, PageHeader, Select } from "@/components/admin/ui";
+import { ConfirmButton, SubmitButton } from "@/components/atoms";
+import { Card, Flash, PageHeader, Select } from "@/components/molecules";
+import { formatDate } from "@/lib/utils";
 import { db, schema } from "@/db";
 import { LEAD_STATUSES } from "@/db/schema";
-import { SERVICE_CHOICE_LABELS } from "@/lib/content";
+import { SERVICE_CHOICE_LABELS } from "@/modules/leads/constants";
 
-import { deleteLead, updateLead } from "../actions";
-import { STATUS_LABELS } from "../status";
+import { deleteLead, updateLead } from "@/modules/leads/actions";
+import { STATUS_LABELS } from "@/modules/leads/status";
 
 export const metadata = { title: "جزئیات درخواست" };
 

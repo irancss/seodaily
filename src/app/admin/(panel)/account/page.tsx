@@ -1,8 +1,8 @@
-import { SubmitButton } from "@/components/admin/client";
-import { Card, Field, Flash, PageHeader } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { SubmitButton } from "@/components/atoms";
+import { Card, Field, Flash, PageHeader } from "@/components/molecules";
+import { requireAdmin } from "@/modules/auth/session";
 
-import { updateAccount } from "./actions";
+import { updateAccount } from "@/modules/auth/account-actions";
 
 export const metadata = { title: "حساب کاربری" };
 

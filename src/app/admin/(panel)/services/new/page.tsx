@@ -1,9 +1,9 @@
 import { asc } from "drizzle-orm";
 
-import { Flash, PageHeader } from "@/components/admin/ui";
+import { Flash, PageHeader } from "@/components/molecules";
 import { db, schema } from "@/db";
 
-import { ServiceForm } from "../service-form";
+import { ServiceForm } from "@/components/organisms";
 
 export const metadata = { title: "زیرخدمت جدید" };
 

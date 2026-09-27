@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 
-import { getAllPublishedServices, getPublishedProjects, projectHref, serviceHref } from "@/lib/data";
-import { getSiteUrl } from "@/lib/seo";
+import { getAllPublishedServices } from "@/modules/services/queries";
+import { getPublishedProjects } from "@/modules/projects/queries";
+import { projectHref } from "@/modules/projects/routes";
+import { serviceHref } from "@/modules/services/routes";
+import { getSiteUrl } from "@/modules/seo/metadata";
 
 export const dynamic = "force-dynamic";
 

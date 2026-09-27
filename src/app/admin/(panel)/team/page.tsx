@@ -1,11 +1,11 @@
 import { asc } from "drizzle-orm";
 
-import { ConfirmButton, SubmitButton } from "@/components/admin/client";
-import { Card, Checkbox, Field, Flash, ImageField, PageHeader } from "@/components/admin/ui";
+import { Checkbox, ConfirmButton, SubmitButton } from "@/components/atoms";
+import { Card, Field, Flash, ImageField, PageHeader } from "@/components/molecules";
 import { db, schema } from "@/db";
 import type { TeamMember } from "@/db/schema";
 
-import { deleteMember, saveMember } from "./actions";
+import { deleteMember, saveMember } from "@/modules/team/actions";
 
 export const metadata = { title: "تیم" };
 

@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { CtaSection } from "@/components/site/cta";
-import { FaqList } from "@/components/site/faq";
-import { ArrowBadge, Breadcrumb, BrowserFrame, ButtonLink, cx, GridBackdrop, HeroBadge, SectionHeading, stepNo, Visual } from "@/components/site/ui";
-import { decodeSlug, getCategory, getServiceBySlug, getServicesBySlugs, serviceHref } from "@/lib/data";
-import { breadcrumbJsonLd, buildMetadata, faqJsonLd, getSiteUrl } from "@/lib/seo";
+import { ArrowBadge, ButtonLink, GridBackdrop, HeroBadge, Icon, JsonLd } from "@/components/atoms";
+import { CtaSection, FaqList } from "@/components/organisms";
+import { Breadcrumb, BrowserFrame, SectionHeading, Visual } from "@/components/molecules";
+import { cx, stepNo } from "@/lib/utils";
+import { decodeSlug } from "@/lib/utils";
+import { getCategory, getServiceBySlug, getServicesBySlugs } from "@/modules/services/queries";
+import { serviceHref } from "@/modules/services/routes";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd, getSiteUrl } from "@/modules/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 

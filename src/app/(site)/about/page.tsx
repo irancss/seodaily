@@ -1,11 +1,10 @@
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { CtaSection } from "@/components/site/cta";
-import { SystemDiagram } from "@/components/site/mockups";
-import { ButtonLink, cx, HeroBadge, SectionHeading, stepNo } from "@/components/site/ui";
-import { getTeam } from "@/lib/data";
-import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/lib/seo";
-import { getPageText } from "@/lib/settings";
+import { ButtonLink, HeroBadge, Icon, JsonLd } from "@/components/atoms";
+import { CtaSection, SystemDiagram } from "@/components/organisms";
+import { cx, stepNo } from "@/lib/utils";
+import { SectionHeading } from "@/components/molecules";
+import { getTeam } from "@/modules/team/queries";
+import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
+import { getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("about", "/about");

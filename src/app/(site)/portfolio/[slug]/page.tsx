@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { CtaSection } from "@/components/site/cta";
-import { Breadcrumb, BrowserFrame, GridBackdrop, HeroBadge, stepNo, Visual } from "@/components/site/ui";
-import { decodeSlug, getProjectBySlug, projectHref } from "@/lib/data";
-import { breadcrumbJsonLd, buildMetadata, getSiteUrl } from "@/lib/seo";
+import { GridBackdrop, HeroBadge, Icon, JsonLd } from "@/components/atoms";
+import { CtaSection } from "@/components/organisms";
+import { Breadcrumb, BrowserFrame, Visual } from "@/components/molecules";
+import { stepNo } from "@/lib/utils";
+import { decodeSlug } from "@/lib/utils";
+import { getProjectBySlug } from "@/modules/projects/queries";
+import { projectHref } from "@/modules/projects/routes";
+import { breadcrumbJsonLd, buildMetadata, getSiteUrl } from "@/modules/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 

@@ -1,7 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { SESSION_COOKIE, sessionKey } from "@/lib/session-key";
+import { SESSION_COOKIE, sessionKey } from "@/modules/auth/session-key";
 
 // Optimistic check only: admin pages and actions verify the session again
 // against the database via requireAdmin().

@@ -1,14 +1,13 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { CtaSection } from "@/components/site/cta";
-import { FaqList } from "@/components/site/faq";
-import { SerpMockup } from "@/components/site/mockups";
-import { ButtonLink, cx, GridBackdrop, HeroBadge, IconTile, stepNo } from "@/components/site/ui";
-import { getFaqs, getServicesByCategory, serviceHref } from "@/lib/data";
-import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/lib/seo";
-import { getPageText } from "@/lib/settings";
+import { ButtonLink, GridBackdrop, HeroBadge, Icon, IconTile, JsonLd } from "@/components/atoms";
+import { CtaSection, FaqList, SerpMockup } from "@/components/organisms";
+import { cx, stepNo } from "@/lib/utils";
+import { getFaqs } from "@/modules/faqs/queries";
+import { getServicesByCategory } from "@/modules/services/queries";
+import { serviceHref } from "@/modules/services/routes";
+import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
+import { getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("seo", "/seo");

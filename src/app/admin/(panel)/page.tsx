@@ -1,12 +1,13 @@
 import { count, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 
-import { Badge, Card, formatDate, PageHeader } from "@/components/admin/ui";
-import { Icon, type IconName } from "@/components/icon";
+import { Badge, Icon, type IconName } from "@/components/atoms";
+import { Card, PageHeader } from "@/components/molecules";
+import { formatDate } from "@/lib/utils";
 import { db, schema } from "@/db";
-import { SERVICE_CHOICE_LABELS } from "@/lib/content";
+import { SERVICE_CHOICE_LABELS } from "@/modules/leads/constants";
 
-import { STATUS_LABELS, STATUS_TONES } from "./leads/status";
+import { STATUS_LABELS, STATUS_TONES } from "@/modules/leads/status";
 
 export const metadata = { title: "داشبورد" };
 

@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/modules/auth/session";
 
-import { LoginForm } from "./login-form";
+import { LoginForm } from "@/components/organisms";
 
 export const metadata = { title: "ورود" };
 

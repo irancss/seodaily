@@ -1,11 +1,11 @@
-import { Icon, type IconName } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { GridBackdrop, HeroBadge, SectionHeading, stepNo } from "@/components/site/ui";
+import { GridBackdrop, HeroBadge, Icon, type IconName, JsonLd } from "@/components/atoms";
+import { SectionHeading } from "@/components/molecules";
+import { stepNo } from "@/lib/utils";
 import { SERVICE_CHOICES } from "@/db/schema";
-import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/lib/seo";
-import { getContact, getGeneral, getPageText } from "@/lib/settings";
+import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
+import { getContact, getGeneral, getPageText } from "@/modules/settings/queries";
 
-import { ContactForm } from "./contact-form";
+import { ContactForm } from "@/components/organisms";
 
 export function generateMetadata() {
   return pageMetadata("contact", "/contact");

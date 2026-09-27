@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { CtaSection } from "@/components/site/cta";
-import { BrowserFrame, GridBackdrop, HeroBadge, stepNo, Visual } from "@/components/site/ui";
-import { getPublishedProjects, projectHref } from "@/lib/data";
-import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/lib/seo";
-import { getPageText } from "@/lib/settings";
+import { GridBackdrop, HeroBadge, Icon, JsonLd } from "@/components/atoms";
+import { CtaSection, PortfolioGrid } from "@/components/organisms";
+import { BrowserFrame, Visual } from "@/components/molecules";
+import { stepNo } from "@/lib/utils";
+import { getPublishedProjects } from "@/modules/projects/queries";
+import { projectHref } from "@/modules/projects/routes";
+import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
+import { getPageText } from "@/modules/settings/queries";
 
-import { PortfolioGrid } from "./portfolio-grid";
 
 export function generateMetadata() {
   return pageMetadata("portfolio", "/portfolio");

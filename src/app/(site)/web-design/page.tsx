@@ -1,15 +1,15 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { CtaSection } from "@/components/site/cta";
-import { FaqList } from "@/components/site/faq";
-import { ResponsiveFrames } from "@/components/site/mockups";
-import { ProjectCard } from "@/components/site/project-card";
-import { ArrowBadge, ButtonLink, cx, HeroBadge, IconTile, SectionHeading, stepNo } from "@/components/site/ui";
-import { getFaqs, getPublishedProjects, getServicesByCategory, serviceHref } from "@/lib/data";
-import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/lib/seo";
-import { getGeneral, getPageText } from "@/lib/settings";
+import { ArrowBadge, ButtonLink, HeroBadge, Icon, IconTile, JsonLd } from "@/components/atoms";
+import { CtaSection, FaqList, ResponsiveFrames } from "@/components/organisms";
+import { ProjectCard, SectionHeading } from "@/components/molecules";
+import { cx, stepNo } from "@/lib/utils";
+import { getFaqs } from "@/modules/faqs/queries";
+import { getPublishedProjects } from "@/modules/projects/queries";
+import { getServicesByCategory } from "@/modules/services/queries";
+import { serviceHref } from "@/modules/services/routes";
+import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
+import { getGeneral, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("web-design", "/web-design");

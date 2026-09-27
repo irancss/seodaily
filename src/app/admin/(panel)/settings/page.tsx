@@ -1,8 +1,9 @@
-import { Repeater, SubmitButton } from "@/components/admin/client";
-import { Card, Field, Flash, ImageField, PageHeader } from "@/components/admin/ui";
-import { getContact, getGeneral } from "@/lib/settings";
+import { Repeater } from "@/components/organisms";
+import { SubmitButton } from "@/components/atoms";
+import { Card, Field, Flash, ImageField, PageHeader } from "@/components/molecules";
+import { getContact, getGeneral } from "@/modules/settings/queries";
 
-import { saveContact, saveGeneral } from "./actions";
+import { saveContact, saveGeneral } from "@/modules/settings/actions";
 
 export const metadata = { title: "تنظیمات سایت" };
 

@@ -1,4 +1,4 @@
-import { ButtonLink, GridBackdrop } from "@/components/site/ui";
+import { ButtonLink, GridBackdrop } from "@/components/atoms";
 
 export default function NotFound() {
   return (

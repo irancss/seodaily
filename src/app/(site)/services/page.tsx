@@ -1,26 +1,16 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/icon";
-import { JsonLd } from "@/components/json-ld";
-import { FaqList } from "@/components/site/faq";
-import { DesignFrame, FormSketch, SeoFrame } from "@/components/site/mockups";
-import {
-  ArrowBadge,
-  Breadcrumb,
-  BrowserFrame,
-  ButtonLink,
-  cx,
-  GridBackdrop,
-  HeroBadge,
-  SectionHeading,
-  stepNo,
-  Visual,
-} from "@/components/site/ui";
+import { ArrowBadge, ButtonLink, GridBackdrop, HeroBadge, Icon, JsonLd } from "@/components/atoms";
+import { DesignFrame, FaqList, FormSketch, SeoFrame } from "@/components/organisms";
+import { Breadcrumb, BrowserFrame, SectionHeading, Visual } from "@/components/molecules";
+import { cx, stepNo } from "@/lib/utils";
 import type { Category, Service } from "@/db/schema";
-import { COLLAB_PROCESS } from "@/lib/content";
-import { getCategories, getFaqs, getServicesByCategory, serviceHref } from "@/lib/data";
-import { breadcrumbJsonLd, faqJsonLd, pageMetadata } from "@/lib/seo";
-import { getPageText } from "@/lib/settings";
+import { COLLAB_PROCESS } from "@/modules/services/content";
+import { getCategories, getServicesByCategory } from "@/modules/services/queries";
+import { getFaqs } from "@/modules/faqs/queries";
+import { serviceHref } from "@/modules/services/routes";
+import { breadcrumbJsonLd, faqJsonLd, pageMetadata } from "@/modules/seo/metadata";
+import { getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("services", "/services");

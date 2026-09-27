@@ -2,11 +2,11 @@ import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Flash, PageHeader } from "@/components/admin/ui";
+import { Flash, PageHeader } from "@/components/molecules";
 import { db, schema } from "@/db";
-import { serviceHref } from "@/lib/data";
+import { serviceHref } from "@/modules/services/routes";
 
-import { ServiceForm } from "../service-form";
+import { ServiceForm } from "@/components/organisms";
 
 export const metadata = { title: "ویرایش خدمت" };
 

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { getSiteUrl } from "@/lib/seo";
+import { getSiteUrl } from "@/modules/seo/metadata";
 
 export const dynamic = "force-dynamic";
 

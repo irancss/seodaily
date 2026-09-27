@@ -2,12 +2,12 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Flash, PageHeader } from "@/components/admin/ui";
+import { Flash, PageHeader } from "@/components/molecules";
 import { db, schema } from "@/db";
-import { projectHref } from "@/lib/data";
+import { projectHref } from "@/modules/projects/routes";
 
-import { ProjectForm } from "../project-form";
-import { projectTypes } from "../types";
+import { ProjectForm } from "@/components/organisms";
+import { projectTypes } from "@/modules/projects/types";
 
 export const metadata = { title: "ویرایش پروژه" };
 

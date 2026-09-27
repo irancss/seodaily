@@ -1,7 +1,7 @@
-import { Flash, PageHeader } from "@/components/admin/ui";
+import { Flash, PageHeader } from "@/components/molecules";
 
-import { ProjectForm } from "../project-form";
-import { projectTypes } from "../types";
+import { ProjectForm } from "@/components/organisms";
+import { projectTypes } from "@/modules/projects/types";
 
 export const metadata = { title: "پروژه جدید" };
 

@@ -1,13 +1,12 @@
 import { asc } from "drizzle-orm";
 import Link from "next/link";
 
-import { SubmitButton } from "@/components/admin/client";
-import { Badge, Card, EmptyState, Field, Flash, PageHeader } from "@/components/admin/ui";
-import { Icon } from "@/components/icon";
+import { Badge, EmptyState, Icon, SubmitButton } from "@/components/atoms";
+import { Card, Field, Flash, PageHeader } from "@/components/molecules";
 import { db, schema } from "@/db";
-import { serviceHref } from "@/lib/data";
+import { serviceHref } from "@/modules/services/routes";
 
-import { saveCategory } from "./actions";
+import { saveCategory } from "@/modules/services/actions";
 
 export const metadata = { title: "خدمات" };
 

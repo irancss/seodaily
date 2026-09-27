@@ -2,12 +2,12 @@ import { count, eq } from "drizzle-orm";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Icon } from "@/components/icon";
+import { Icon } from "@/components/atoms";
 import { db, schema } from "@/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/modules/auth/session";
 
-import { logout } from "../actions";
-import { AdminNav } from "./nav";
+import { logout } from "@/modules/auth/actions";
+import { AdminNav } from "@/components/organisms";
 
 export default async function PanelLayout({ children }: { children: ReactNode }) {
   const user = await requireAdmin();

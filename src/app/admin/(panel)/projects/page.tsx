@@ -1,10 +1,10 @@
 import { asc, desc } from "drizzle-orm";
 import Link from "next/link";
 
-import { Badge, EmptyState, Flash, PageHeader } from "@/components/admin/ui";
-import { Icon } from "@/components/icon";
+import { Badge, EmptyState, Icon } from "@/components/atoms";
+import { Flash, PageHeader } from "@/components/molecules";
 import { db, schema } from "@/db";
-import { projectHref } from "@/lib/data";
+import { projectHref } from "@/modules/projects/routes";
 
 export const metadata = { title: "نمونه‌کارها" };
 
