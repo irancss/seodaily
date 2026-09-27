@@ -2,20 +2,20 @@ import type { ReactNode } from "react";
 
 import { ButtonLink, Highlight, PhoneLink } from "@/components/atoms";
 import { cx, vars } from "@/lib/utils";
-import { getContact } from "@/modules/settings/queries";
 
 /**
  * Closing call-to-action: a dark panel with drifting glows, the main button
  * and the site's phone number. `light` is the soft-blue variant for pages that
  * already end on a dark section.
  */
-export async function CtaSection({
+export function CtaSection({
   title,
   text,
   eyebrow,
   button = "درخواست مشاوره",
   href = "/contact",
   secondary,
+  phone,
   tone = "dark",
   padTop = false,
 }: {
@@ -25,11 +25,12 @@ export async function CtaSection({
   button?: string;
   href?: string;
   secondary?: ReactNode;
+  /** Site phone (from the contact settings); shown as a second button. */
+  phone?: string;
   tone?: "dark" | "light";
   /** Panels that follow a white section need their own top spacing. */
   padTop?: boolean;
 }) {
-  const { phone } = await getContact();
   const dark = tone === "dark";
 
   return (

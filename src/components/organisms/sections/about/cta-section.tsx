@@ -4,12 +4,14 @@ import type { PageText } from "@/modules/settings/types";
 
 type Props = {
   text: PageText;
+  phone: string;
 };
 
-export function AboutCtaSection({ text }: Props) {
+export function AboutCtaSection({ text, phone }: Props) {
   return (
     // The team section above is white, so the panel brings its own top spacing.
     <CtaSection
+      phone={phone}
       padTop
       eyebrow="شروع همکاری"
       title={text.ctaTitle}

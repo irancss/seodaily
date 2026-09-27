@@ -9,7 +9,7 @@ import {
 } from "@/components/organisms/sections/about";
 import { plainText } from "@/lib/utils";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
-import { getPageText } from "@/modules/settings/queries";
+import { getContact, getPageText } from "@/modules/settings/queries";
 import { getTeam } from "@/modules/team/queries";
 
 export function generateMetadata() {
@@ -17,7 +17,7 @@ export function generateMetadata() {
 }
 
 export default async function AboutPage() {
-  const [text, team, base] = await Promise.all([getPageText("about"), getTeam(), getSiteUrl()]);
+  const [text, team, base, contact] = await Promise.all([getPageText("about"), getTeam(), getSiteUrl(), getContact()]);
 
   return (
     <>
@@ -37,7 +37,7 @@ export default async function AboutPage() {
       <AboutTeamSection team={team} />
 
       {/* 06 · cta */}
-      <AboutCtaSection text={text} />
+      <AboutCtaSection text={text} phone={contact.phone} />
 
       <JsonLd
         data={{

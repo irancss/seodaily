@@ -20,13 +20,15 @@ type Props = {
   related: ComponentProps<typeof ServiceRelatedSection>["related"];
   /** FAQPage structured data, rendered inside the FAQ section. */
   faqJsonLd: unknown;
+  /** Site phone for the closing call-to-action. */
+  phone: string;
 };
 
 const ORDER = ["problem", "includes", "process", "forWho", "deliverables", "faq", "related"] as const;
 type Block = (typeof ORDER)[number];
 
 /** SD05 service page: every section of the shared service template, in order. */
-export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd }: Props) {
+export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd, phone }: Props) {
   const present: Record<Block, boolean> = {
     problem: Boolean(service.problemIntro || service.problems.length > 0),
     includes: service.includes.length > 0,
@@ -77,7 +79,7 @@ export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd
       {present.related && <ServiceRelatedSection related={related} tone={tone.related} />}
 
       {/* 09 · cta */}
-      <ServiceCtaSection service={service} padTop={ctaPadTop} />
+      <ServiceCtaSection service={service} padTop={ctaPadTop} phone={phone} />
     </>
   );
 }

@@ -9,14 +9,19 @@ import { plainText } from "@/lib/utils";
 import { getPublishedProjects } from "@/modules/projects/queries";
 import { projectHref } from "@/modules/projects/routes";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
-import { getPageText } from "@/modules/settings/queries";
+import { getContact, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("portfolio", "/portfolio");
 }
 
 export default async function PortfolioPage() {
-  const [text, projects, base] = await Promise.all([getPageText("portfolio"), getPublishedProjects(), getSiteUrl()]);
+  const [text, projects, base, contact] = await Promise.all([
+    getPageText("portfolio"),
+    getPublishedProjects(),
+    getSiteUrl(),
+    getContact(),
+  ]);
   const caseStudy = projects.find((p) => p.isCaseStudy);
   const items = projects.map(({ id, slug, title, projectType, summary, imageUrl }) => ({
     id,
@@ -55,7 +60,7 @@ export default async function PortfolioPage() {
       {caseStudy && <PortfolioCaseStudySection caseStudy={caseStudy} />}
 
       {/* 05 · cta */}
-      <PortfolioCtaSection text={text} padTop={!caseStudy} />
+      <PortfolioCtaSection text={text} padTop={!caseStudy} phone={contact.phone} />
 
       <JsonLd data={listLd} />
       <JsonLd

@@ -7,6 +7,7 @@ import { decodeSlug } from "@/lib/utils";
 import { getProjectBySlug } from "@/modules/projects/queries";
 import { projectHref } from "@/modules/projects/routes";
 import { breadcrumbJsonLd, buildMetadata, getSiteUrl } from "@/modules/seo/metadata";
+import { getContact } from "@/modules/settings/queries";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -27,7 +28,7 @@ export default async function ProjectPage({ params }: Props) {
   const slug = decodeSlug((await params).slug);
   const project = await getProjectBySlug(slug);
   if (!project) notFound();
-  const base = await getSiteUrl();
+  const [base, contact] = await Promise.all([getSiteUrl(), getContact()]);
 
   const story = [
     ["مسئله", project.problem],
@@ -53,7 +54,7 @@ export default async function ProjectPage({ params }: Props) {
 
       {hasAbout && <ProjectAboutSection description={project.description} story={story} />}
 
-      <ProjectCtaSection padTop={hasAbout} />
+      <ProjectCtaSection padTop={hasAbout} phone={contact.phone} />
 
       <JsonLd data={ld} />
       <JsonLd

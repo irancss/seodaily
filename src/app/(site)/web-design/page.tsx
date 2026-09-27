@@ -15,20 +15,21 @@ import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/modules
 import { getServicesByCategory } from "@/modules/services/queries";
 import { serviceHref } from "@/modules/services/routes";
 import { PRINCIPLES } from "@/modules/pages/web-design-content";
-import { getGeneral, getPageText } from "@/modules/settings/queries";
+import { getContact, getGeneral, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("web-design", "/web-design");
 }
 
 export default async function WebDesignPage() {
-  const [text, general, types, projects, faqs, base] = await Promise.all([
+  const [text, general, types, projects, faqs, base, contact] = await Promise.all([
     getPageText("web-design"),
     getGeneral(),
     getServicesByCategory("web-design"),
     getPublishedProjects(),
     getFaqs("web-design"),
     getSiteUrl(),
+    getContact(),
   ]);
   const showcase = projects.filter((p) => p.category === "web-design").slice(0, 2);
   const serviceLd = {
@@ -59,6 +60,7 @@ export default async function WebDesignPage() {
       <WebDesignTechnologySection techOptions={general.techOptions} />
       {faqs.length > 0 && <WebDesignFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} />}
       <CtaSection
+        phone={contact.phone}
         padTop={faqs.length > 0}
         eyebrow="شروع پروژه"
         title={text.ctaTitle}

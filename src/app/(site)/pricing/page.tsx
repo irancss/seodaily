@@ -5,7 +5,7 @@ import { pricingJsonLd } from "@/modules/pricing/json-ld";
 import { getPricing } from "@/modules/pricing/queries";
 import { isPricingService } from "@/modules/pricing/types";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
-import { getPageText } from "@/modules/settings/queries";
+import { getContact, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("pricing", "/pricing");
@@ -14,14 +14,20 @@ export function generateMetadata() {
 type Props = { searchParams: Promise<{ service?: string }> };
 
 export default async function PricingPage({ searchParams }: Props) {
-  const [{ service }, text, pricing, base] = await Promise.all([searchParams, getPageText("pricing"), getPricing(), getSiteUrl()]);
+  const [{ service }, text, pricing, base, contact] = await Promise.all([
+    searchParams,
+    getPageText("pricing"),
+    getPricing(),
+    getSiteUrl(),
+    getContact(),
+  ]);
 
   return (
     <>
       <PricingHeroSection text={text} />
       <PricingServicesSection pricing={pricing} initial={isPricingService(service) ? service : "web-design"} />
       <PricingStepsSection />
-      <CtaSection padTop title={text.ctaTitle} text={text.ctaText} />
+      <CtaSection padTop phone={contact.phone} title={text.ctaTitle} text={text.ctaText} />
 
       <JsonLd data={pricingJsonLd(pricing, base)} />
       <JsonLd

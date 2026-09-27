@@ -12,18 +12,19 @@ import { getFaqs } from "@/modules/faqs/queries";
 import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
 import { getServicesByCategory } from "@/modules/services/queries";
 import { serviceHref } from "@/modules/services/routes";
-import { getPageText } from "@/modules/settings/queries";
+import { getContact, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
   return pageMetadata("seo", "/seo");
 }
 
 export default async function SeoPage() {
-  const [text, services, faqs, base] = await Promise.all([
+  const [text, services, faqs, base, contact] = await Promise.all([
     getPageText("seo"),
     getServicesByCategory("seo"),
     getFaqs("seo"),
     getSiteUrl(),
+    getContact(),
   ]);
   const technical = services.find((s) => s.slug === "technical-seo");
   const content = services.find((s) => s.slug === "content-strategy");
@@ -55,6 +56,7 @@ export default async function SeoPage() {
       <SeoExpectationsSection />
       {faqs.length > 0 && <SeoFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} />}
       <CtaSection
+        phone={contact.phone}
         padTop={faqs.length === 0}
         eyebrow="قدم اول"
         title={text.ctaTitle}

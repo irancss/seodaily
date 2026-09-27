@@ -61,7 +61,7 @@ export default async function HomePage() {
       <HomeProcessSection />
       {general.industries.length > 0 && <HomeIndustriesSection industries={general.industries} />}
       {faqs.length > 0 && <HomeFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} phone={contact.phone} />}
-      <HomeCtaSection text={text} />
+      <HomeCtaSection text={text} phone={contact.phone} />
     </>
   );
 }
