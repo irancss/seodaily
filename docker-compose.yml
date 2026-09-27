@@ -42,3 +42,13 @@ services:
 volumes:
   pgdata:
   uploads:
+
+# Own address range instead of Docker's default pools, which run out on
+# machines with many compose projects ("all predefined address pools have
+# been fully subnetted"). Change DOCKER_SUBNET in .env if it clashes with
+# your LAN or VPN.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${DOCKER_SUBNET:-10.203.77.0/24}

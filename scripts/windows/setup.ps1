@@ -138,7 +138,7 @@ if ($changed -or $running -notmatch "app") {
     Say "Building and starting containers (the first build takes a few minutes) ..." Cyan
     docker compose up -d --build
     if ($LASTEXITCODE -ne 0) {
-        throw "docker compose failed (see the output above). If images could not be downloaded, run again with -Mirror docker.arvancloud.ir; if the port is busy, use -Port 3001."
+        throw "docker compose failed (see the output above). If images could not be downloaded, run again with -Mirror docker.arvancloud.ir; if the port is busy, use -Port 3001; if a network or subnet clashes, set DOCKER_SUBNET in .env."
     }
 } else {
     Say "Already up to date and running." Green
