@@ -19,6 +19,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Windows scripts are ASCII-only (Windows PowerShell 5.1 reads them as ANSI)
+        run: "! grep -nP '[^\\x00-\\x7F]' scripts/windows/*.ps1"
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck

@@ -183,7 +183,7 @@ Write-Host "  Admin:  $url/admin"
 if ($newCredentials) {
     Write-Host "  Email:    $($newCredentials.Email)" -ForegroundColor Yellow
     Write-Host "  Password: $($newCredentials.Password)" -ForegroundColor Yellow
-    Write-Host "  (also stored in $envFile — change it in the admin panel under «حساب کاربری»)"
+    Write-Host "  (also stored in $envFile - change it in the admin panel under Account)"
 } else {
     Write-Host "  Login: ADMIN_EMAIL / ADMIN_PASSWORD from $envFile (only used when the first admin was created)"
 }
