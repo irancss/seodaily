@@ -95,7 +95,17 @@ Set-Location $Path
 # ---------------------------------------------------------------- .env
 $envFile = Join-Path $Path ".env"
 $newCredentials = $null
+$project = if ($env:COMPOSE_PROJECT_NAME) { $env:COMPOSE_PROJECT_NAME } else { "seodaily" }
 if (-not (Test-Path $envFile)) {
+    # A new random database password would not match an existing database.
+    $existing = docker volume ls -q --filter "name=^${project}_pgdata$"
+    if ($existing) {
+        throw @"
+.env is missing but the database volume '${project}_pgdata' already exists.
+Restore your previous .env into $Path, or delete the old data and start fresh with:
+  docker compose -p $project down -v
+"@
+    }
     $alnum = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
     $adminPassword = New-RandomString 14 $alnum
     $content = @(
