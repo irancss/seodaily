@@ -254,69 +254,144 @@ docker compose down        # حذف کانتینرها (داده‌ها در vol
 
 ## استقرار روی سرور
 
-روی سرور هم همان مراحل [راه‌اندازی سریع](#راهاندازی-سریع-با-docker) را انجام دهید، با این تفاوت‌ها در `.env`:
+با هر push روی شاخه `main`، ‏GitHub Actions (فایل `.github/workflows/deploy.yml`) این کارها را انجام می‌دهد:
 
-```ini
-SITE_URL=https://example.com
-COOKIE_SECURE=true
-# سایت فقط از طریق reverse proxy در دسترس باشد، نه مستقیم از اینترنت:
-APP_PORT=127.0.0.1:3000
-```
+1. lint، typecheck و build را اجرا می‌کند؛ اگر خطا باشد چیزی روی سرور عوض نمی‌شود.
+2. ایمیج Docker را **روی سرورهای GitHub** می‌سازد و از طریق SSH به سرور شما می‌فرستد. سرور به Docker Hub یا npm نیازی ندارد، که برای سرورهای داخل ایران مهم است.
+3. فایل `deploy/docker-compose.prod.yml` را در `/opt/seodaily/docker-compose.yml` کپی می‌کند، نسخهٔ جدید را بالا می‌آورد و تا سالم شدن `/api/health` صبر می‌کند.
+4. پنج نسخهٔ آخر را برای بازگشت نگه می‌دارد.
 
-### reverse proxy با HTTPS (nginx)
+برنامه فقط روی `127.0.0.1:3000` سرور گوش می‌دهد و وب‌سرور فعلی شما (nginx یا Apache) دامنه را به آن می‌فرستد، پس سایت‌های دیگر سرور دست نمی‌خورند.
 
-برنامه را پشت nginx (یا Caddy/Traefik) با گواهی SSL اجرا کنید. نمونه تنظیم nginx:
-
-```nginx
-server {
-    listen 80;
-    server_name example.com www.example.com;
-    return 301 https://example.com$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name example.com;
-
-    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-
-    # آپلود تصویر تا ۵ مگابایت + فیلدهای فرم
-    client_max_body_size 10m;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host              $host;
-        proxy_set_header X-Real-IP         $remote_addr;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-- گواهی رایگان: `sudo certbot --nginx -d example.com -d www.example.com`
-- هدر `Host` برای کار کردن فرم‌ها (Server Actions) و هدر `X-Forwarded-For` برای محدودیت ارسال فرم بر اساس IP واقعی بازدیدکننده لازم است.
-- اگر `APP_PORT` را عوض کرده‌اید، پورت `proxy_pass` را هم عوض کنید.
-
-### به‌روزرسانی
-
-لینوکس:
+### ۱) روی سرور: نصب Docker
 
 ```bash
-cd ~/seodaily
-git pull && docker compose up -d --build
+docker --version && docker compose version
 ```
 
-ویندوز (PowerShell):
+اگر نصب نیست (در سرورهای ایران `download.docker.com` معمولاً مسدود است؛ از بسته‌های اوبونتو استفاده کنید):
 
-```powershell
-cd C:\cloude\seodaily
-git pull
-docker compose up -d --build
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-v2
+sudo systemctl enable --now docker
 ```
 
-مایگریشن‌های جدید هنگام بالا آمدن برنامه خودکار اعمال می‌شوند و داده‌ها و تصاویر در volume‌ها باقی می‌مانند. برای پاک کردن ایمیج‌های قدیمی: `docker image prune -f`. پیش از به‌روزرسانی‌های مهم [پشتیبان بگیرید](#پشتیبانگیری-و-بازیابی).
+### ۲) روی سرور: کاربر deploy و کلید SSH
+
+```bash
+sudo adduser --disabled-password --gecos "" deploy
+sudo usermod -aG docker deploy
+sudo mkdir -p /opt/seodaily && sudo chown deploy:deploy /opt/seodaily
+
+# یک کلید مخصوص GitHub Actions بسازید
+sudo -u deploy ssh-keygen -t ed25519 -N "" -f /home/deploy/.ssh/github_actions -C "github-actions"
+sudo -u deploy sh -c 'cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
+
+# این خروجی را کپی کنید (برای مرحله ۴) و بعد فایل کلید خصوصی را پاک کنید
+sudo cat /home/deploy/.ssh/github_actions
+sudo rm /home/deploy/.ssh/github_actions
+
+# برای مرحله ۴ (اثر انگشت سرور)
+ssh-keyscan -p 22 localhost 2>/dev/null | sed "s/^localhost/YOUR_SERVER_IP/"
+```
+
+در دستور آخر `YOUR_SERVER_IP` را با IP یا دامنهٔ سرور عوض کنید (همان مقداری که در `DEPLOY_HOST` می‌گذارید). اگر SSH روی پورت دیگری است، `-p 22` را عوض کنید.
+
+### ۳) روی سرور: فایل `.env`
+
+```bash
+sudo -u deploy nano /opt/seodaily/.env
+sudo chmod 600 /opt/seodaily/.env
+```
+
+محتوا را از `.env.production.example` بردارید و پر کنید (`SESSION_SECRET` با `openssl rand -base64 48`، رمز دیتابیس فقط حروف و عدد، `SITE_URL=https://seodaily.ir`). اگر پورت ۳۰۰۰ روی سرور اشغال است، `APP_PORT` را عوض کنید و همان را در تنظیم وب‌سرور بگذارید.
+
+### ۴) در GitHub: تعریف Secretها
+
+در `github.com/irancss/seodaily` ← **Settings ← Secrets and variables ← Actions ← New repository secret**:
+
+| نام | مقدار |
+| --- | --- |
+| `DEPLOY_HOST` | IP یا دامنهٔ سرور |
+| `DEPLOY_USER` | `deploy` |
+| `DEPLOY_SSH_KEY` | کل کلید خصوصی مرحله ۲ (از `-----BEGIN` تا `END-----`) |
+| `DEPLOY_KNOWN_HOSTS` | خروجی دستور `ssh-keyscan` مرحله ۲ (پیشنهادی) |
+| `DEPLOY_PORT` | فقط اگر SSH روی پورتی غیر از ۲۲ است |
+| `DEPLOY_PATH` | فقط اگر مسیری غیر از `/opt/seodaily` می‌خواهید |
+
+تا وقتی این Secretها تعریف نشده‌اند، مرحلهٔ deploy با یک هشدار رد می‌شود و خطا نمی‌دهد.
+
+### ۵) اولین استقرار
+
+در GitHub ← **Actions ← CI / Deploy ← Run workflow** (یا یک push روی `main`). بعد از سبز شدن، روی سرور:
+
+```bash
+curl -I http://127.0.0.1:3000
+cd /opt/seodaily && docker compose ps
+```
+
+### ۶) پشتیبان از وردپرس فعلی (قبل از حذف)
+
+```bash
+mkdir -p ~/wp-backup && cd ~/wp-backup
+# مسیر و نام دیتابیس را از wp-config.php بردارید
+sudo tar czf wp-files.tgz -C /var/www seodaily.ir
+mysqldump -u root -p WORDPRESS_DB_NAME > wp-db.sql
+```
+
+### ۷) وصل کردن دامنه به نسخهٔ جدید
+
+**nginx:** تنظیم فعلی وردپرس برای seodaily.ir را پیدا کنید (`grep -rl seodaily.ir /etc/nginx/`) و محتوای آن را با `deploy/nginx-seodaily.ir.conf` جایگزین کنید (اگر بلاک `listen 443` و مسیر گواهی‌های certbot در فایل قبلی هست، همان‌ها را نگه دارید و فقط `root`/`location`های PHP را با بلاک `location /` این فایل عوض کنید). بعد:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d seodaily.ir -d www.seodaily.ir   # اگر SSL از قبل ندارید
+```
+
+**Apache:** vhost فعلی (`grep -rl seodaily.ir /etc/apache2/`) را با `deploy/apache-seodaily.ir.conf` جایگزین کنید:
+
+```bash
+sudo a2enmod proxy proxy_http headers
+sudo apachectl configtest && sudo systemctl reload apache2
+sudo certbot --apache -d seodaily.ir -d www.seodaily.ir
+```
+
+با HTTPS روی Apache، در vhost پورت ۴۴۳ مقدار `RequestHeader set X-Forwarded-Proto "https"` را بگذارید.
+
+حالا `https://seodaily.ir` سایت جدید را نشان می‌دهد. وارد `/admin` شوید، رمز مدیر را از «حساب کاربری» عوض کنید و در «تنظیمات سایت» آدرس سایت، اطلاعات تماس و کد Search Console را وارد کنید.
+
+### ۸) حذف وردپرس
+
+بعد از این‌که مطمئن شدید سایت جدید درست کار می‌کند:
+
+```bash
+sudo rm -rf /var/www/seodaily.ir            # مسیر فایل‌های وردپرس
+mysql -u root -p -e "DROP DATABASE WORDPRESS_DB_NAME; DROP USER 'WORDPRESS_DB_USER'@'localhost';"
+```
+
+(فایل‌های PHP-FPM یا تنظیمات دیگری که فقط برای این سایت ساخته شده بودند را هم می‌توانید حذف کنید.)
+
+### بازگشت به نسخهٔ قبلی
+
+```bash
+cd /opt/seodaily
+docker images seodaily                        # تگ‌های نسخه‌های قبلی (شناسهٔ commit)
+docker tag seodaily:<TAG> seodaily:latest && docker compose up -d
+```
+
+یا در GitHub همان commit قبلی را revert و push کنید.
+
+### استقرار دستی (بدون GitHub Actions)
+
+روی یک سیستم با اینترنت آزاد:
+
+```bash
+docker build -t seodaily:latest .
+docker save seodaily:latest | gzip | ssh deploy@SERVER 'gunzip | docker load'
+scp deploy/docker-compose.prod.yml deploy@SERVER:/opt/seodaily/docker-compose.yml
+ssh deploy@SERVER 'cd /opt/seodaily && docker compose up -d'
+```
 
 ---
 
@@ -371,16 +446,18 @@ docker compose start app
 
 ### پشتیبان تصاویر آپلودشده
 
+(از خود ایمیج سایت استفاده می‌شود تا روی سرور به دانلود ایمیج دیگری نیاز نباشد. برای بازیابی تصاویر روی سیستم خودتان، ایمیج باید یک بار ساخته شده باشد.)
+
 لینوکس / مک:
 
 ```bash
-docker run --rm -v seodaily_uploads:/data -v "$PWD":/backup alpine tar czf /backup/uploads.tgz -C /data .
+docker run --rm -u 0 --entrypoint tar -v seodaily_uploads:/data -v "$PWD":/backup seodaily:latest czf /backup/uploads.tgz -C /data .
 ```
 
 ویندوز (PowerShell):
 
 ```powershell
-docker run --rm -v seodaily_uploads:/data -v "${PWD}:/backup" alpine tar czf /backup/uploads.tgz -C /data .
+docker run --rm -u 0 --entrypoint tar -v seodaily_uploads:/data -v "${PWD}:/backup" seodaily:latest czf /backup/uploads.tgz -C /data .
 ```
 
 ### بازیابی تصاویر
@@ -388,7 +465,7 @@ docker run --rm -v seodaily_uploads:/data -v "${PWD}:/backup" alpine tar czf /ba
 لینوکس / مک (در PowerShell به‌جای `"$PWD":/backup` بنویسید `"${PWD}:/backup"`):
 
 ```bash
-docker run --rm -v seodaily_uploads:/data -v "$PWD":/backup alpine tar xzf /backup/uploads.tgz -C /data
+docker run --rm -u 0 --entrypoint tar -v seodaily_uploads:/data -v "$PWD":/backup seodaily:latest xzf /backup/uploads.tgz -C /data
 ```
 
 فایل‌های `seodaily.dump` و `uploads.tgz` را در جایی خارج از سرور (فضای ابری یا دیسک دیگر) نگه دارید. دیتابیس و تصاویر با هم معنی دارند، پس هر دو را همزمان پشتیبان بگیرید.

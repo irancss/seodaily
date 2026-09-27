@@ -1,0 +1,43 @@
+# Production stack. The deploy workflow copies this file to the server as
+# $DEPLOY_PATH/docker-compose.yml and loads the app image over SSH, so the
+# server never has to reach Docker Hub or npm.
+services:
+  db:
+    image: postgres:16-alpine
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-seodaily}
+      POSTGRES_USER: ${POSTGRES_USER:-seodaily}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: seodaily:latest
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-seodaily}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-seodaily}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env (at least 32 characters)}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env, e.g. https://seodaily.ir}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    # Only reachable from this machine; nginx/Apache proxies the domain to it.
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  uploads:

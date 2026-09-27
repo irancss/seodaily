@@ -7,5 +7,7 @@ node_modules
 uploads
 npm-debug.log*
 Dockerfile
+.github
+deploy
 docker-compose*.yml
 README.md
