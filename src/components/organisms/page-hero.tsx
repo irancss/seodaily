@@ -73,11 +73,11 @@ export function PageHero({
                 {badge}
               </span>
             )}
-            <h1 className={cx("t-h1 animate-in max-w-[860px]", badge && "mt-4 lg:mt-6")} style={vars({ i: 1 })}>
+            <h1 className={cx("t-h1 animate-rise max-w-[860px]", badge && "mt-4 lg:mt-6")} style={vars({ i: 1 })}>
               {typeof title === "string" ? <Highlight text={title} /> : title}
             </h1>
             {subtitle && (
-              <p className="body-lg animate-in mt-4 max-w-[680px] lg:mt-6" style={vars({ i: 2 })}>
+              <p className="body-lg animate-rise mt-4 max-w-[680px] lg:mt-6" style={vars({ i: 2 })}>
                 {subtitle}
               </p>
             )}

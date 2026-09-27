@@ -887,6 +887,16 @@
     opacity: 1;
   }
 }
+/* Movement only: the hero title/subtitle are the LCP element, and an element
+   that starts fully transparent only counts as painted once it fades in. */
+@keyframes rise {
+  from {
+    transform: translateY(18px);
+  }
+  to {
+    transform: none;
+  }
+}
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -1019,6 +1029,10 @@
   /* "backwards" so the effect lets go afterwards and hover transforms still apply. */
   .animate-in {
     animation: fade-up 0.8s var(--ease-out) backwards;
+    animation-delay: calc(var(--i, 0) * 90ms);
+  }
+  .animate-rise {
+    animation: rise 0.8s var(--ease-out) backwards;
     animation-delay: calc(var(--i, 0) * 90ms);
   }
   .animate-scale {
@@ -1341,6 +1355,7 @@
 /* Printed pages show everything in its final state. */
 @media print {
   .animate-in,
+  .animate-rise,
   .animate-scale,
   .reveal,
   .reveal-scale,

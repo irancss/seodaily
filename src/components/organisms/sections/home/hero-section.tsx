@@ -26,7 +26,7 @@ export function HomeHeroSection({ text, heroImage, audiences, phone }: Props) {
             <span aria-hidden="true" className="live-dot" />
             {text.badge}
           </span>
-          <h1 className="t-display animate-in mt-5 lg:mt-6" style={vars({ i: 1 })}>
+          <h1 className="t-display animate-rise mt-5 lg:mt-6" style={vars({ i: 1 })}>
             <Highlight text={text.title} />
           </h1>
           {audiences.length > 0 && (
@@ -34,7 +34,7 @@ export function HomeHeroSection({ text, heroImage, audiences, phone }: Props) {
               طراحی سایت و سئو برای <WordRotator words={audiences} className="text-white" />
             </p>
           )}
-          <p className="body-lg animate-in mt-4 max-w-[580px] lg:mt-5" style={vars({ i: 3 })}>
+          <p className="body-lg animate-rise mt-4 max-w-[580px] lg:mt-5" style={vars({ i: 3 })}>
             {text.subtitle}
           </p>
           <div className="animate-in mt-7 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center lg:mt-9" style={vars({ i: 4 })}>
