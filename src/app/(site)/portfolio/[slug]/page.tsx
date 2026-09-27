@@ -34,6 +34,7 @@ export default async function ProjectPage({ params }: Props) {
     ["راهکار", project.solution],
     ["نتیجه", project.result],
   ].filter(([, body]) => body);
+  const hasAbout = Boolean(project.description || story.length > 0);
 
   const ld = {
     "@context": "https://schema.org",
@@ -50,9 +51,9 @@ export default async function ProjectPage({ params }: Props) {
     <>
       <ProjectHeroSection project={project} />
 
-      {(project.description || story.length > 0) && <ProjectAboutSection description={project.description} story={story} />}
+      {hasAbout && <ProjectAboutSection description={project.description} story={story} />}
 
-      <ProjectCtaSection />
+      <ProjectCtaSection padTop={hasAbout} />
 
       <JsonLd data={ld} />
       <JsonLd

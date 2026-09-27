@@ -3,7 +3,6 @@ import Link from "next/link";
 import { BrandMark } from "@/components/atoms/brand-mark";
 import { Icon } from "@/components/atoms/icon";
 import { formatPhone, phoneE164 } from "@/lib/utils";
-import { PENDING } from "@/modules/pages/contact-content";
 import type { ContactSettings, GeneralSettings } from "@/modules/settings/types";
 
 const SERVICE_LINKS = [
@@ -52,7 +51,7 @@ export function SiteFooter({ general, contact }: { general: GeneralSettings; con
           <BrandMark name={general.siteName} inverse />
           <p className="max-w-[360px] text-sm leading-[1.9] text-inverse-muted">{general.footerDescription}</p>
           <Link href="/contact" className="btn btn-glass h-11 px-5 text-sm">
-            درخواست مشاوره رایگان
+            درخواست مشاوره
             <Icon name="arrow-left" size={18} />
           </Link>
         </div>
@@ -80,22 +79,24 @@ export function SiteFooter({ general, contact }: { general: GeneralSettings; con
               </span>
             </a>
           ) : null}
-          <ul className="flex flex-col gap-2 text-sm leading-[1.8] text-inverse-muted">
-            <li className="flex items-start gap-2">
-              <Icon name="mail" size={18} className="mt-0.5 shrink-0 text-cyan-300" />
-              {contact.email ? (
-                <a href={`mailto:${contact.email}`} dir="ltr" className="text-inverse-muted no-underline hover:text-white">
-                  {contact.email}
-                </a>
-              ) : (
-                <span>ایمیل: {PENDING}</span>
+          {(contact.email || contact.address) && (
+            <ul className="flex flex-col gap-2 text-sm leading-[1.8] text-inverse-muted">
+              {contact.email && (
+                <li className="flex items-start gap-2">
+                  <Icon name="mail" size={18} className="mt-0.5 shrink-0 text-cyan-300" />
+                  <a href={`mailto:${contact.email}`} dir="ltr" className="text-inverse-muted no-underline hover:text-white">
+                    {contact.email}
+                  </a>
+                </li>
               )}
-            </li>
-            <li className="flex items-start gap-2">
-              <Icon name="pin" size={18} className="mt-0.5 shrink-0 text-cyan-300" />
-              <span>{contact.address || `آدرس: ${PENDING}`}</span>
-            </li>
-          </ul>
+              {contact.address && (
+                <li className="flex items-start gap-2">
+                  <Icon name="pin" size={18} className="mt-0.5 shrink-0 text-cyan-300" />
+                  <span>{contact.address}</span>
+                </li>
+              )}
+            </ul>
+          )}
           {contact.socials.length > 0 && (
             <ul className="flex flex-wrap gap-2">
               {contact.socials.map((s) => (

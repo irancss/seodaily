@@ -7,3 +7,4 @@ export * from "./includes-section";
 export * from "./problem-section";
 export * from "./process-section";
 export * from "./related-section";
+export * from "./tone";

@@ -1,9 +1,9 @@
 // Decorative skeleton illustrations from the design. All aria-hidden unless
-// they carry a label.
+// they carry a label. The website mockups are white "screens" meant to sit in
+// a glass frame (`frame-glass`) on the dark page heroes.
 
-import { Dots, Icon, PlaceholderChip } from "@/components/atoms";
+import { Dots, Icon } from "@/components/atoms";
 
-import { BrowserFrame } from "@/components/molecules";
 import { cx } from "@/lib/utils";
 
 function Bar({ w, h = 8, strong = false, brand = false, className }: { w: string | number; h?: number; strong?: boolean; brand?: boolean; className?: string }) {
@@ -19,171 +19,272 @@ function Bar({ w, h = 8, strong = false, brand = false, className }: { w: string
   );
 }
 
-function GridBox({ className, size = 24 }: { className?: string; size?: number }) {
-  return <span className={cx("grid-bg block bg-soft", className)} style={{ ["--grid" as string]: `${size}px` }} />;
+const LINE_TONES = {
+  line: "bg-line",
+  strong: "bg-line-strong",
+  ink: "bg-ink/80",
+  brand: "bg-brand",
+  tint: "bg-brand/20",
+  white: "bg-white",
+  "white-soft": "bg-white/60",
+  gradient: "bg-gradient-to-l from-brand to-brand-decorative",
+};
+
+/** Skeleton text line of the website mockups. */
+function Line({ w, h = 6, tone = "line", className }: { w: string | number; h?: number; tone?: keyof typeof LINE_TONES; className?: string }) {
+  return <span className={cx("block shrink-0 rounded-full", LINE_TONES[tone], className)} style={{ width: w, height: h }} />;
 }
 
-/** Services page, web design block. */
+/** Window chrome of the mockups: dots and an address pill. */
+function WindowBar({ url }: { url?: string }) {
+  return (
+    <div className="flex h-8 shrink-0 items-center gap-3 border-b border-line bg-page px-3 lg:h-9">
+      <Dots size={8} />
+      <span
+        dir="ltr"
+        className="flex h-5 min-w-0 grow items-center overflow-hidden rounded-full border border-line bg-white px-2.5 text-[11px] leading-none whitespace-nowrap text-muted"
+      >
+        {url}
+      </span>
+    </div>
+  );
+}
+
+/** Stylised photo: a sun over two hills. */
+function PictureBlock({ className }: { className?: string }) {
+  return (
+    <span className={cx("relative block overflow-hidden rounded-md bg-gradient-to-b from-sky-100 to-white", className)}>
+      <span className="absolute top-[16%] left-[20%] size-4 rounded-full bg-brand-decorative/70 lg:size-5" />
+      <span className="absolute inset-x-0 bottom-0 h-[64%] bg-brand/25 [clip-path:polygon(0_100%,0_58%,28%_18%,56%_62%,74%_40%,100%_72%,100%_100%)]" />
+      <span className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-l from-brand to-brand-decorative [clip-path:polygon(0_100%,0_72%,24%_42%,50%_82%,74%_30%,100%_66%,100%_100%)]" />
+    </span>
+  );
+}
+
+/** A company website (menu, hero, feature cards): the web design half of the services hero. */
 export function DesignFrame() {
   return (
-    <BrowserFrame shadow="sm" className="w-full">
-      <div className="grid-bg relative flex h-[300px] flex-col gap-5 bg-page p-6 lg:h-[480px]" style={{ ["--grid" as string]: "32px" }}>
-        <div aria-hidden="true" className="flex items-center justify-between">
-          <Bar w={88} h={12} strong />
-          <span className="flex gap-3"><Bar w={40} strong /><Bar w={40} strong /><Bar w={40} strong /></span>
-        </div>
-        <div aria-hidden="true" className="flex h-[140px] flex-col gap-3 rounded-md border border-line bg-white p-7 lg:h-[200px]">
-          <Bar w="60%" h={16} strong />
-          <Bar w="45%" h={16} strong />
-          <Bar w="75%" className="mt-2" />
-          <Bar w="65%" className="hidden lg:block" />
-        </div>
-        <div aria-hidden="true" className="grid grow grid-cols-3 gap-4">
-          <span className="rounded-md border border-line bg-white" />
-          <span className="rounded-md border border-line bg-white" />
-          <span className="rounded-md border border-line bg-white" />
-        </div>
-        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <PlaceholderChip icon>جای تصویر نمونه</PlaceholderChip>
-        </span>
-      </div>
-    </BrowserFrame>
-  );
-}
-
-/** Services page, SEO block: abstract search results. */
-export function SeoFrame() {
-  return (
-    <BrowserFrame shadow="sm" className="w-full">
-      <div className="grid-bg relative flex h-[300px] flex-col gap-4 bg-soft p-6 lg:h-[480px]" style={{ ["--grid" as string]: "32px" }}>
-        <div aria-hidden="true" className="flex h-12 items-center gap-3 rounded-full border border-line bg-white px-5 text-muted">
-          <Icon name="search" size={18} />
-          <Bar w="40%" strong />
-        </div>
-        {[0.65, 0.55, 0.6].map((w, i) => (
-          <div key={i} aria-hidden="true" className={cx("flex flex-col gap-2.5 rounded-md border border-line bg-white p-5", i === 2 && "hidden lg:flex")}>
-            <Bar w="30%" h={6} />
-            <Bar w={`${w * 100}%`} h={12} brand={i === 0} strong={i !== 0} />
-            <Bar w="90%" h={6} />
-          </div>
-        ))}
-        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <PlaceholderChip icon>جای تصویر نمونه</PlaceholderChip>
-        </span>
-      </div>
-    </BrowserFrame>
-  );
-}
-
-/** Services CTA: a sketch of the consultation form. */
-export function FormSketch() {
-  return (
-    <div aria-hidden="true" className="overflow-hidden rounded-md border border-line bg-page">
-      <div className="flex h-7 items-center gap-1.5 border-b border-line px-2.5 lg:h-9 lg:px-3.5">
-        <Dots size={8} />
-      </div>
-      {/* Mobile shows a short strip: one field and the button. */}
-      <div className="grid-bg flex h-24 flex-col gap-2 p-4 [--grid:16px] lg:h-60 lg:gap-2.5 lg:p-7 lg:[--grid:24px]">
-        <Bar w={72} strong className="hidden lg:block" />
-        <span className="block h-7 rounded-sm border border-line bg-white lg:h-9" />
-        <Bar w={96} strong className="mt-1.5 hidden lg:block" />
-        <span className="hidden h-9 rounded-sm border border-line bg-white lg:block" />
-        <span className="mt-auto block h-7 w-24 rounded-sm bg-brand/25 lg:h-9 lg:w-[120px]" />
-      </div>
-    </div>
-  );
-}
-
-/** Web design hero: desktop + mobile frames on a grid panel. */
-export function ResponsiveFrames() {
-  return (
-    <div className="grid-bg relative rounded-xl border border-line bg-soft p-4 [--grid:24px] lg:p-8 lg:[--grid:32px]">
-      <div className="flex items-end gap-3 lg:gap-6">
-        <div className="relative min-w-0 grow overflow-hidden rounded-md border border-line bg-white shadow-md">
-          <div className="flex h-7 items-center gap-3 border-b border-line bg-page px-2.5 lg:h-9 lg:px-3">
-            <Dots size={8} />
-            <div dir="ltr" className="hidden h-[22px] grow items-center rounded-full border border-line bg-white px-2.5 text-sm text-muted sm:flex">
-              www.example.com
-            </div>
-          </div>
-          <div aria-hidden="true" className="flex h-[150px] flex-col gap-2.5 p-3 lg:h-[280px] lg:gap-4 lg:p-5">
-            <div className="flex items-center justify-between">
-              <Bar w={72} h={10} strong />
-              <span className="hidden gap-2.5 sm:flex"><Bar w={32} h={6} /><Bar w={32} h={6} /><Bar w={32} h={6} /></span>
-            </div>
-            <div className="grid grid-cols-2 items-center gap-5">
-              <div className="flex flex-col gap-2.5">
-                <Bar w="90%" h={12} strong />
-                <Bar w="65%" h={12} strong />
-                <Bar w="95%" h={6} className="mt-1.5" />
-                <span className="mt-1.5 block h-[22px] w-20 rounded-sm bg-brand/25" />
-              </div>
-              <GridBox className="h-14 rounded-sm lg:h-[120px]" size={20} />
-            </div>
-            <div className="grid grow grid-cols-3 gap-3">
-              <span className="rounded-sm border border-line bg-page" />
-              <span className="rounded-sm border border-line bg-page" />
-              <span className="rounded-sm border border-line bg-page" />
-            </div>
-          </div>
-          <span className="absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <PlaceholderChip icon>جای تصویر پروژه واقعی</PlaceholderChip>
+    <div aria-hidden="true" className="overflow-hidden rounded-xl bg-white">
+      <WindowBar url="www.your-brand.ir" />
+      <div className="flex flex-col gap-3 p-3.5 lg:gap-4 lg:p-5">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <span className="icon-gradient size-5 rounded-md shadow-none" />
+            <Line w={52} h={8} tone="strong" />
+          </span>
+          <span className="flex items-center gap-2.5">
+            <Line w={24} className="hidden sm:block" />
+            <Line w={24} className="hidden sm:block" />
+            <Line w={24} className="hidden sm:block" />
+            <span className="block h-5 w-12 rounded-md bg-brand" />
           </span>
         </div>
-        <div aria-hidden="true" className="h-[176px] w-[88px] shrink-0 rounded-[16px] border border-line bg-white p-[5px] shadow-md lg:h-[288px] lg:w-36 lg:rounded-xl lg:p-2">
-          <div className="flex h-full flex-col gap-1.5 rounded-[12px] border border-line bg-white px-1.5 py-2 lg:gap-2 lg:rounded-[16px] lg:px-2.5 lg:py-3">
-            <span className="flex items-center justify-between"><Bar w={40} strong /><span className="block h-2 w-3.5 rounded-[2px] bg-line" /></span>
-            <Bar w="90%" strong className="mt-1" />
-            <Bar w="60%" strong />
-            <Bar w="85%" h={5} />
-            <span className="block h-[18px] w-full rounded-[6px] bg-brand/25" />
-            <GridBox className="h-10 w-full rounded-sm lg:h-16" size={12} />
-            <span className="block w-full grow rounded-sm border border-line bg-page" />
+        <div className="grid grid-cols-[1.15fr_1fr] items-center gap-4 rounded-lg bg-soft p-3.5 lg:p-4">
+          <div className="flex flex-col gap-2">
+            <Line w="94%" h={9} tone="ink" />
+            <Line w="62%" h={9} tone="gradient" />
+            <Line w="96%" h={5} className="mt-1" />
+            <Line w="78%" h={5} />
+            <span className="mt-2 flex gap-1.5">
+              <span className="block h-6 w-16 rounded-md bg-brand" />
+              <span className="block h-6 w-12 rounded-md border border-line-strong bg-white" />
+            </span>
           </div>
+          <PictureBlock className="h-24 lg:h-28" />
         </div>
-      </div>
-      <div className="mt-3 flex gap-3 text-sm leading-[1.7] font-medium text-muted lg:mt-4 lg:gap-6">
-        <span className="inline-flex grow items-center justify-center gap-2"><Icon name="desktop" size={16} />نمای دسکتاپ</span>
-        <span className="inline-flex w-[88px] shrink-0 items-center justify-center gap-2 lg:w-36"><Icon name="mobile" size={16} />نمای موبایل</span>
+        <div className="grid grid-cols-3 gap-2.5 lg:gap-3">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="flex flex-col gap-1.5 rounded-lg border border-line p-2.5">
+              <span className="mb-1 flex size-5 items-center justify-center rounded-md bg-soft">
+                <span className="size-2 rounded-full bg-brand/60" />
+              </span>
+              <Line w="85%" h={5} tone="strong" />
+              <Line w="60%" h={5} />
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/** SEO hero: abstract search results page. */
+/** Search results with the site's result on top: the SEO half of the services hero. */
+export function SeoFrame() {
+  return (
+    <div aria-hidden="true" className="overflow-hidden rounded-xl bg-white">
+      <WindowBar url="search" />
+      <div className="flex flex-col gap-3 p-3.5 lg:p-4">
+        <div className="flex h-9 items-center gap-2.5 rounded-full border border-line px-3.5 shadow-sm">
+          <Icon name="search" size={16} className="text-brand" />
+          <Line w="46%" h={7} tone="strong" />
+        </div>
+        <div className="flex flex-col gap-1.5 rounded-lg border border-brand/20 bg-soft p-3">
+          <span className="flex items-center gap-1.5">
+            <span className="icon-gradient size-3.5 rounded-full shadow-none" />
+            <Line w="28%" h={5} tone="strong" />
+          </span>
+          <Line w="70%" h={8} tone="gradient" />
+          <Line w="92%" h={5} />
+        </div>
+        {["62%", "50%"].map((w) => (
+          <div key={w} className="flex flex-col gap-1.5 px-3">
+            <span className="flex items-center gap-1.5">
+              <span className="size-3.5 rounded-full bg-line" />
+              <Line w="24%" h={5} />
+            </span>
+            <Line w={w} h={8} tone="strong" />
+            <Line w="88%" h={5} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** A question of the consultation form with one answer picked (services page, «not sure yet» note). */
+export function FormSketch({ picked }: { picked?: string }) {
+  return (
+    <div aria-hidden="true" className="flex flex-col gap-2 rounded-xl border border-line bg-white p-3.5 shadow-md lg:p-4">
+      <span className="flex items-center justify-between px-0.5 pb-0.5">
+        <Line w={88} h={6} tone="strong" />
+        <Dots size={6} />
+      </span>
+      <span className="flex h-9 items-center gap-2.5 rounded-lg border border-line px-3">
+        <span className="size-3.5 shrink-0 rounded-full border-2 border-line-strong" />
+        <Line w="52%" h={6} />
+      </span>
+      <span className="flex h-9 items-center gap-2.5 rounded-lg border border-brand/40 bg-soft px-3 text-[13px] leading-none font-semibold whitespace-nowrap text-ink">
+        <span className="flex size-3.5 shrink-0 items-center justify-center rounded-full border-2 border-brand">
+          <span className="size-1.5 rounded-full bg-brand" />
+        </span>
+        {picked ?? <Line w="50%" h={6} tone="tint" />}
+      </span>
+    </div>
+  );
+}
+
+/** Web design hero: the same shop on a desktop and a phone, in frames made for the dark hero. */
+export function ResponsiveFrames() {
+  return (
+    <div aria-hidden="true" className="relative pb-12 sm:pb-14">
+      <div className="frame-glass rounded-2xl p-2 lg:p-2.5">
+        <div className="overflow-hidden rounded-xl bg-white">
+          <WindowBar url="www.your-brand.ir" />
+          <div className="flex flex-col gap-3 p-3.5 lg:gap-4 lg:p-5">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <span className="icon-gradient size-5 rounded-full shadow-none" />
+                <Line w={48} h={8} tone="strong" />
+              </span>
+              <span className="flex items-center gap-2.5">
+                <Line w={24} className="hidden sm:block" />
+                <Line w={24} className="hidden sm:block" />
+                <Line w={24} className="hidden sm:block" />
+                <span className="flex size-6 items-center justify-center rounded-full bg-soft text-brand">
+                  <Icon name="bag" size={12} />
+                </span>
+              </span>
+            </div>
+            <div className="relative flex h-28 flex-col justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-l from-brand to-brand-decorative p-4 lg:h-36 lg:gap-2.5 lg:p-5">
+              <span className="absolute -top-10 -left-8 size-32 rounded-full bg-white/10" />
+              <span className="absolute -bottom-14 left-24 size-28 rounded-full bg-white/10" />
+              <Line w="46%" h={9} tone="white" />
+              <Line w="30%" h={9} tone="white-soft" />
+              <span className="relative mt-2 block h-7 w-20 rounded-md bg-white shadow-sm">
+                {/* The visitor clicks the call to action. */}
+                <span className="absolute top-1/2 left-5 flex -translate-y-1/2">
+                  <span className="live-dot" />
+                </span>
+                <Icon name="cursor" size={20} className="absolute top-3 left-5 fill-white text-ink drop-shadow" />
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 lg:gap-3">
+              {[0, 1, 2, 3].map((i) => (
+                <span key={i} className="flex flex-col gap-1.5 rounded-lg border border-line p-1.5 lg:p-2">
+                  <span className={cx("block h-10 rounded-md lg:h-14", i % 2 ? "bg-soft" : "bg-sky-50")} />
+                  <Line w="80%" h={5} tone="strong" />
+                  <Line w="46%" h={5} tone="tint" />
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute bottom-0 left-2 w-[27%] max-w-[148px] rounded-[22px] bg-ink p-1.5 shadow-2xl ring-1 ring-white/20 sm:-left-4 lg:rounded-[28px] lg:p-2">
+        <div className="flex aspect-[9/17] flex-col gap-2 overflow-hidden rounded-[17px] bg-white p-2 lg:rounded-[21px] lg:p-2.5">
+          <span className="mx-auto block h-1.5 w-8 shrink-0 rounded-full bg-line" />
+          <span className="flex items-center justify-between">
+            <span className="icon-gradient size-3.5 rounded-full shadow-none" />
+            <span className="flex flex-col gap-0.5">
+              <Line w={12} h={2} tone="strong" />
+              <Line w={12} h={2} tone="strong" />
+            </span>
+          </span>
+          <span className="flex flex-col gap-1 rounded-md bg-gradient-to-l from-brand to-brand-decorative p-2">
+            <Line w="80%" h={5} tone="white" />
+            <Line w="55%" h={5} tone="white-soft" />
+            <span className="mt-1 block h-3.5 w-10 rounded-sm bg-white" />
+          </span>
+          <span className="grid grid-cols-2 gap-1.5">
+            {[0, 1, 2, 3].map((i) => (
+              <span key={i} className={cx("block h-9 rounded-md lg:h-11", i % 2 ? "bg-sky-50" : "bg-soft")} />
+            ))}
+          </span>
+          <Line w="70%" h={4} tone="strong" />
+          <Line w="50%" h={4} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** SEO hero: a search results page with the site's result highlighted. */
 export function SerpMockup() {
   return (
-    <div role="img" aria-label="نمای نمادین یک صفحه نتایج جست‌وجو" className="overflow-hidden rounded-md border border-line bg-white shadow-md">
-      <div aria-hidden="true" className="flex h-9 items-center gap-2.5 border-b border-line bg-page px-3 lg:h-11 lg:gap-4 lg:px-4">
-        <Dots />
-        <div className="flex h-7 grow items-center rounded-full border border-line bg-white px-3"><Bar w="40%" /></div>
-      </div>
-      <div aria-hidden="true" className="flex flex-col gap-3 p-4 lg:gap-4 lg:p-6">
-        <div className="flex h-11 items-center gap-3 rounded-full border border-line bg-white px-4 text-muted">
-          <Icon name="search" size={18} />
-          <Bar w="42%" h={10} strong />
-        </div>
-        <div className="flex gap-4 border-b border-line px-1 pb-3">
-          <span className="block h-2 w-11 rounded-full bg-brand/30" />
-          <Bar w={36} /><Bar w={36} /><Bar w={36} />
-        </div>
-        <div className="flex flex-col gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={cx(
-                "flex flex-col gap-2 rounded-md border px-4 py-3",
-                i === 1 ? "border-line bg-soft" : "border-transparent",
-                i === 3 && "hidden lg:flex",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <span className={cx("block size-4 rounded-full", i === 1 ? "bg-brand/30" : "bg-line")} />
-                <Bar w="32%" strong={i === 1} />
-              </div>
-              {i === 1 ? <span className="block h-3 w-[64%] rounded-full bg-brand/35" /> : <Bar w="58%" h={12} strong />}
-              <Bar w="90%" h={6} />
-              <Bar w="75%" h={6} />
+    <div role="img" aria-label="نمای نمادین یک صفحه نتایج جست‌وجو" className="overflow-hidden rounded-xl bg-white">
+      <div aria-hidden="true">
+        <WindowBar url="search?q=…" />
+        <div className="flex flex-col gap-3 p-4 lg:gap-3.5 lg:p-5">
+          <div className="flex h-10 items-center gap-3 rounded-full border border-line px-4 shadow-sm lg:h-11">
+            <Icon name="search" size={18} className="text-brand" />
+            <Line w="44%" h={8} tone="strong" />
+          </div>
+          <div className="flex items-center gap-4 border-b border-line px-1 pb-2.5">
+            <span className="relative">
+              <Line w={36} h={6} tone="brand" />
+              <span className="absolute inset-x-0 -bottom-[11px] h-0.5 rounded-full bg-brand" />
+            </span>
+            <Line w={30} />
+            <Line w={30} />
+            <Line w={30} />
+          </div>
+          <div className="flex flex-col gap-2 rounded-xl border border-brand/25 bg-soft p-3.5 shadow-sm">
+            <span className="flex items-center gap-2">
+              <span className="icon-gradient size-5 rounded-full shadow-none" />
+              <span className="flex flex-col gap-1">
+                <Line w={64} h={5} tone="strong" />
+                <Line w={92} h={4} />
+              </span>
+            </span>
+            <Line w="74%" h={10} tone="gradient" />
+            <Line w="94%" h={5} />
+            <Line w="80%" h={5} />
+            <span className="mt-1 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+              {[0, 1, 2, 3].map((i) => (
+                <span key={i} className="flex h-6 items-center rounded-md border border-line bg-white px-2">
+                  <Line w="70%" h={4} tone="tint" />
+                </span>
+              ))}
+            </span>
+          </div>
+          {["58%", "50%"].map((w, i) => (
+            <div key={w} className={cx("flex flex-col gap-2 px-3.5", i === 1 && "hidden sm:flex")}>
+              <span className="flex items-center gap-2">
+                <span className="size-5 rounded-full bg-line" />
+                <Line w={72} h={5} />
+              </span>
+              <Line w={w} h={9} tone="strong" />
+              <Line w="90%" h={5} />
             </div>
           ))}
         </div>

@@ -14,6 +14,7 @@ import { getPublishedProjects } from "@/modules/projects/queries";
 import { breadcrumbJsonLd, faqJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
 import { getServicesByCategory } from "@/modules/services/queries";
 import { serviceHref } from "@/modules/services/routes";
+import { PRINCIPLES } from "@/modules/pages/web-design-content";
 import { getGeneral, getPageText } from "@/modules/settings/queries";
 
 export function generateMetadata() {
@@ -50,14 +51,20 @@ export default async function WebDesignPage() {
 
   return (
     <>
-      <WebDesignHeroSection text={text} />
+      <WebDesignHeroSection text={text} ribbon={[...PRINCIPLES.map(([, title]) => title), ...general.techOptions]} />
       {types.length > 0 && <WebDesignSiteTypesSection services={types} />}
       <WebDesignPrinciplesSection />
       <WebDesignProcessSection />
       {showcase.length > 0 && <WebDesignPortfolioSection projects={showcase} />}
       <WebDesignTechnologySection techOptions={general.techOptions} />
       {faqs.length > 0 && <WebDesignFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} />}
-      <CtaSection padTop title={text.ctaTitle} text={text.ctaText} button="درخواست مشاوره طراحی سایت" />
+      <CtaSection
+        padTop={faqs.length > 0}
+        eyebrow="شروع پروژه"
+        title={text.ctaTitle}
+        text={text.ctaText}
+        button="درخواست مشاوره طراحی سایت"
+      />
 
       <JsonLd data={serviceLd} />
       <JsonLd

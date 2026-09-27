@@ -8,7 +8,10 @@ type Props = {
 
 export function AboutCtaSection({ text }: Props) {
   return (
+    // The team section above is white, so the panel brings its own top spacing.
     <CtaSection
+      padTop
+      eyebrow="شروع همکاری"
       title={text.ctaTitle}
       text={text.ctaText}
       secondary={

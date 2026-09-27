@@ -5,6 +5,7 @@ import type { Lead } from "@/db/schema";
 import { formatDate } from "@/lib/utils";
 import { SERVICE_CHOICE_LABELS } from "@/modules/leads/constants";
 import { STATUS_LABELS, STATUS_TONES } from "@/modules/leads/status";
+import { formatTotal } from "@/modules/pricing/format";
 
 export function LeadsTable({ leads }: { leads: Lead[] }) {
   if (leads.length === 0) return <EmptyState>درخواستی برای نمایش وجود ندارد.</EmptyState>;
@@ -34,7 +35,10 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                   {l.phone}
                 </a>
               </td>
-              <td className="px-4 py-3 text-ink-2">{SERVICE_CHOICE_LABELS[l.service]}</td>
+              <td className="px-4 py-3 text-ink-2">
+                {SERVICE_CHOICE_LABELS[l.service]}
+                {l.estimate && <span className="block text-xs font-normal text-muted">برآورد: {formatTotal(l.estimate.total)}</span>}
+              </td>
               <td className="px-4 py-3 text-ink-2">{formatDate(l.createdAt)}</td>
               <td className="px-4 py-3">
                 <Badge tone={STATUS_TONES[l.status]}>{STATUS_LABELS[l.status]}</Badge>

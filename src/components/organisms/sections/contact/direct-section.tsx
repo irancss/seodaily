@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Icon, type IconName } from "@/components/atoms";
-import { SectionHeading } from "@/components/molecules";
-import { PENDING } from "@/modules/pages/contact-content";
+import { IconTile, PhoneLink, type IconName } from "@/components/atoms";
 import type { ContactSettings, PageText } from "@/modules/settings/types";
 
 type Props = {
@@ -10,70 +8,89 @@ type Props = {
   contact: ContactSettings;
 };
 
+/** Direct contact channels (side column of the contact page); only the ones set in the settings. */
 export function ContactDirectSection({ text, contact }: Props) {
-  const channels: { icon: IconName; title: string; value: ReactNode }[] = [
-    {
+  // A link inside `value` may stretch over its whole card (`after:inset-0`).
+  const channels: { icon: IconName; title: string; value: ReactNode }[] = [];
+  if (contact.phone) {
+    channels.push({
       icon: "phone",
       title: "تلفن",
-      value: contact.phone ? (
-        <a href={`tel:${contact.phone.replace(/\s/g, "")}`} dir="ltr" className="text-ink-2 no-underline hover:text-brand">
-          {contact.phone}
-        </a>
-      ) : (
-        PENDING
+      value: (
+        <PhoneLink
+          phone={contact.phone}
+          showIcon={false}
+          className="text-lg leading-[1.7] font-bold text-ink after:absolute after:inset-0 after:rounded-xl hover:text-brand"
+        />
       ),
-    },
-    {
+    });
+  }
+  if (contact.email) {
+    channels.push({
       icon: "mail",
       title: "ایمیل",
-      value: contact.email ? (
-        <a href={`mailto:${contact.email}`} dir="ltr" className="text-ink-2 no-underline hover:text-brand">
+      value: (
+        <a
+          href={`mailto:${contact.email}`}
+          dir="ltr"
+          className="block truncate text-base leading-[1.8] font-semibold text-ink no-underline after:absolute after:inset-0 after:rounded-xl hover:text-brand"
+        >
           {contact.email}
         </a>
-      ) : (
-        PENDING
       ),
-    },
-    {
+    });
+  }
+  if (contact.socials.length > 0) {
+    channels.push({
       icon: "share",
       title: "شبکه‌های اجتماعی",
-      value:
-        contact.socials.length > 0 ? (
-          <span className="flex flex-wrap gap-x-3">
-            {contact.socials.map((s) => (
-              <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" className="text-ink-2 hover:text-brand">
-                {s.title}
-              </a>
-            ))}
-          </span>
-        ) : (
-          PENDING
-        ),
-    },
-    { icon: "pin", title: "آدرس", value: contact.address || PENDING },
-  ];
+      value: (
+        <span className="flex flex-wrap gap-x-3 gap-y-1">
+          {contact.socials.map((s) => (
+            <a
+              key={s.url}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-8 items-center text-base leading-[1.8] font-semibold text-ink hover:text-brand"
+            >
+              {s.title}
+            </a>
+          ))}
+        </span>
+      ),
+    });
+  }
+  if (contact.address) {
+    channels.push({
+      icon: "pin",
+      title: "آدرس",
+      value: <span className="text-base leading-[1.9] text-ink">{contact.address}</span>,
+    });
+  }
 
   return (
-    <section id="contact-direct" className="flex grow items-center border-line bg-white py-16 lg:border-t lg:py-20">
-      <div className="container-site">
-        <SectionHeading title={text.ctaTitle} text={text.ctaText} />
-        <ul className="mt-6 rounded-md border border-line bg-page px-4 lg:mt-10 lg:grid lg:grid-cols-4 lg:rounded-none lg:border-x-0 lg:bg-transparent lg:px-0">
+    <section id="contact-direct" aria-labelledby="cd-title" className="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+      <h2 id="cd-title" className="text-xl leading-[1.65] font-bold lg:text-2xl lg:leading-[1.6]">
+        {text.ctaTitle}
+      </h2>
+      <p className="mt-1 text-sm leading-[1.8] text-muted lg:text-base lg:leading-[1.9]">{text.ctaText}</p>
+      {channels.length > 0 && (
+        <ul className="mt-5 flex flex-col gap-3">
           {channels.map((c) => (
             <li
               key={c.title}
-              className="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-4 border-b border-line py-4 last:border-b-0 lg:flex lg:flex-col lg:items-stretch lg:border-r lg:border-b-0 lg:px-6 lg:py-8 lg:first:border-r-0 lg:first:pr-0 lg:last:pl-0"
+              className="relative flex items-center gap-4 rounded-xl border border-line bg-page p-4 transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
             >
-              <span aria-hidden="true" className="flex size-11 items-center justify-center rounded-md bg-soft text-brand lg:size-12">
-                <Icon name={c.icon} size={22} />
-              </span>
-              <div>
-                <h3 className="text-base leading-normal font-semibold lg:text-xl lg:leading-[1.65]">{c.title}</h3>
-                <p className="mt-0.5 text-sm leading-[1.8] text-muted lg:mt-1 lg:text-base lg:leading-[1.9]">{c.value}</p>
+              <IconTile name={c.icon} tone="gradient" className="size-11 rounded-[12px]" iconSize={20} />
+              <div className="min-w-0 grow">
+                <h3 className="text-sm leading-[1.7] font-medium text-muted">{c.title}</h3>
+                {c.value}
               </div>
             </li>
           ))}
         </ul>
-      </div>
+      )}
     </section>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SubmitButton } from "@/components/atoms";
 import { Card, CountedField, Field } from "@/components/molecules";
+import { plainText } from "@/lib/utils";
 import { savePage } from "@/modules/settings/page-actions";
 import type { PageKey, PageText } from "@/modules/settings/types";
 
@@ -35,7 +36,7 @@ export function PageTextEditor({ pageKey, label, path, siteUrl, defaults: d, val
         {/* Google result preview with the effective values. */}
         <div className="mt-4 rounded-md border border-line bg-page p-4" aria-label="پیش‌نمایش نتیجه گوگل">
           <p className="truncate text-xs text-muted" dir="ltr">{siteUrl}{path}</p>
-          <p className="mt-1 truncate text-lg text-[#1a0dab]">{title}</p>
+          <p className="mt-1 truncate text-lg text-[#1a0dab]">{plainText(title)}</p>
           <p className="mt-1 line-clamp-2 text-sm text-ink-2">{desc}</p>
         </div>
 
@@ -47,11 +48,17 @@ export function PageTextEditor({ pageKey, label, path, siteUrl, defaults: d, val
 
           <h3 className="mt-2 text-sm font-bold text-brand">متن بالای صفحه</h3>
           <Field label="برچسب" name="badge" defaultValue={val("badge")} placeholder={d.badge} />
-          <Field label="عنوان اصلی (H1)" name="title" defaultValue={val("title")} placeholder={d.title} />
+          <Field
+            label="عنوان اصلی (H1)"
+            name="title"
+            defaultValue={val("title")}
+            placeholder={d.title}
+            hint="برای رنگی (گرادیانی) شدن یک یا چند کلمه، آن را بین دو ستاره بنویسید؛ مثلاً: سایت *اصولی* بساز"
+          />
           <Field label="زیرعنوان" name="subtitle" defaultValue={val("subtitle")} placeholder={d.subtitle} multiline rows={3} />
 
           <h3 className="mt-2 text-sm font-bold text-brand">{pageKey === "contact" ? "بخش راه‌های ارتباطی" : "بخش دعوت به اقدام (پایین صفحه)"}</h3>
-          <Field label="عنوان" name="ctaTitle" defaultValue={val("ctaTitle")} placeholder={d.ctaTitle} />
+          <Field label="عنوان" name="ctaTitle" defaultValue={val("ctaTitle")} placeholder={d.ctaTitle} hint="کلمه‌ای که بین دو ستاره بیاید (*کلمه*) رنگی نمایش داده می‌شود." />
           <Field label="متن" name="ctaText" defaultValue={val("ctaText")} placeholder={d.ctaText} multiline rows={2} />
           <div><SubmitButton /></div>
         </form>

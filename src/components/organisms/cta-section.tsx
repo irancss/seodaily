@@ -55,7 +55,7 @@ export async function CtaSection({
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
             <div className="flex flex-col items-start gap-3 lg:gap-4">
               {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-              <h2 className="t-h2 max-w-[720px]">
+              <h2 className="t-h2 max-w-[720px] text-balance">
                 <Highlight text={title} />
               </h2>
               <p className="body-lg max-w-[620px]">{text}</p>

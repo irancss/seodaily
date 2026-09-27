@@ -3,5 +3,6 @@ export const SERVICE_CHOICE_LABELS: Record<string, string> = {
   seo: "سئو",
   "web-design-seo": "طراحی سایت + سئو",
   redesign: "بازطراحی سایت",
+  content: "تولید محتوا",
   "not-sure": "هنوز مطمئن نیستم",
 };

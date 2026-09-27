@@ -1,11 +1,10 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Icon, IconTile } from "@/components/atoms";
-import { cx } from "@/lib/utils";
+import { ButtonLink, Icon, IconTile } from "@/components/atoms";
+import { cx, vars } from "@/lib/utils";
 
 type Props = {
-  tone: "white" | "soft";
+  tone: "dark" | "light";
   icon: string;
   eyebrow: string;
   title: string;
@@ -14,46 +13,58 @@ type Props = {
   link?: { href: string; label: string };
 };
 
-/** One half of the technical / content split, bleeding to the viewport edge on desktop. */
+/** One panel of the technical / content split: `dark` on the navy surface, `light` as a white card. */
 export function Half({ tone, icon, eyebrow, title, text, items, link }: Props) {
+  const dark = tone === "dark";
   return (
     <div
       className={cx(
-        "flex flex-col items-start px-5 py-16 lg:py-24",
-        tone === "white"
-          ? "bg-white lg:border-l lg:border-line lg:pr-[max(20px,calc((100vw-1200px)/2))] lg:pl-16"
-          : "border-t border-line bg-soft lg:border-t-0 lg:pr-16 lg:pl-[max(20px,calc((100vw-1200px)/2))]",
+        "reveal flex flex-col items-start rounded-xl p-6 sm:p-8 lg:rounded-2xl lg:p-12",
+        dark ? "surface-dark overflow-hidden" : "border border-line bg-white shadow-md",
       )}
+      style={vars({ i: dark ? 0 : 1 })}
     >
+      {dark && (
+        <>
+          <div aria-hidden="true" className="grid-bg-dark fade-radial pointer-events-none absolute inset-0 -z-10" style={vars({ grid: "32px" })} />
+          <span aria-hidden="true" className="orb orb-blue -top-48 -left-40 size-[480px]" />
+          <span aria-hidden="true" className="orb orb-cyan -right-48 -bottom-56 size-[420px]" style={vars({ i: 1 })} />
+        </>
+      )}
       <span className="inline-flex items-center gap-3">
-        <IconTile name={icon} size={44} iconSize={22} tone={tone === "white" ? "soft" : "white"} />
-        <span dir="ltr" className="text-sm leading-[1.7] font-medium text-muted">
+        <IconTile name={icon} tone={dark ? "glass" : "gradient"} className="size-12 rounded-[14px]" iconSize={24} />
+        <span dir="ltr" className={cx("text-sm leading-[1.7] font-semibold tracking-wide", dark ? "text-sky-300" : "text-brand-hover")}>
           {eyebrow}
         </span>
       </span>
-      <h2 className="t-h2 mt-4 lg:mt-5">{title}</h2>
+      <h2 className="t-h2 mt-5 lg:mt-6">{title}</h2>
       <p className="body-lg mt-3 lg:mt-4">{text}</p>
-      <ul className="mt-6 w-full border-t border-line lg:mt-8">
+      <ul className="mt-6 flex w-full flex-col gap-2.5 lg:mt-8">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-3 border-b border-line py-3.5 text-base leading-[1.9] text-ink lg:items-center lg:gap-4 lg:py-4 lg:text-lg">
+          <li
+            key={i}
+            className={cx(
+              "flex items-start gap-3 rounded-lg border px-4 py-3 text-base leading-[1.9] lg:items-center lg:gap-4",
+              dark ? "border-white/10 bg-white/[0.04] text-white" : "border-line bg-page text-ink",
+            )}
+          >
             <span
               aria-hidden="true"
               className={cx(
-                "mt-[3px] flex size-6 shrink-0 items-center justify-center rounded-full text-brand lg:mt-0 lg:size-7",
-                tone === "white" ? "bg-soft" : "bg-white",
+                "mt-[3px] flex size-6 shrink-0 items-center justify-center rounded-full lg:mt-0",
+                dark ? "bg-cyan-400/15 text-cyan-300" : "bg-soft text-brand",
               )}
             >
-              <Icon name="check" size={16} />
+              <Icon name="check" size={15} />
             </span>
             <span>{item}</span>
           </li>
         ))}
       </ul>
       {link && (
-        <Link href={link.href} className="text-link mt-5 lg:mt-8">
+        <ButtonLink href={link.href} variant={dark ? "white" : "secondary"} arrow className="mt-8 w-full sm:w-auto lg:mt-10">
           {link.label}
-          <Icon name="arrow-left" />
-        </Link>
+        </ButtonLink>
       )}
     </div>
   );

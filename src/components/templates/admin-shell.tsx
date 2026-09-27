@@ -9,11 +9,11 @@ import { logout } from "@/modules/auth/actions";
 /** Admin panel skeleton: sidebar (brand, nav, account) and the main column. */
 export function AdminShell({ user, newLeads, children }: { user: { email: string }; newLeads: number; children: ReactNode }) {
   return (
-    <div className="lg:grid lg:min-h-dvh lg:grid-cols-[260px_minmax(0,1fr)]">
+    <div className="lg:grid lg:min-h-dvh lg:grid-cols-[260px_minmax(0,1fr)] print:block!">
       <Suspense fallback={null}>
         <FlashToaster />
       </Suspense>
-      <aside className="sticky top-0 z-20 border-b border-line bg-white lg:h-dvh lg:border-b-0 lg:border-l">
+      <aside className="sticky top-0 z-20 border-b border-line bg-white lg:h-dvh lg:border-b-0 lg:border-l print:hidden">
         <div className="flex h-full flex-col gap-4 p-4">
           <div className="flex items-center justify-between gap-2">
             <Link href="/admin" className="text-lg font-bold text-ink no-underline">
@@ -40,7 +40,7 @@ export function AdminShell({ user, newLeads, children }: { user: { email: string
       </aside>
       <main className="min-w-0 px-4 py-8 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-[1100px]">{children}</div>
-        <form action={logout} className="mt-10 lg:hidden">
+        <form action={logout} className="mt-10 lg:hidden print:hidden">
           <button type="submit" className="inline-flex h-10 items-center gap-2 text-sm font-medium text-ink-2">
             <Icon name="logout" size={18} />
             خروج از حساب

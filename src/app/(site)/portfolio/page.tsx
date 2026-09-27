@@ -5,6 +5,7 @@ import {
   PortfolioHeroSection,
   PortfolioProjectsSection,
 } from "@/components/organisms/sections/portfolio";
+import { plainText } from "@/lib/utils";
 import { getPublishedProjects } from "@/modules/projects/queries";
 import { projectHref } from "@/modules/projects/routes";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
@@ -29,7 +30,7 @@ export default async function PortfolioPage() {
   const listLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: text.title,
+    name: plainText(text.title),
     url: `${base}/portfolio`,
     mainEntity: {
       "@type": "ItemList",
@@ -45,16 +46,16 @@ export default async function PortfolioPage() {
   return (
     <>
       {/* 01 · hero */}
-      <PortfolioHeroSection text={text} />
+      <PortfolioHeroSection text={text} items={items} />
 
-      {/* 02–03 · filter + grid */}
+      {/* 02–03 · filter + grid (white) */}
       <PortfolioProjectsSection items={items} />
 
-      {/* 04 · case study */}
+      {/* 04 · case study (page colour) */}
       {caseStudy && <PortfolioCaseStudySection caseStudy={caseStudy} />}
 
       {/* 05 · cta */}
-      <PortfolioCtaSection text={text} />
+      <PortfolioCtaSection text={text} padTop={!caseStudy} />
 
       <JsonLd data={listLd} />
       <JsonLd

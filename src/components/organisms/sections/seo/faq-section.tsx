@@ -1,7 +1,8 @@
 import Link from "next/link";
 
-import { JsonLd } from "@/components/atoms";
-import { FaqList } from "@/components/organisms";
+import { Icon, JsonLd } from "@/components/atoms";
+import { SectionHeading } from "@/components/molecules";
+import { FaqList } from "@/components/organisms/faq-list";
 import type { Faq } from "@/db/schema";
 
 type Props = {
@@ -12,22 +13,23 @@ type Props = {
 
 export function SeoFaqSection({ faqs, jsonLd }: Props) {
   return (
-    <section className="section bg-white">
+    <section className="section">
       <div className="container-site">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-          <div className="flex max-w-[640px] flex-col gap-3">
-            <h2 className="t-h2">سؤال‌های رایج درباره سئو</h2>
-            <p className="body-lg">پاسخ‌ها کلی هستند؛ جزئیات هر پروژه بعد از بررسی سایت مشخص می‌شود.</p>
-          </div>
-          <Link href="/contact" className="text-link hidden shrink-0 lg:inline-flex">
-            سؤال دیگری دارید؟
-          </Link>
-        </div>
-        <div className="mt-6 lg:mt-10">
-          <FaqList items={faqs} variant="numbered" />
-        </div>
+        <SectionHeading
+          eyebrow="سؤال‌های متداول"
+          title="سؤال‌های رایج درباره *سئو*"
+          text="پاسخ‌ها کلی هستند؛ جزئیات هر پروژه بعد از بررسی سایت مشخص می‌شود."
+          action={
+            <Link href="/contact" className="text-link">
+              سؤال دیگری دارید؟
+              <Icon name="arrow-left" />
+            </Link>
+          }
+        />
+        <FaqList items={faqs} variant="numbered" className="mt-8 lg:mt-12" />
         <Link href="/contact" className="text-link mt-5 lg:hidden">
           سؤال دیگری دارید؟
+          <Icon name="arrow-left" />
         </Link>
       </div>
       <JsonLd data={jsonLd} />

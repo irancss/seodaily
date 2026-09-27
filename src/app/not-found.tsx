@@ -1,15 +1,16 @@
-import Link from "next/link";
+import { SiteNotFound, SiteShell } from "@/components/templates";
+import { getMenus } from "@/modules/menus/queries";
+import { organizationJsonLd } from "@/modules/seo/metadata";
+import { getContact, getGeneral } from "@/modules/settings/queries";
 
 export const metadata = { title: "صفحه پیدا نشد", robots: { index: false } };
 
-export default function NotFound() {
+/** Unmatched URLs: the site's 404 inside the normal header and footer. */
+export default async function NotFound() {
+  const [general, contact, menus, orgLd] = await Promise.all([getGeneral(), getContact(), getMenus(), organizationJsonLd()]);
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-5 text-center">
-      <span className="text-5xl leading-[1.5] font-bold text-brand">۴۰۴</span>
-      <h1 className="text-2xl leading-[1.6] font-bold">صفحه‌ای که دنبالش بودید پیدا نشد</h1>
-      <Link href="/" className="btn btn-primary h-12 px-6">
-        بازگشت به صفحه اصلی
-      </Link>
-    </main>
+    <SiteShell general={general} contact={contact} menus={menus} jsonLd={orgLd}>
+      <SiteNotFound />
+    </SiteShell>
   );
 }

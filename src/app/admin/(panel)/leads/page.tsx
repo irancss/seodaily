@@ -16,7 +16,7 @@ export default async function LeadsPage({ searchParams }: Props) {
 
   return (
     <>
-      <PageHeader title="درخواست‌های مشاوره" description="فرم‌هایی که از صفحه تماس ارسال شده‌اند." />
+      <PageHeader title="درخواست‌های مشاوره" description="فرم‌هایی که از صفحه تماس و ماشین‌حساب صفحه تعرفه‌ها ارسال شده‌اند." />
       <LeadsFilter status={status} />
       <LeadsTable leads={rows} />
       <Pagination page={page} pages={pages} href={(p) => leadsHref(status, p)} />

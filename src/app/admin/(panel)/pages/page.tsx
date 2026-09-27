@@ -12,6 +12,7 @@ const PATHS: Record<PageKey, string> = {
   services: "/services",
   "web-design": "/web-design",
   seo: "/seo",
+  pricing: "/pricing",
   portfolio: "/portfolio",
   about: "/about",
   contact: "/contact",

@@ -7,6 +7,7 @@ import {
   AboutPrinciplesSection,
   AboutTeamSection,
 } from "@/components/organisms/sections/about";
+import { plainText } from "@/lib/utils";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
 import { getPageText } from "@/modules/settings/queries";
 import { getTeam } from "@/modules/team/queries";
@@ -42,7 +43,7 @@ export default async function AboutPage() {
         data={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          name: text.title,
+          name: plainText(text.title),
           url: `${base}/about`,
           about: { "@id": `${base}/#organization` },
         }}

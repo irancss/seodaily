@@ -54,7 +54,13 @@ export default async function SeoPage() {
       <SeoTechnicalContentSection technical={technical} content={content} />
       <SeoExpectationsSection />
       {faqs.length > 0 && <SeoFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} />}
-      <CtaSection title={text.ctaTitle} text={text.ctaText} button="درخواست بررسی سئو" />
+      <CtaSection
+        padTop={faqs.length === 0}
+        eyebrow="قدم اول"
+        title={text.ctaTitle}
+        text={text.ctaText}
+        button="درخواست بررسی سئو"
+      />
 
       <JsonLd data={serviceLd} />
       <JsonLd

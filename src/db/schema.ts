@@ -107,11 +107,24 @@ export const SERVICE_CHOICES = [
   "seo",
   "web-design-seo",
   "redesign",
+  "content",
   "not-sure",
 ] as const;
 export type ServiceChoice = (typeof SERVICE_CHOICES)[number];
 
-/** Consultation requests submitted from the contact page. */
+/** One line of a price estimate. Amounts are toman; 0 means «توافقی». */
+export type EstimateItem = { group: string; label: string; qty: number; unitPrice: number; amount: number };
+
+/** Price estimate of a lead: built on the pricing page, or typed in by the admin. */
+export type LeadEstimate = {
+  service: "web-design" | "seo" | "content";
+  planId?: string;
+  items: EstimateItem[];
+  total: number;
+  source: "calculator" | "manual";
+};
+
+/** Consultation requests submitted from the contact and pricing pages. */
 export const leads = pgTable("leads", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -123,6 +136,7 @@ export const leads = pgTable("leads", {
   description: text("description").notNull().default(""),
   status: text("status").$type<LeadStatus>().notNull().default("new"),
   adminNote: text("admin_note").notNull().default(""),
+  estimate: jsonb("estimate").$type<LeadEstimate>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

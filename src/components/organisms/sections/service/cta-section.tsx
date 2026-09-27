@@ -3,13 +3,16 @@ import type { Service } from "@/db/schema";
 
 type Props = {
   service: Service;
+  /** The panel needs its own top spacing when the section above is not on the page colour. */
+  padTop?: boolean;
 };
 
-export function ServiceCtaSection({ service }: Props) {
+export function ServiceCtaSection({ service, padTop = false }: Props) {
   return (
     <CtaSection
-      padTop={service.faqs.length === 0}
-      title={`برای شروع ${service.title}، درباره پروژه‌تان صحبت کنیم`}
+      padTop={padTop}
+      eyebrow="شروع همکاری"
+      title={`برای شروع *${service.title}*، درباره پروژه‌تان صحبت کنیم`}
       text="اطلاعات اولیه پروژه را ارسال کنید تا نیازها و شرایط آن بررسی شود."
     />
   );

@@ -1,6 +1,7 @@
 import { JsonLd } from "@/components/atoms";
-import { ContactDirectSection, ContactFormSection, ContactHeroSection } from "@/components/organisms/sections/contact";
+import { ContactFormSection, ContactHeroSection } from "@/components/organisms/sections/contact";
 import { SERVICE_CHOICES } from "@/db/schema";
+import { plainText } from "@/lib/utils";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
 import { getContact, getGeneral, getPageText } from "@/modules/settings/queries";
 
@@ -23,19 +24,16 @@ export default async function ContactPage({ searchParams }: Props) {
   return (
     <>
       {/* 01 · hero */}
-      <ContactHeroSection text={text} />
+      <ContactHeroSection text={text} phone={contact.phone} />
 
-      {/* 02 · form + side column */}
-      <ContactFormSection budgets={general.budgets} defaultService={defaultService} />
-
-      {/* 03 · direct contact */}
-      <ContactDirectSection text={text} contact={contact} />
+      {/* 02 · form + side column (direct contact, next steps) */}
+      <ContactFormSection budgets={general.budgets} defaultService={defaultService} text={text} contact={contact} />
 
       <JsonLd
         data={{
           "@context": "https://schema.org",
           "@type": "ContactPage",
-          name: text.title,
+          name: plainText(text.title),
           url: `${base}/contact`,
           about: { "@id": `${base}/#organization` },
         }}

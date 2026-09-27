@@ -1,39 +1,79 @@
-import { Icon } from "@/components/atoms";
+import { Icon, IconTile } from "@/components/atoms";
+import { SectionHeading } from "@/components/molecules";
 import type { Service } from "@/db/schema";
+import { cx, vars } from "@/lib/utils";
+
+import { toneClass, type SectionTone } from "./tone";
 
 type Props = {
   service: Service;
+  tone?: SectionTone;
 };
 
-export function ServiceForWhoSection({ service }: Props) {
+export function ServiceForWhoSection({ service, tone }: Props) {
+  const hasSituations = service.situations.length > 0;
   return (
-    <section className="section bg-white">
+    <section className={cx("section", toneClass(tone))}>
       {/* Mobile order: intro, business types, then the situations panel. */}
-      <div className="container-site flex flex-col lg:grid lg:grid-cols-2 lg:items-start lg:gap-24">
-        <div className="contents lg:flex lg:flex-col">
-          <h2 className="t-h2">این خدمت مناسب چه کسب‌وکارهایی است؟</h2>
-          {service.forWhoIntro && <p className="body-lg mt-3 lg:mt-4">{service.forWhoIntro}</p>}
-          {service.situations.length > 0 && (
-            <div className="order-last mt-8 rounded-md border border-line bg-page p-5 lg:mt-10 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:bg-transparent lg:p-0 lg:pt-8">
-              <h3 className="text-lg leading-[1.9] font-semibold lg:text-xl lg:leading-[1.65]">چه زمانی سراغ این خدمت بیایید؟</h3>
-              <ul className="mt-3 flex flex-col gap-3 lg:mt-4">
-                {service.situations.map((s, i) => (
-                  <li key={i} className="flex items-start gap-3 text-base leading-[1.9] text-ink">
-                    <Icon name="check-round" size={22} className="mt-0.5 shrink-0 text-brand" />
-                    {s}
+      <div
+        className={cx(
+          "container-site grid items-center gap-10 lg:gap-16",
+          hasSituations && "lg:grid-cols-[minmax(0,7fr)_minmax(0,6fr)]",
+        )}
+      >
+        <div className="flex flex-col items-start">
+          <SectionHeading
+            align="stack"
+            className="[&_h2]:text-balance"
+            eyebrow="مخاطبان این خدمت"
+            title="این خدمت مناسب چه *کسب‌وکارهایی* است؟"
+            text={service.forWhoIntro || undefined}
+          />
+          {service.businessTypes.length > 0 && (
+            <div className="mt-8 w-full lg:mt-10">
+              <span className="text-sm leading-[1.7] font-medium text-muted">انواع کسب‌وکار</span>
+              <ul className="mt-3 flex flex-wrap gap-2 lg:gap-3">
+                {service.businessTypes.map((type, i) => (
+                  <li
+                    key={type}
+                    className="reveal-scale inline-flex min-h-11 items-center gap-2.5 rounded-full border border-line bg-white px-4 text-[15px] leading-[1.7] font-medium text-ink shadow-sm lg:px-5 lg:text-base"
+                    style={vars({ i: Math.min(i, 6) })}
+                  >
+                    <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-gradient-to-l from-brand to-brand-decorative" />
+                    {type}
                   </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
-        {service.businessTypes.length > 0 && (
-          <div className="mt-6 lg:mt-0 lg:rounded-xl lg:border lg:border-line lg:bg-page lg:p-10">
-            <span className="hidden text-sm leading-[1.7] font-medium text-muted lg:block">انواع کسب‌وکار</span>
-            <ul className="flex flex-wrap gap-2 lg:mt-4 lg:gap-3">
-              {service.businessTypes.map((t) => (
-                <li key={t} className="inline-flex h-11 items-center rounded-full border border-line bg-page px-4 text-sm leading-[1.7] font-medium text-ink lg:bg-white lg:px-[18px] lg:text-base lg:leading-normal">
-                  {t}
+
+        {hasSituations && (
+          <div className="surface-dark reveal overflow-hidden rounded-xl p-6 sm:p-8 lg:rounded-2xl lg:p-10">
+            <div
+              aria-hidden="true"
+              className="grid-bg-dark fade-radial pointer-events-none absolute inset-0 -z-10"
+              style={vars({ grid: "32px" })}
+            />
+            <span aria-hidden="true" className="orb orb-blue -top-36 -left-28 size-[380px]" />
+            <span aria-hidden="true" className="orb orb-cyan -right-28 -bottom-44 size-[340px]" style={vars({ i: 1 })} />
+            <div className="flex items-center gap-4">
+              <IconTile name="target" tone="glass" className="size-12 rounded-[14px]" iconSize={24} />
+              <h3 className="text-lg leading-[1.8] font-bold lg:text-xl lg:leading-[1.65]">چه زمانی سراغ این خدمت بیایید؟</h3>
+            </div>
+            <ul className="mt-6 flex flex-col gap-3 lg:mt-8">
+              {service.situations.map((situation, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-base leading-[1.9] text-slate-100"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-cyan-400/15 text-cyan-300"
+                  >
+                    <Icon name="check" size={14} strokeWidth={3} />
+                  </span>
+                  {situation}
                 </li>
               ))}
             </ul>

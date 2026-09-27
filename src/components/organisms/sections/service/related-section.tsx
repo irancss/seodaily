@@ -1,37 +1,41 @@
 import Link from "next/link";
 
-import { ArrowBadge } from "@/components/atoms";
+import { ArrowBadge, IconTile } from "@/components/atoms";
+import { SectionHeading } from "@/components/molecules";
 import type { Service } from "@/db/schema";
+import { cx, vars } from "@/lib/utils";
 import { serviceHref } from "@/modules/services/routes";
 
+import { toneClass, type SectionTone } from "./tone";
+
 type Props = {
-  related: Pick<Service, "slug" | "title" | "category">[];
+  related: Pick<Service, "slug" | "title" | "category" | "icon" | "summary">[];
+  tone?: SectionTone;
 };
 
-export function ServiceRelatedSection({ related }: Props) {
+export function ServiceRelatedSection({ related, tone }: Props) {
   return (
-    <section className="bg-white py-16 lg:py-20">
+    <section className={cx("section", toneClass(tone))}>
       <div className="container-site">
-        <h2 className="t-h2">خدمات مرتبط</h2>
-        <ul className="mt-6 grid gap-3 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-          {related.map((r) => (
-            <li key={r.slug}>
+        <SectionHeading eyebrow="ادامه مسیر" title="خدمات *مرتبط*" />
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-6">
+          {related.map((r, i) => (
+            <li key={r.slug} className="reveal" style={vars({ i: i % 3 })}>
               <Link
                 href={serviceHref(r.slug)}
-                className="card-link flex min-h-[72px] items-center justify-between gap-3 rounded-md border border-line bg-page px-5 py-3 text-ink no-underline hover:text-ink lg:h-[104px] lg:gap-4 lg:px-7 lg:py-0"
+                className="card-link card-fancy flex h-full flex-col items-start rounded-xl p-6 text-ink no-underline hover:text-ink lg:p-7"
               >
-                <span className="flex flex-col">
-                  <span className="text-sm leading-[1.7] font-medium text-muted">
-                    {r.category === "seo" ? "سئو" : "طراحی سایت"}
-                  </span>
-                  <span className="card-title text-lg leading-[1.9] font-semibold lg:text-xl lg:leading-[1.65]">{r.title}</span>
+                <span className="flex w-full items-start justify-between gap-4">
+                  <IconTile name={r.icon} tone="gradient" className="size-12 rounded-[14px]" iconSize={24} />
+                  <ArrowBadge size={40} />
                 </span>
-                <span className="lg:hidden">
-                  <ArrowBadge size={40} variant="soft" />
+                <span className="mt-5 text-sm leading-[1.7] font-medium text-muted">
+                  {r.category === "seo" ? "سئو" : "طراحی سایت"}
                 </span>
-                <span className="hidden lg:block">
-                  <ArrowBadge variant="soft" />
+                <span className="card-title text-lg leading-[1.8] font-bold transition-colors lg:text-xl lg:leading-[1.65]">
+                  {r.title}
                 </span>
+                {r.summary && <span className="mt-2 line-clamp-2 text-base leading-[1.9] text-ink-2">{r.summary}</span>}
               </Link>
             </li>
           ))}

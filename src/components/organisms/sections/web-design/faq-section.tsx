@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { JsonLd } from "@/components/atoms";
 import { SectionHeading } from "@/components/molecules";
-import { FaqList } from "@/components/organisms";
+import { FaqList } from "@/components/organisms/faq-list";
 import type { Faq } from "@/db/schema";
 
 type Props = {
@@ -14,23 +14,22 @@ type Props = {
 export function WebDesignFaqSection({ faqs, jsonLd }: Props) {
   return (
     <section className="section bg-white">
-      <div className="mx-auto w-full max-w-[840px] px-5">
+      <div className="mx-auto w-full max-w-[880px] px-5">
         <SectionHeading
           align="center"
-          title="سؤال‌های متداول طراحی سایت"
+          eyebrow="سؤال‌های متداول"
+          title="سؤال‌های متداول *طراحی سایت*"
           text={
             <>
               اگر پاسخ سؤالتان اینجا نیست، آن را همراه با{" "}
-              <Link href="/contact" className="font-semibold underline-offset-[6px]">
+              <Link href="/contact" className="font-semibold underline underline-offset-[6px]">
                 درخواست مشاوره
               </Link>{" "}
               بفرستید.
             </>
           }
         />
-        <div className="mt-6 lg:mt-12">
-          <FaqList items={faqs} />
-        </div>
+        <FaqList items={faqs} className="mt-8 lg:mt-12" />
       </div>
       <JsonLd data={jsonLd} />
     </section>

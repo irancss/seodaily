@@ -26,7 +26,7 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <ServicesHeroSection text={text} categories={categories} />
+      <ServicesHeroSection text={text} categories={categories} counts={items.map((list) => list.length)} />
       <ServicesMainSection categories={categories} items={items} />
       <ServicesSelectorSection />
       <ServicesProcessSection />

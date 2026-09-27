@@ -1,21 +1,39 @@
-import { GridBackdrop, HeroBadge } from "@/components/atoms";
+import { ButtonLink, Icon } from "@/components/atoms";
+import { PageHero, type PortfolioItem } from "@/components/organisms";
 import type { PageText } from "@/modules/settings/types";
+
+import { PortfolioHeroVisual } from "./hero-visual";
 
 type Props = {
   text: PageText;
+  items: PortfolioItem[];
 };
 
-export function PortfolioHeroSection({ text }: Props) {
+export function PortfolioHeroSection({ text, items }: Props) {
+  const images = items.map((i) => i.imageUrl).filter(Boolean);
+  const types = [...new Set(items.map((i) => i.projectType).filter(Boolean))];
+
   return (
-    <section className="relative overflow-hidden pt-10 pb-10 lg:pt-20 lg:pb-16">
-      <GridBackdrop className="opacity-60" />
-      <div className="container-site relative grid items-end gap-3 lg:grid-cols-2 lg:gap-16">
-        <div className="flex flex-col items-start">
-          <HeroBadge>{text.badge}</HeroBadge>
-          <h1 className="t-h1 mt-4">{text.title}</h1>
-        </div>
-        <p className="body-lg lg:pb-2">{text.subtitle}</p>
-      </div>
-    </section>
+    <PageHero
+      tone="light"
+      breadcrumb={[{ label: "صفحه اصلی", href: "/" }, { label: "نمونه‌کارها" }]}
+      badge={text.badge}
+      title={text.title}
+      subtitle={text.subtitle}
+      actions={
+        <>
+          {items.length > 0 && (
+            <ButtonLink href="#portfolio-projects" size="lg">
+              <Icon name="arrow-down" />
+              مشاهده پروژه‌ها
+            </ButtonLink>
+          )}
+          <ButtonLink href="/contact" variant="secondary" size="lg" arrow>
+            درخواست مشاوره
+          </ButtonLink>
+        </>
+      }
+      aside={<PortfolioHeroVisual images={images} types={types} />}
+    />
   );
 }
