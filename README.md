@@ -448,18 +448,35 @@ seodaily/
 │   └── seed-data.mjs         # محتوای اولیه طرح
 ├── public/fonts/             # فونت وزیر و مجوز OFL
 └── src/
-    ├── app/
+    ├── app/                  # فقط مسیرها: احراز هویت، دریافت داده و چیدن template/organismها
     │   ├── (site)/           # صفحات سایت عمومی
     │   ├── admin/            # پنل مدیریت (login و (panel))
     │   ├── api/health/       # بررسی سلامت
     │   ├── uploads/          # ارائه فایل‌های آپلودشده
     │   ├── sitemap.ts
     │   └── robots.ts
-    ├── components/           # کامپوننت‌های سایت (site/) و پنل (admin/)
+    ├── components/           # اتمیک دیزاین (هر لایه یک index.ts دارد)
+    │   ├── atoms/            # کوچک‌ترین اجزا: Icon، ButtonLink، Badge، Checkbox، SubmitButton …
+    │   ├── molecules/        # ترکیب اتم‌ها: SectionHeading، BrowserFrame، Breadcrumb، Field، Card …
+    │   ├── organisms/        # بخش‌های کامل: هدر، فوتر، FAQ، فرم‌ها، Repeater
+    │   │   ├── sections/     # سکشن‌های هر صفحه (home، services، seo، about، contact …)
+    │   │   └── admin/        # بلوک‌های پنل: جدول درخواست‌ها، ویرایشگر FAQ، فرم تنظیمات …
+    │   └── templates/        # اسکلت صفحه: SiteShell، AdminShell، ServicePageTemplate …
+    ├── modules/              # منطق دامنه به تفکیک ماژول
+    │   ├── auth/             # نشست، ورود/خروج، حساب کاربری
+    │   ├── services/ projects/ faqs/ team/ leads/
+    │   │                     # هر کدام: queries (خواندن با کش)، actions (Server Action)، routes، content
+    │   ├── settings/         # types، defaults، queries، actions (تنظیمات و متن/سئوی صفحات)
+    │   ├── pages/            # متن‌های ثابت طرح برای هر صفحه
+    │   ├── seo/              # متادیتا، canonical، Open Graph و JSON-LD
+    │   ├── uploads/          # ذخیره و اعتبارسنجی تصاویر
+    │   └── admin/            # کوئری‌های مخصوص پنل
     ├── db/                   # اسکیمای Drizzle و اتصال دیتابیس
-    ├── lib/                  # تنظیمات، سئو، کش، احراز هویت، آپلود، داده‌ها
+    ├── lib/                  # زیرساخت مشترک: cache، utils، form-actions
     └── proxy.ts              # هدایت مسیرهای /admin به صفحه ورود
 ```
+
+قاعدهٔ وابستگی: `app` ← `templates` ← `organisms` ← `molecules` ← `atoms`. کامپوننت‌ها داده را فقط از props می‌گیرند و به دیتابیس دسترسی ندارند؛ خواندن و نوشتن داده فقط در `modules/*` انجام می‌شود.
 
 ---
 

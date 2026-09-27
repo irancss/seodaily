@@ -5,7 +5,8 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { failed, saved, str } from "@/lib/form-actions";
 import { requireAdmin } from "@/modules/auth/session";
-import { PAGE_KEYS, type PageKey, type PageText, writeSetting } from "@/modules/settings/queries";
+import { writeSetting } from "@/modules/settings/queries";
+import { PAGE_KEYS, type PageKey, type PageText } from "@/modules/settings/types";
 
 const FIELDS: (keyof PageText)[] = ["badge", "title", "subtitle", "ctaTitle", "ctaText", "metaTitle", "metaDescription"];
 

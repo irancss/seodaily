@@ -1,8 +1,7 @@
 import Link from "next/link";
 
-import type { ContactSettings, GeneralSettings } from "@/modules/settings/queries";
-
-const PENDING = "[پس از تأیید اضافه می‌شود]";
+import { PENDING } from "@/modules/pages/contact-content";
+import type { ContactSettings, GeneralSettings } from "@/modules/settings/types";
 
 export function SiteFooter({
   general,

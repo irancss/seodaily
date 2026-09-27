@@ -1,12 +1,10 @@
-import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Flash, PageHeader } from "@/components/molecules";
-import { db, schema } from "@/db";
-import { serviceHref } from "@/modules/services/routes";
-
 import { ServiceForm } from "@/components/organisms";
+import { getService, listCategories, listServiceOptions } from "@/modules/admin/services-queries";
+import { serviceHref } from "@/modules/services/routes";
 
 export const metadata = { title: "ویرایش خدمت" };
 
@@ -15,12 +13,7 @@ type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: str
 export default async function EditService({ params, searchParams }: Props) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
-  const [sp, service, categories, all] = await Promise.all([
-    searchParams,
-    db.query.services.findFirst({ where: eq(schema.services.id, id) }),
-    db.select().from(schema.categories).orderBy(asc(schema.categories.sortOrder)),
-    db.select({ slug: schema.services.slug, title: schema.services.title }).from(schema.services),
-  ]);
+  const [sp, service, categories, all] = await Promise.all([searchParams, getService(id), listCategories(), listServiceOptions()]);
   if (!service) notFound();
   return (
     <>

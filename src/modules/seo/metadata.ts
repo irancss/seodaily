@@ -2,7 +2,8 @@ import "server-only";
 
 import type { Metadata } from "next";
 
-import { getContact, getGeneral, getPageText, type PageKey } from "@/modules/settings/queries";
+import { getContact, getGeneral, getPageText } from "@/modules/settings/queries";
+import { type PageKey } from "@/modules/settings/types";
 
 export async function getSiteUrl() {
   const general = await getGeneral();

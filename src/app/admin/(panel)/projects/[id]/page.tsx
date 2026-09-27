@@ -1,12 +1,10 @@
-import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Flash, PageHeader } from "@/components/molecules";
-import { db, schema } from "@/db";
-import { projectHref } from "@/modules/projects/routes";
-
 import { ProjectForm } from "@/components/organisms";
+import { getProject } from "@/modules/admin/projects-queries";
+import { projectHref } from "@/modules/projects/routes";
 import { projectTypes } from "@/modules/projects/types";
 
 export const metadata = { title: "ویرایش پروژه" };
@@ -16,11 +14,7 @@ type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ ok?: str
 export default async function EditProject({ params, searchParams }: Props) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
-  const [sp, project, types] = await Promise.all([
-    searchParams,
-    db.query.projects.findFirst({ where: eq(schema.projects.id, id) }),
-    projectTypes(),
-  ]);
+  const [sp, project, types] = await Promise.all([searchParams, getProject(id), projectTypes()]);
   if (!project) notFound();
   return (
     <>

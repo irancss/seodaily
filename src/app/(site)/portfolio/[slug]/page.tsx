@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { GridBackdrop, HeroBadge, Icon, JsonLd } from "@/components/atoms";
-import { CtaSection } from "@/components/organisms";
-import { Breadcrumb, BrowserFrame, Visual } from "@/components/molecules";
-import { stepNo } from "@/lib/utils";
+import { JsonLd } from "@/components/atoms";
+import { ProjectAboutSection, ProjectCtaSection, ProjectHeroSection } from "@/components/organisms/sections/project";
 import { decodeSlug } from "@/lib/utils";
 import { getProjectBySlug } from "@/modules/projects/queries";
 import { projectHref } from "@/modules/projects/routes";
@@ -50,62 +48,11 @@ export default async function ProjectPage({ params }: Props) {
 
   return (
     <>
-      <section className="relative overflow-hidden pt-6 pb-12 lg:pt-8 lg:pb-20">
-        <GridBackdrop className="opacity-50" />
-        <div className="container-site relative">
-          <Breadcrumb
-            items={[
-              { label: "صفحه اصلی", href: "/" },
-              { label: "نمونه‌کارها", href: "/portfolio" },
-              { label: project.title },
-            ]}
-          />
-          <div className="mt-8 flex flex-col items-start lg:mt-12">
-            {project.projectType && <HeroBadge>{project.projectType}</HeroBadge>}
-            <h1 className="t-h1 mt-5">{project.title}</h1>
-            {project.summary && <p className="body-lg mt-5 max-w-[720px]">{project.summary}</p>}
-            {project.websiteUrl && (
-              <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary mt-8 h-12 px-5">
-                مشاهده سایت
-                <Icon name="external" size={18} />
-              </a>
-            )}
-          </div>
-          <BrowserFrame className="mt-10 lg:mt-12" url={project.websiteUrl ? project.websiteUrl.replace(/^https?:\/\//, "") : undefined}>
-            <Visual src={project.imageUrl} alt={project.title} className="h-[260px] lg:h-[560px]" />
-          </BrowserFrame>
-        </div>
-      </section>
+      <ProjectHeroSection project={project} />
 
-      {(project.description || story.length > 0) && (
-        <section className="section bg-white">
-          <div className="container-site grid items-start gap-10 lg:grid-cols-[7fr_5fr] lg:gap-16">
-            <div className="flex flex-col gap-4">
-              <h2 className="t-h2">درباره پروژه</h2>
-              {project.description.split(/\n{2,}/).map((para, i) => (
-                <p key={i} className="body-lg whitespace-pre-line">
-                  {para}
-                </p>
-              ))}
-            </div>
-            {story.length > 0 && (
-              <ol className="border-t border-line">
-                {story.map(([title, body], i) => (
-                  <li key={title} className="grid grid-cols-[48px_minmax(0,1fr)] border-b border-line py-6">
-                    <span className="text-xl leading-[1.65] font-bold text-brand">{stepNo(i)}</span>
-                    <div>
-                      <h3 className="t-h3">{title}</h3>
-                      <p className="mt-2 text-base leading-[1.9] whitespace-pre-line text-ink-2">{body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        </section>
-      )}
+      {(project.description || story.length > 0) && <ProjectAboutSection description={project.description} story={story} />}
 
-      <CtaSection variant="open" title="پروژه‌ای در ذهن دارید؟" text="اطلاعات اولیه پروژه را برای ما بفرستید تا نیازها و شرایط آن بررسی شود." />
+      <ProjectCtaSection />
 
       <JsonLd data={ld} />
       <JsonLd

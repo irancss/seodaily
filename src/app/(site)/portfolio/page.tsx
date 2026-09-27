@@ -1,14 +1,14 @@
-import Link from "next/link";
-
-import { GridBackdrop, HeroBadge, Icon, JsonLd } from "@/components/atoms";
-import { CtaSection, PortfolioGrid } from "@/components/organisms";
-import { BrowserFrame, Visual } from "@/components/molecules";
-import { stepNo } from "@/lib/utils";
+import { JsonLd } from "@/components/atoms";
+import {
+  PortfolioCaseStudySection,
+  PortfolioCtaSection,
+  PortfolioHeroSection,
+  PortfolioProjectsSection,
+} from "@/components/organisms/sections/portfolio";
 import { getPublishedProjects } from "@/modules/projects/queries";
 import { projectHref } from "@/modules/projects/routes";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
 import { getPageText } from "@/modules/settings/queries";
-
 
 export function generateMetadata() {
   return pageMetadata("portfolio", "/portfolio");
@@ -45,72 +45,16 @@ export default async function PortfolioPage() {
   return (
     <>
       {/* 01 · hero */}
-      <section className="relative overflow-hidden pt-10 pb-10 lg:pt-20 lg:pb-16">
-        <GridBackdrop className="opacity-60" />
-        <div className="container-site relative grid items-end gap-3 lg:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col items-start">
-            <HeroBadge>{text.badge}</HeroBadge>
-            <h1 className="t-h1 mt-4">{text.title}</h1>
-          </div>
-          <p className="body-lg lg:pb-2">{text.subtitle}</p>
-        </div>
-      </section>
+      <PortfolioHeroSection text={text} />
 
       {/* 02–03 · filter + grid */}
-      {items.length > 0 ? (
-        <PortfolioGrid items={items} />
-      ) : (
-        <section className="border-t border-line bg-white py-16">
-          <div className="container-site">
-            <p className="text-base leading-[1.9] text-muted">نمونه‌کارها به‌زودی در این بخش نمایش داده می‌شوند.</p>
-          </div>
-        </section>
-      )}
+      <PortfolioProjectsSection items={items} />
 
       {/* 04 · case study */}
-      {caseStudy && (
-        <section className="section bg-white">
-          <div className="container-site">
-            <div className="grid items-end gap-2 lg:grid-cols-2 lg:gap-16">
-              <h2 className="t-h2">نگاهی دقیق‌تر به یک پروژه</h2>
-              <p className="body-lg">مسئله، راهکار و نتیجه یک پروژه منتخب.</p>
-            </div>
-            <div className="mt-8 grid items-center gap-6 lg:mt-12 lg:grid-cols-[7fr_5fr] lg:gap-16">
-              <BrowserFrame url={caseStudy.websiteUrl ? caseStudy.websiteUrl.replace(/^https?:\/\//, "") : undefined}>
-                <Visual src={caseStudy.imageUrl} alt={caseStudy.title} className="h-[220px] lg:h-[480px]" />
-              </BrowserFrame>
-              <div className="flex flex-col">
-                {caseStudy.projectType && <span className="text-sm leading-[1.7] font-medium text-muted">{caseStudy.projectType}</span>}
-                <h3 className="mt-1 text-2xl leading-[1.6] font-bold">{caseStudy.title}</h3>
-                <ol className="mt-6 border-t border-line">
-                  {[
-                    ["مسئله", caseStudy.problem],
-                    ["راهکار", caseStudy.solution],
-                    ["نتیجه", caseStudy.result],
-                  ]
-                    .filter(([, body]) => body)
-                    .map(([title, body], i) => (
-                      <li key={title} className="grid grid-cols-[40px_minmax(0,1fr)] border-b border-line py-5 lg:grid-cols-[48px_minmax(0,1fr)] lg:py-6">
-                        <span className="text-xl leading-[1.65] font-bold text-brand">{stepNo(i)}</span>
-                        <div>
-                          <h4 className="t-h3">{title}</h4>
-                          <p className="mt-1 text-base leading-[1.9] text-ink-2 lg:mt-2">{body}</p>
-                        </div>
-                      </li>
-                    ))}
-                </ol>
-                <Link href={projectHref(caseStudy.slug)} className="text-link mt-4 self-start">
-                  جزئیات پروژه
-                  <Icon name="arrow-left" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      {caseStudy && <PortfolioCaseStudySection caseStudy={caseStudy} />}
 
       {/* 05 · cta */}
-      <CtaSection variant="open" title={text.ctaTitle} text={text.ctaText} />
+      <PortfolioCtaSection text={text} />
 
       <JsonLd data={listLd} />
       <JsonLd
