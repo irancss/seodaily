@@ -4,7 +4,7 @@ node_modules
 .env
 .env.*
 !.env.example
-uploads
+/uploads
 npm-debug.log*
 Dockerfile
 .github
