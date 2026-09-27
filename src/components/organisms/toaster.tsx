@@ -51,7 +51,12 @@ export function Toaster() {
     const active = timers.current;
     function onToast(event: Event) {
       const item = (event as CustomEvent<ToastMessage>).detail;
-      setItems((list) => [...list.filter((t) => t.message !== item.message), item].slice(-MAX_VISIBLE));
+      // A success means earlier problems were resolved, so their error toasts go.
+      setItems((list) =>
+        [...list.filter((t) => t.message !== item.message && !(item.kind === "success" && t.kind === "error")), item].slice(
+          -MAX_VISIBLE,
+        ),
+      );
       if (item.kind !== "error") active.set(item.id, setTimeout(() => dismiss(item.id), AUTO_CLOSE_MS));
     }
     window.addEventListener(TOAST_EVENT, onToast);

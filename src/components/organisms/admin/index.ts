@@ -10,6 +10,7 @@ export * from "./lead-details";
 export * from "./lead-followup-form";
 export * from "./leads-filter";
 export * from "./leads-table";
+export * from "./menu-editor";
 export * from "./page-text-editor";
 export * from "./pagination";
 export * from "./projects-grid";
