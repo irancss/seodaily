@@ -1,13 +1,18 @@
 # syntax=docker/dockerfile:1
 
+# Base image; override with a mirror where Docker Hub is unreachable, e.g.
+#   docker compose build --build-arg NODE_IMAGE=docker.arvancloud.ir/node:22-alpine
+# (or set NODE_IMAGE in .env).
+ARG NODE_IMAGE=node:22-alpine
+
 # ---- dependencies ----
-FROM node:22-alpine AS deps
+FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 # ---- build ----
-FROM node:22-alpine AS builder
+FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
@@ -15,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # ---- runtime ----
-FROM node:22-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
