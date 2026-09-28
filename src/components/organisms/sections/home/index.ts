@@ -7,3 +7,4 @@ export * from "./portfolio-section";
 export * from "./process-section";
 export * from "./services-intro-section";
 export * from "./why-us-section";
+export * from "./plugins-section";

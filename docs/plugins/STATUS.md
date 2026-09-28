@@ -13,7 +13,7 @@ P01 — مدل داده، Migration و Slug registry
 | مرحله | فایل‌ها | آزمون | وضعیت |
 | --- | --- | --- | --- |
 | P00 کشف | — | Baseline: همه مجموعه‌های قبلی سبز در `main` (FINAL-RELEASE-AUDIT.md) | ✅ |
-| P01 Schema | `src/db/plugins-schema.ts`، `drizzle/0004_plugins_library.sql` (۲۲ جدول، CHECKها، ۱۵ slug رزرو) | Migration روی DB خالی و اجرای دوم بی‌اثر | ✅ |
+| P01 Schema | `src/db/plugins-schema.ts`، `drizzle/0004_plugins_library.sql` (۱۷ جدول، CHECKها، ۱۵ slug رزرو) | Migration روی DB خالی و اجرای دوم بی‌اثر | ✅ |
 | P01 Slug | `src/modules/slugs/{normalize,registry}.ts` | `tests/unit/slugs.test.mjs`، `tests/integration/slugs.test.mjs` (PL-T01، شامل هم‌زمانی) | ✅ |
 
 ## تصمیم‌ها (خلاصه؛ جزئیات در DECISIONS-AND-BLOCKERS.md)

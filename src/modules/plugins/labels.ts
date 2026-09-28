@@ -52,3 +52,13 @@ export function formatBytes(bytes: number) {
 export function publicDownloadCount(p: { baseDownloadCount: number; measuredDownloadCount: number }) {
   return Math.max(0, p.baseDownloadCount) + Math.max(0, p.measuredDownloadCount);
 }
+
+/** Calendar date in Tehran, e.g. «۶ مهر ۱۴۰۵». */
+export function faDate(value: Date | string | null | undefined) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran", dateStyle: "medium" }).format(new Date(value));
+}
+
+export function faNumber(n: number) {
+  return n.toLocaleString("fa-IR");
+}

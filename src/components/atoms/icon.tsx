@@ -4,6 +4,7 @@
 const ICONS = {
   "arrow-left": '<path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>',
   "arrow-down": '<path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/>',
+  download: '<path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/>',
   "chevron-left": '<path d="M15 18l-6-6 6-6"/>',
   "chevron-down": '<path d="M6 9l6 6 6-6"/>',
   "caret-left": '<path d="M12 19l-7-7 7-7"/>',
