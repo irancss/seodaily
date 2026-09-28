@@ -24,6 +24,7 @@ export const DEFAULT_GENERAL: GeneralSettings = {
   techOptions: ["وردپرس", "ووکامرس", "توسعه اختصاصی"],
   ogImage: "",
   googleVerification: "",
+  gtmId: "",
 };
 
 export const DEFAULT_CONTACT: ContactSettings = {

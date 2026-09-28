@@ -119,9 +119,29 @@
 
 بخش ۱۳.
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات و تست‌ها: `6f1c40b` (شاخه `phase-07-db`)
+- Merge در `main`: `0c5f913dccadd13a8840cf854b669f3642ebf5a0`
+
+## 10. PR
+
+[irancss/seodaily#12](https://github.com/irancss/seodaily/pull/12) — Merge شد.
+
+## 11. CI status
+
+- PR #12 (اجرای `36467098089`): `check` ✅، شامل `test:db` روی دیتابیس‌های یک‌بارمصرف (نصب تازه، Crash وسط Seed، ارتقای محتوا، تکرار Migration).
+- `main` (اجرای `36468001937`): `check` ✅ · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار. Entrypoint روی دیتابیس واقعی `migrate.mjs` و سپس `seed.mjs` تراکنشی را اجرا کرد. چون جدول‌ها از قبل پر بودند، Seed چیزی ننوشت (رفتار «فقط اگر خالی باشد») و سایت بالا آمد.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`، همه ✅: Smoke test (۱۱ صفحه، ۲۰۰، یعنی خواندن تنظیمات با ادغام نوع‌امن سالم است)، نسخه‌های دامنه، سئو ۱۶/۱۶، امنیت فقط‌خواندنی، چیدمان ۸ عرض.
+
+محدودیت: از بیرون سرور نمی‌توان شمارش ردیف‌ها یا پشتیبان را دید. پشتیبان‌گیری خودکار و آزمون بازیابی روی سرور کار فاز ۱۱ است.
 
 ## 13-bis. Connection management
 

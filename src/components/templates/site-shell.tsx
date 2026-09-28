@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { JsonLd } from "@/components/atoms";
+import { JsonLd, TagManager } from "@/components/atoms";
 import { FloatingCall } from "@/components/molecules";
-import { SiteFooter, SiteHeader } from "@/components/organisms";
+import { AnalyticsListener, SiteFooter, SiteHeader } from "@/components/organisms";
 import type { Menus } from "@/modules/menus/types";
 import type { ContactSettings, GeneralSettings } from "@/modules/settings/types";
 
@@ -30,6 +30,8 @@ export function SiteShell({ general, contact, menus, jsonLd, children }: Props) 
         {children}
       </main>
       <SiteFooter general={general} contact={contact} />
+      <AnalyticsListener />
+      {general.gtmId && <TagManager id={general.gtmId} />}
       {contact.phone && <FloatingCall phone={contact.phone} />}
       <JsonLd data={jsonLd} />
     </div>

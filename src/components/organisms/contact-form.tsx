@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 
 import { Icon } from "@/components/atoms";
+import { trackOnce } from "@/lib/analytics";
 import { toast } from "@/lib/toast";
 import { SERVICE_CHOICE_LABELS } from "@/modules/leads/constants";
 
@@ -32,6 +33,7 @@ export function ContactForm({ budgets, defaultService }: { budgets: string[]; de
   const [state, action, pending] = useActionState(submitConsultation, initial);
   const successRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLParagraphElement>(null);
+  const view = useRef({});
   const v = state.values ?? {};
   const e = state.errors ?? {};
 
@@ -39,6 +41,7 @@ export function ContactForm({ budgets, defaultService }: { budgets: string[]; de
     if (state.status === "success") {
       successRef.current?.focus();
       toast.success("درخواست مشاوره ثبت شد. به‌زودی با شما تماس می‌گیریم.", { silent: true });
+      if (state.lead) trackOnce(state, "lead", { event: "generate_lead", form: "contact", service: state.lead.service });
     }
     if (state.status === "error") {
       errorRef.current?.focus();
@@ -63,7 +66,13 @@ export function ContactForm({ budgets, defaultService }: { budgets: string[]; de
   const selectedService = v.service || defaultService || "web-design-seo";
 
   return (
-    <form action={action} noValidate aria-labelledby="cf-title" className="mt-6 flex flex-col gap-5 lg:mt-8 lg:gap-6">
+    <form
+      action={action}
+      noValidate
+      aria-labelledby="cf-title"
+      onInput={() => trackOnce(view.current, "form_start", { event: "form_start", form: "contact" })}
+      className="mt-6 flex flex-col gap-5 lg:mt-8 lg:gap-6"
+    >
       {state.status === "error" && state.message && (
         <p ref={errorRef} tabIndex={-1} role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-sm leading-[1.8] font-medium text-error outline-none">
           {state.message}

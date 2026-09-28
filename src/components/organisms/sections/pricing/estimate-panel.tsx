@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useId, useRef, type InputHTMLAttributes } from "react";
 
 import { Icon } from "@/components/atoms/icon";
+import { trackOnce } from "@/lib/analytics";
 import { toast } from "@/lib/toast";
 import { cx } from "@/lib/utils";
 import { submitEstimate, type EstimateState } from "@/modules/pricing/actions";
@@ -112,6 +113,7 @@ export function EstimateForm({ service, selection, validate, estimateError, onRe
   const id = useId();
   const messageRef = useRef<HTMLParagraphElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const view = useRef({});
   const v = state.values ?? {};
   const e = state.errors ?? {};
 
@@ -119,12 +121,15 @@ export function EstimateForm({ service, selection, validate, estimateError, onRe
     if (state.status === "success") {
       successRef.current?.focus();
       toast.success("درخواست شما ثبت شد. به‌زودی برای هماهنگی تماس می‌گیریم.", { silent: true });
+      if (state.lead) {
+        trackOnce(state, "lead", { event: "generate_lead", form: "estimate", service, estimate_total_toman: state.total });
+      }
     }
     if (state.status === "error") {
       messageRef.current?.focus();
       if (state.message) toast.error(state.message, { silent: true });
     }
-  }, [state]);
+  }, [state, service]);
 
   if (state.status === "success") {
     return (
@@ -151,6 +156,7 @@ export function EstimateForm({ service, selection, validate, estimateError, onRe
       onSubmit={(event) => {
         if (!validate()) event.preventDefault();
       }}
+      onInput={() => trackOnce(view.current, "form_start", { event: "form_start", form: "estimate" })}
       className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-6"
     >
       <div>

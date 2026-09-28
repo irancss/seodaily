@@ -14,6 +14,8 @@ export type GeneralSettings = {
   ogImage: string;
   /** Content of the google-site-verification meta tag. */
   googleVerification: string;
+  /** Google Tag Manager container (GTM-XXXXXXX); empty loads no tag at all. */
+  gtmId: string;
 };
 
 export type ContactSettings = {

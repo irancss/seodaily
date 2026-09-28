@@ -3,13 +3,17 @@ import type { NextConfig } from "next";
 // Everything the site loads is its own: scripts, styles, fonts and uploaded
 // images. Next.js bootstraps with inline scripts and React sets inline styles,
 // hence 'unsafe-inline'; dev mode additionally needs eval for fast refresh.
+// The Google hosts are what Google Tag Manager and GA4 need (Google's CSP
+// guide); they are only contacted when a GTM ID is set in the admin.
+const gtmScript = "https://www.googletagmanager.com";
+const gaHosts = "https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com";
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"} ${gtmScript}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${gaHosts}`,
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self' ${gaHosts}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

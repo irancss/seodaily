@@ -60,6 +60,8 @@ export type EstimateState = {
   values?: Record<string, string>;
   /** Server-computed total of the saved estimate. */
   total?: number;
+  /** Set only when this submission stored a new lead: the conversion to measure (not a retry or a bot). */
+  lead?: boolean;
 };
 
 const contactInput = z.object({
@@ -127,5 +129,5 @@ export async function submitEstimate(_prev: EstimateState, form: FormData): Prom
     return { status: "error", message: "ثبت درخواست با خطا روبه‌رو شد. لطفاً دوباره تلاش کنید.", values };
   }
 
-  return { status: "success", total: estimate.total };
+  return { status: "success", total: estimate.total, lead: true };
 }

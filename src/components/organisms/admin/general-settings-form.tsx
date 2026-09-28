@@ -26,6 +26,14 @@ export function GeneralSettingsForm({ general }: { general: GeneralSettings }) {
           dir="ltr"
           hint="مقدار content در تگ google-site-verification (یا کل تگ را بچسبانید)."
         />
+        <Field
+          label="شناسه Google Tag Manager"
+          name="gtmId"
+          defaultValue={general.gtmId}
+          dir="ltr"
+          placeholder="GTM-XXXXXXX"
+          hint="اختیاری. فقط شناسه کانتینر (GTM-…). رویدادهای سایت (تماس، شروع فرم، ثبت درخواست) از طریق dataLayer به آن می‌رسند؛ بدون شناسه هیچ اسکریپتی بار نمی‌شود."
+        />
         <ImageField label="تصویر پیش‌فرض اشتراک‌گذاری (Open Graph)" name="ogImage" current={general.ogImage || undefined} hint="۱۲۰۰×۶۳۰ پیکسل. وقتی صفحه تصویر خودش را ندارد، در پیش‌نمایش لینک‌ها استفاده می‌شود." />
         <Field label="توضیح فوتر" name="footerDescription" defaultValue={general.footerDescription} multiline rows={2} />
         <Field label="متن کوتاه پایین فوتر" name="footerNote" defaultValue={general.footerNote} />

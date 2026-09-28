@@ -116,9 +116,27 @@ deploy/, docker/, Dockerfile  Compose Production، nginx/Apache، entrypoint (mi
 
 بخش ۱۳.
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات: `1a12ab1` (شاخه `phase-06-arch`)
+- Merge در `main`: `ea5fab39660bc407a025fbce28b65dff64faece0`
+
+## 10. PR
+
+[irancss/seodaily#11](https://github.com/irancss/seodaily/pull/11) — Merge شد.
+
+## 11. CI status
+
+- PR #11 (اجرای `36466423443`): `check` ✅ (Lint، Typecheck، واحد، Build، سئو، امنیت، E2E).
+- `main` (اجرای `36467084942`): `check` ✅ · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار. Container جدید با `check-env` بالا آمد: پیکربندی Production (`DATABASE_URL` و `SESSION_SECRET` بلند) معتبر است، وگرنه سرور شروع نمی‌شد و `verify` شکست می‌خورد.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`، همه ✅: Smoke test (۱۱ صفحه، ۲۰۰)، نسخه‌های دامنه، سئو ۱۶/۱۶، امنیت فقط‌خواندنی، چیدمان ۸ عرض × ۹ صفحه بدون خطای اسکریپت (حذف کد مرده اثری روی صفحات نگذاشت).
 
 ## 14. Remaining manual items
 

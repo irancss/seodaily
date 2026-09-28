@@ -15,3 +15,4 @@ export * from "./placeholder-chip";
 export * from "./stat-counter";
 export * from "./submit-button";
 export * from "./word-rotator";
+export * from "./tag-manager";
