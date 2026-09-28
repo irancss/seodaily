@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { db, schema } from "@/db";
 import { str } from "@/lib/form-actions";
-import { hashPassword, requireAdmin } from "@/modules/auth/session";
+import { hashPassword, requireAdmin, revokeOtherSessions } from "@/modules/auth/session";
 
 function back(key: "ok" | "error", message: string): never {
   redirect(`/admin/account?${key}=${encodeURIComponent(message)}`);
@@ -36,5 +36,7 @@ export async function updateAccount(form: FormData) {
   } catch {
     back("error", "این ایمیل برای کاربر دیگری ثبت شده است.");
   }
+  // A new password signs out every other browser that was logged in.
+  if (next) await revokeOtherSessions(user.id);
   back("ok", "حساب کاربری به‌روز شد.");
 }

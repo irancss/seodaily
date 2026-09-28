@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { db, schema } from "@/db";
+import { errorSummary } from "@/lib/log";
 import { SERVICE_CHOICES } from "@/db/schema";
 import { businessField, nameField, phoneField } from "@/modules/leads/fields";
 import { clientIp, RATE_LIMIT_MESSAGE, rateLimited } from "@/modules/leads/rate-limit";
@@ -72,7 +73,7 @@ export async function submitConsultation(_prev: ContactState, formData: FormData
       description: data.description,
     });
   } catch (error) {
-    console.error("contact: could not save lead", error);
+    console.error("contact: could not save lead:", errorSummary(error));
     return {
       status: "error",
       message: "ارسال درخواست با خطا روبه‌رو شد. لطفاً دوباره تلاش کنید.",
