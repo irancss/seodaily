@@ -106,9 +106,29 @@ A11Y-H1، A11Y-H2 و A11Y-M1 (بخش ۳).
 | E2E (سفرها، چیدمان، دسترس‌پذیری) | ✅ ۲۵/۲۵ |
 | کنترل منفی: a11y پنل روی Build قبلی | ❌ شکست مورد انتظار |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات و تست‌ها: `db03792` (شاخه `phase-09-a11y`)
+- Merge در `main`: `bd51e0ae1e6a9b9810f059b7949030b52dde7a48`
+
+## 10. PR
+
+[irancss/seodaily#14](https://github.com/irancss/seodaily/pull/14) — Merge شد.
+
+## 11. CI status
+
+- PR #14 (اجرای `36469561878`): `check` ✅، شامل axe روی صفحات عمومی و پنل.
+- `main` (اجرای `36470985021`): `check` ✅ · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`، همه ✅:
+- **Accessibility on production:** axe WCAG 2.2 AA روی صفحات عمومی در ۳۹۰ و ۱۲۸۰ پیکسل بدون خطا، و آزمون صفحه‌کلید (لینک پرش، Focus قابل‌مشاهده)
+- Smoke test، نسخه‌های دامنه، سئو، امنیت و چیدمان
 
 ## 14. Remaining manual items
 
