@@ -15,7 +15,8 @@
     "test:security": "node --test --test-concurrency=1 tests/security.test.mjs",
     "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/support/register.mjs --test tests/unit/*.test.mjs",
     "test:e2e": "node --test --test-concurrency=1 tests/e2e/*.test.mjs",
-    "test:db": "node --test --test-concurrency=1 tests/db/*.test.mjs"
+    "test:db": "node --test --test-concurrency=1 tests/db/*.test.mjs",
+    "test:integration": "node --conditions=react-server --import ./tests/support/register.mjs --test --test-concurrency=1 tests/integration/*.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
