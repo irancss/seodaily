@@ -63,8 +63,9 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
         <div className="overflow-hidden rounded-xl bg-white">
           <div className="flex h-8 items-center gap-3 border-b border-line bg-page px-3 lg:h-9">
             <Dots size={8} />
-            <span dir="ltr" className="flex h-5 grow items-center rounded-full border border-line bg-white px-2.5 text-[11px] text-muted">
-              www.your-business.ir
+            <span className="flex h-5 grow items-center gap-1.5 rounded-full border border-line bg-white px-2.5">
+              <span className="size-2 shrink-0 rounded-full bg-success/60" />
+              <span className="h-1.5 w-2/5 rounded-full bg-line-strong" />
             </span>
           </div>
           {imageUrl ? (
@@ -80,10 +81,10 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
       {/* Organic traffic chart */}
       <div className="float-card float absolute top-0 -left-3 hidden w-[210px] p-4 sm:block lg:-left-12" style={vars({ i: 0 })}>
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7]">
-          <span className="font-semibold text-ink">ترافیک ارگانیک</span>
+          <span className="font-semibold text-ink"><span className="css-label" data-label="ترافیک ارگانیک" /></span>
           <span className="flex items-center gap-1 font-bold text-success">
             <Icon name="trending-up" size={14} />
-            رشد
+            <span className="css-label" data-label="رشد" />
           </span>
         </div>
         <svg viewBox="0 0 180 64" className="mt-2 h-14 w-full" fill="none">
@@ -112,13 +113,13 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
       {/* Core Web Vitals */}
       <div className="float-card float absolute -right-3 bottom-20 hidden p-4 sm:block lg:-right-10" style={vars({ i: 1 })}>
         <p className="text-xs leading-[1.7] font-semibold text-ink" dir="ltr">
-          Core Web Vitals
+          <span className="css-label" data-label="Core Web Vitals" />
         </p>
         <div className="mt-2 flex gap-1.5" dir="ltr">
           {["LCP", "INP", "CLS"].map((k) => (
             <span key={k} className="flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-bold text-success">
               <span className="size-1.5 rounded-full bg-success" />
-              {k}
+              <span className="css-label" data-label={k} />
             </span>
           ))}
         </div>
@@ -130,9 +131,9 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
           <Icon name="search" size={18} />
         </span>
         <span className="flex flex-col">
-          <span className="text-xs leading-[1.7] text-muted">رتبه کلمات کلیدی</span>
+          <span className="text-xs leading-[1.7] text-muted"><span className="css-label" data-label="رتبه کلمات کلیدی" /></span>
           <span className="flex items-center gap-1 text-sm leading-[1.7] font-bold text-ink">
-            رو به بهبود
+            <span className="css-label" data-label="رو به بهبود" />
             <Icon name="arrow-up" size={14} className="text-success" />
           </span>
         </span>

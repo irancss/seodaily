@@ -36,15 +36,14 @@ function Line({ w, h = 6, tone = "line", className }: { w: string | number; h?: 
 }
 
 /** Window chrome of the mockups: dots and an address pill. */
-function WindowBar({ url }: { url?: string }) {
+/** Browser chrome for the mockups; the address bar is a plain shape (no fake URL text in the page). */
+function WindowBar() {
   return (
     <div className="flex h-8 shrink-0 items-center gap-3 border-b border-line bg-page px-3 lg:h-9">
       <Dots size={8} />
-      <span
-        dir="ltr"
-        className="flex h-5 min-w-0 grow items-center overflow-hidden rounded-full border border-line bg-white px-2.5 text-[11px] leading-none whitespace-nowrap text-muted"
-      >
-        {url}
+      <span className="flex h-5 min-w-0 grow items-center gap-1.5 rounded-full border border-line bg-white px-2.5">
+        <span className="size-2 shrink-0 rounded-full bg-success/60" />
+        <span className="h-1.5 w-2/5 rounded-full bg-line-strong" />
       </span>
     </div>
   );
@@ -65,7 +64,7 @@ function PictureBlock({ className }: { className?: string }) {
 export function DesignFrame() {
   return (
     <div aria-hidden="true" className="overflow-hidden rounded-xl bg-white">
-      <WindowBar url="www.your-brand.ir" />
+      <WindowBar />
       <div className="flex flex-col gap-3 p-3.5 lg:gap-4 lg:p-5">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2">
@@ -112,7 +111,7 @@ export function DesignFrame() {
 export function SeoFrame() {
   return (
     <div aria-hidden="true" className="overflow-hidden rounded-xl bg-white">
-      <WindowBar url="search" />
+      <WindowBar />
       <div className="flex flex-col gap-3 p-3.5 lg:p-4">
         <div className="flex h-9 items-center gap-2.5 rounded-full border border-line px-3.5 shadow-sm">
           <Icon name="search" size={16} className="text-brand" />
@@ -157,7 +156,7 @@ export function FormSketch({ picked }: { picked?: string }) {
         <span className="flex size-3.5 shrink-0 items-center justify-center rounded-full border-2 border-brand">
           <span className="size-1.5 rounded-full bg-brand" />
         </span>
-        {picked ?? <Line w="50%" h={6} tone="tint" />}
+        {picked ? <span className="css-label" data-label={picked} /> : <Line w="50%" h={6} tone="tint" />}
       </span>
     </div>
   );
@@ -169,7 +168,7 @@ export function ResponsiveFrames() {
     <div aria-hidden="true" className="relative pb-12 sm:pb-14">
       <div className="frame-glass rounded-2xl p-2 lg:p-2.5">
         <div className="overflow-hidden rounded-xl bg-white">
-          <WindowBar url="www.your-brand.ir" />
+          <WindowBar />
           <div className="flex flex-col gap-3 p-3.5 lg:gap-4 lg:p-5">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2">
@@ -243,7 +242,7 @@ export function SerpMockup() {
   return (
     <div role="img" aria-label="نمای نمادین یک صفحه نتایج جست‌وجو" className="overflow-hidden rounded-xl bg-white">
       <div aria-hidden="true">
-        <WindowBar url="search?q=…" />
+        <WindowBar />
         <div className="flex flex-col gap-3 p-4 lg:gap-3.5 lg:p-5">
           <div className="flex h-10 items-center gap-3 rounded-full border border-line px-4 shadow-sm lg:h-11">
             <Icon name="search" size={18} className="text-brand" />

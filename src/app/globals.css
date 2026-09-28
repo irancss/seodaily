@@ -552,6 +552,12 @@
     padding-inline-end: var(--marquee-gap, 16px);
   }
 
+  /* Decorative words drawn from a data attribute, so repeated animation
+     copies don't end up in the page text that search engines read. */
+  .css-label::before {
+    content: attr(data-label);
+  }
+
   /* ---------- rotating words ---------- */
   .rotator {
     display: inline-block;
@@ -575,7 +581,7 @@
     counter-reset: n var(--to);
   }
   .count::after {
-    content: counter(n, persian);
+    content: counter(n, persian) attr(data-suffix);
   }
 
   /* ---------- sticky header ---------- */

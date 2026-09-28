@@ -26,7 +26,8 @@ export function pricingJsonLd(pricing: PricingConfig, base: string) {
         "@context": "https://schema.org",
         "@type": "Service",
         name: label,
-        url: `${base}/pricing?service=${service}`,
+        // The canonical page; the ?service= tab URLs canonicalise to /pricing.
+        url: `${base}/pricing`,
         provider: { "@id": `${base}/#organization` },
         hasOfferCatalog: { "@type": "OfferCatalog", name: `تعرفه ${label}`, itemListElement: offers },
       },

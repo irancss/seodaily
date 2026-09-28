@@ -26,7 +26,7 @@ function layout(i: number, count: number) {
 export function ServiceIncludesSection({ service, tone }: Props) {
   const count = service.includes.length;
   return (
-    <section className={cx("section", toneClass(tone))}>
+    <section id="service-includes" className={cx("section", toneClass(tone))}>
       <div className="container-site">
         <SectionHeading
           eyebrow="آنچه انجام می‌شود"

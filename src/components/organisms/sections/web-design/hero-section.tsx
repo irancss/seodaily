@@ -15,6 +15,7 @@ export function WebDesignHeroSection({ text, ribbon }: Props) {
   return (
     <>
       <PageHero
+        breadcrumb={[{ label: "صفحه اصلی", href: "/" }, { label: "طراحی سایت" }]}
         badge={text.badge}
         title={text.title}
         subtitle={text.subtitle}

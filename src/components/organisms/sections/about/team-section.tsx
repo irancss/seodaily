@@ -1,4 +1,4 @@
-import { Icon, IconTile } from "@/components/atoms";
+import { Icon } from "@/components/atoms";
 import { SectionHeading } from "@/components/molecules";
 import type { TeamMember } from "@/db/schema";
 import { vars } from "@/lib/utils";
@@ -7,12 +7,14 @@ type Props = {
   team: TeamMember[];
 };
 
+/** Team members; the section is left out entirely until real members are added in the admin. */
 export function AboutTeamSection({ team }: Props) {
+  if (team.length === 0) return null;
   return (
     <section className="section bg-white">
       <div className="container-site">
         <SectionHeading eyebrow="تیم" title="تیم *سئو دیلی*" text="افرادی که پروژه‌ها را طراحی، اجرا و پیگیری می‌کنند." />
-        {team.length > 0 ? (
+        {team.length > 0 && (
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-6">
             {team.map((m, i) => (
               <li key={m.id} className="reveal" style={vars({ i: i % 3 })}>
@@ -33,11 +35,6 @@ export function AboutTeamSection({ team }: Props) {
               </li>
             ))}
           </ul>
-        ) : (
-          <div className="reveal mt-8 flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-line-strong bg-page px-6 py-10 text-center lg:mt-14 lg:min-h-60">
-            <IconTile name="team" tone="gradient" className="size-14 rounded-2xl lg:size-16" iconSize={28} />
-            <p className="text-base leading-[1.9] text-ink-2">اطلاعات تیم پس از تأیید اضافه می‌شود.</p>
-          </div>
         )}
       </div>
     </section>

@@ -131,8 +131,9 @@ export function ServiceHeroVisual({ service, categoryTitle }: { service: Service
         <div className="overflow-hidden rounded-xl bg-white">
           <div aria-hidden="true" className="flex h-8 items-center gap-3 border-b border-line bg-page px-3 lg:h-9">
             <Dots size={8} />
-            <span dir="ltr" className="flex h-5 grow items-center rounded-full border border-line bg-white px-2.5 text-[11px] text-muted">
-              www.your-business.ir
+            <span className="flex h-5 grow items-center gap-1.5 rounded-full border border-line bg-white px-2.5">
+              <span className="size-2 shrink-0 rounded-full bg-success/60" />
+              <span className="h-1.5 w-2/5 rounded-full bg-line-strong" />
             </span>
           </div>
           {service.imageUrl ? (
@@ -153,9 +154,9 @@ export function ServiceHeroVisual({ service, categoryTitle }: { service: Service
           <Icon name={service.icon} size={20} />
         </span>
         <span className="flex min-w-0 flex-col">
-          {categoryTitle && <span className="text-xs leading-[1.7] text-muted">{categoryTitle}</span>}
+          {categoryTitle && <span className="css-label text-xs leading-[1.7] text-muted" data-label={categoryTitle} />}
           <span dir={service.englishTitle ? "ltr" : undefined} className="truncate text-sm leading-[1.7] font-bold text-ink">
-            {service.englishTitle || service.title}
+            <span className="css-label" data-label={service.englishTitle || service.title} />
           </span>
         </span>
       </div>
@@ -168,8 +169,8 @@ export function ServiceHeroVisual({ service, categoryTitle }: { service: Service
           style={vars({ i: 1 })}
         >
           <p className="flex items-center justify-between gap-3 text-xs leading-[1.7] font-semibold text-ink">
-            روند اجرای پروژه
-            <span className="rounded-full bg-soft px-2 py-0.5 text-[11px] font-bold text-brand-hover">{service.process.length} مرحله</span>
+            <span className="css-label" data-label="روند اجرای پروژه" />
+            <span className="rounded-full bg-soft px-2 py-0.5 text-[11px] font-bold text-brand-hover"><span className="css-label" data-label={`${service.process.length.toLocaleString("fa-IR")} مرحله`} /></span>
           </p>
           <ol className="mt-3 flex flex-col gap-2">
             {steps.map((step, i) => (
@@ -182,7 +183,7 @@ export function ServiceHeroVisual({ service, categoryTitle }: { service: Service
                 >
                   {i + 1}
                 </span>
-                <span className="truncate">{step.title}</span>
+                <span className="css-label truncate" data-label={step.title} />
               </li>
             ))}
           </ol>

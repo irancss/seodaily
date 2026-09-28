@@ -164,9 +164,8 @@ export function EstimateForm({ service, selection, validate, estimateError, onRe
       )}
       <input type="hidden" name="service" value={service} />
       <input type="hidden" name="selection" value={selection} />
-      {/* Honeypot: hidden from people and assistive tech. */}
+      {/* Honeypot for bots: no visible or readable text (so nothing leaks into search snippets), out of the tab order and hidden from assistive tech. */}
       <div aria-hidden="true" className="sr-only">
-        <label htmlFor={`${id}-fax`}>Fax</label>
         <input id={`${id}-fax`} name="company_fax" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 

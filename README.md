@@ -373,22 +373,35 @@ mysqldump -u root -p WORDPRESS_DB_NAME > wp-db.sql
 
 ### ۷) وصل کردن دامنه به نسخهٔ جدید
 
-**nginx:** تنظیم فعلی وردپرس برای seodaily.ir را پیدا کنید (`grep -rl seodaily.ir /etc/nginx/`) و محتوای آن را با `deploy/nginx-seodaily.ir.conf` جایگزین کنید (اگر بلاک `listen 443` و مسیر گواهی‌های certbot در فایل قبلی هست، همان‌ها را نگه دارید و فقط `root`/`location`های PHP را با بلاک `location /` این فایل عوض کنید). بعد:
+آدرس اصلی (Canonical) سایت `https://seodaily.ir` (بدون www) است. فایل‌های `deploy/` طوری نوشته شده‌اند که سه نسخه دیگر (`http://seodaily.ir`، `http://www.seodaily.ir` و `https://www.seodaily.ir`) فقط با **یک** ریدایرکت دائمی (301) و با حفظ مسیر صفحه به همین آدرس برسند؛ زنجیره ریدایرکت ساخته نمی‌شود.
+
+**گواهی SSL** باید هر دو نام را پوشش دهد. اگر هنوز ندارید (یا گواهی فعلی فقط یکی از دو نام را دارد):
+
+```bash
+sudo certbot certonly --webroot -w /var/www/html -d seodaily.ir -d www.seodaily.ir
+```
+
+**nginx:** تنظیم فعلی وردپرس برای seodaily.ir را پیدا کنید (`grep -rl seodaily.ir /etc/nginx/`) و آن را با `deploy/nginx-seodaily.ir.conf` جایگزین کنید. اگر گواهی شما مسیر دیگری دارد، دو خط `ssl_certificate` را اصلاح کنید. بعد:
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d seodaily.ir -d www.seodaily.ir   # اگر SSL از قبل ندارید
 ```
 
 **Apache:** vhost فعلی (`grep -rl seodaily.ir /etc/apache2/`) را با `deploy/apache-seodaily.ir.conf` جایگزین کنید:
 
 ```bash
-sudo a2enmod proxy proxy_http headers
+sudo a2enmod ssl proxy proxy_http headers
 sudo apachectl configtest && sudo systemctl reload apache2
-sudo certbot --apache -d seodaily.ir -d www.seodaily.ir
 ```
 
-با HTTPS روی Apache، در vhost پورت ۴۴۳ مقدار `RequestHeader set X-Forwarded-Proto "https"` را بگذارید.
+**بررسی ریدایرکت‌ها** (هر سه باید `301` و `Location: https://seodaily.ir/...` بدهند و آخری `200`):
+
+```bash
+curl -sI http://seodaily.ir/seo | head -3
+curl -sI http://www.seodaily.ir/seo | head -3
+curl -sI https://www.seodaily.ir/seo | head -3
+curl -sI https://seodaily.ir/seo | head -1
+```
 
 حالا `https://seodaily.ir` سایت جدید را نشان می‌دهد. وارد `/admin` شوید، رمز مدیر را از «حساب کاربری» عوض کنید و در «تنظیمات سایت» آدرس سایت، اطلاعات تماس و کد Search Console را وارد کنید.
 

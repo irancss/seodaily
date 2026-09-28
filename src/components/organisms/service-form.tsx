@@ -44,6 +44,24 @@ export function ServiceForm({
           </div>
         </Card>
 
+        <Card title="این خدمت چیست؟" description="بخش اول صفحه بعد از بالای صفحه، با عنوان «<نام خدمت> چیست؟». پاراگراف‌ها را با یک خط خالی از هم جدا کنید.">
+          <Field label="توضیح خدمت" name="overview" defaultValue={s?.overview} multiline rows={5} />
+        </Card>
+
+        <Card
+          title="بخش‌های تکمیلی"
+          description="هر بخش با عنوان خودش (H2) نمایش داده می‌شود؛ مثلاً «چه چیزهایی بررسی می‌شود؟»، «عوامل مؤثر بر هزینه»، «عوامل مؤثر بر زمان» یا «اشتباهات رایج». در متن: خطی که با «- » شروع شود آیتم فهرست است، خط خالی پاراگراف جدید می‌سازد و [متن لینک](/services/seo-audit) یک لینک داخلی می‌سازد."
+        >
+          <Repeater
+            name="sections"
+            label="بخش‌ها"
+            max={8}
+            fields={[{ key: "title", label: "عنوان بخش" }, { key: "body", label: "متن بخش", multiline: true, rows: 8 }]}
+            initial={s?.sections ?? []}
+            addLabel="افزودن بخش"
+          />
+        </Card>
+
         <Card title="مشکل‌هایی که حل می‌کند">
           <div className="grid gap-5">
             <Field label="پاراگراف معرفی" name="problemIntro" defaultValue={s?.problemIntro} multiline rows={3} />

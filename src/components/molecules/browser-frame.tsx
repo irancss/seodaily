@@ -6,7 +6,7 @@ import { cx } from "@/lib/utils";
 /** Browser chrome around an image or a placeholder. */
 export function BrowserFrame({
   children,
-  url = "www.example.com",
+  url = null,
   compact = false,
   shadow = "md",
   className,

@@ -18,12 +18,12 @@ export function WebDesignHeroVisual() {
         style={vars({ i: 0 })}
       >
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7] font-semibold text-ink">
-          سیستم طراحی
+          <span className="css-label" data-label="سیستم طراحی" />
           <Icon name="palette" size={15} className="text-brand" />
         </div>
         <div className="mt-2.5 flex items-center justify-between gap-3">
           <span dir="ltr" className="text-gradient text-[32px] leading-none font-bold">
-            Aa
+            <span className="css-label" data-label="Aa" />
           </span>
           <span className="flex">
             {SWATCHES.map((c, i) => (
@@ -51,8 +51,8 @@ export function WebDesignHeroVisual() {
           ))}
         </span>
         <span className="flex flex-col">
-          <span className="text-[11px] leading-[1.6] text-muted">نمایش درست در همه دستگاه‌ها</span>
-          <span className="text-sm leading-[1.6] font-bold text-ink">طراحی Responsive</span>
+          <span className="text-[11px] leading-[1.6] text-muted"><span className="css-label" data-label="نمایش درست در همه دستگاه‌ها" /></span>
+          <span className="text-sm leading-[1.6] font-bold text-ink"><span className="css-label" data-label="طراحی Responsive" /></span>
         </span>
       </div>
     </div>

@@ -32,7 +32,7 @@ export function GeneralSettingsForm({ general }: { general: GeneralSettings }) {
         <Repeater
           name="industries"
           label="صنف‌ها (بخش «برای کسب‌وکارهای مختلف» صفحه اصلی)"
-          hint="لینک اختیاری است؛ خالی بماند به صفحه تماس می‌رود."
+          hint="لینک اختیاری است؛ اگر برای این صنف صفحه مرتبطی دارید (مثلاً /services/online-store) وارد کنید، وگرنه خالی بگذارید تا فقط به‌صورت برچسب نمایش داده شود."
           fields={[{ key: "title", label: "عنوان" }, { key: "url", label: "لینک (مثلاً /services/online-store)", dir: "ltr" }]}
           initial={general.industries}
         />

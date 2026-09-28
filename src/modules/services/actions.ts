@@ -43,6 +43,8 @@ export async function saveService(form: FormData) {
     icon: str(form, "icon", 40) || "layers",
     summary: str(form, "summary", 600),
     heroDescription: str(form, "heroDescription", 1500),
+    overview: str(form, "overview", 5000),
+    sections: rows(form, "sections", ["title", "body"] as const).slice(0, 8),
     imageUrl,
     problemIntro: str(form, "problemIntro", 2000),
     problems: lines(form, "problems"),

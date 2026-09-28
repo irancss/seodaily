@@ -9,6 +9,7 @@ export * from "./image-field";
 export * from "./marquee";
 export * from "./page-header";
 export * from "./project-card";
+export * from "./rich-text";
 export * from "./section-heading";
 export * from "./select-field";
 export * from "./visual";

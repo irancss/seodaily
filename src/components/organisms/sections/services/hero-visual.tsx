@@ -23,8 +23,8 @@ export function ServicesHeroVisual() {
           <Icon name="search-minus" size={17} />
         </span>
         <span className="flex flex-col">
-          <span className="text-[11px] leading-[1.6] text-muted">دیده‌شدن در جست‌وجو</span>
-          <span className="text-sm leading-[1.6] font-bold text-ink">سئو</span>
+          <span className="text-[11px] leading-[1.6] text-muted"><span className="css-label" data-label="دیده‌شدن در جست‌وجو" /></span>
+          <span className="text-sm leading-[1.6] font-bold text-ink"><span className="css-label" data-label="سئو" /></span>
         </span>
       </div>
       <div
@@ -35,8 +35,8 @@ export function ServicesHeroVisual() {
           <Icon name="layout" size={17} />
         </span>
         <span className="flex flex-col">
-          <span className="text-[11px] leading-[1.6] text-muted">زیرساخت وب</span>
-          <span className="text-sm leading-[1.6] font-bold text-ink">طراحی سایت</span>
+          <span className="text-[11px] leading-[1.6] text-muted"><span className="css-label" data-label="زیرساخت وب" /></span>
+          <span className="text-sm leading-[1.6] font-bold text-ink"><span className="css-label" data-label="طراحی سایت" /></span>
         </span>
       </div>
     </div>
