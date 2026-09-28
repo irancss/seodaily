@@ -1,6 +1,6 @@
 # SEO Production Verify — seodaily.ir (Phase 01)
 
-> تاریخ: ۱۴۰۵/۰۷/۰۶ (۲۰۲۶-۰۹-۲۸) · شاخه: `phase-01-seo-closeout` · پایه: `main` @ `71a4f0c`
+> تاریخ: ۱۴۰۵/۰۷/۰۶ (۲۰۲۶-۰۹-۲۸) · شاخه: `phase-01-seo-closeout` → [PR #3](https://github.com/irancss/seodaily/pull/3) · Merge: `5ca68b1` · Deploy و تأیید Production: ✅
 >
 > این فاز بازنویسی سئو نیست. هدفش بستن کار قبلی است: بررسی اینکه اصلاحات `SEO-AUDIT.md` واقعاً در `main` هستند، Deploy شده‌اند و روی سایت واقعی درست کار می‌کنند.
 
@@ -67,6 +67,7 @@
 | P1-L5 | `tests/seo.test.mjs` | متن Placeholder یا خطای قالب (`undefined`، `NaN`، `lorem`، `[object Object]`، `{{`) بررسی نمی‌شد | پوشش محدود | بررسی متن قابل‌مشاهده همه صفحات + `/portfolio` | تست ۱۰ | ✅ |
 | P1-L6 | `tests/seo.test.mjs` | سازگاری پورتفولیو با Sitemap و `font-display` تست نداشت | پوشش محدود | پورتفولیو یا در Sitemap و indexable، یا خارج از آن و noindex؛ همه `@font-face`ها در CSS تولیدی `font-display:optional` | تست‌های ۱۱ و ۱۲ | ✅ |
 | P1-L7 | CI | نتیجه Crawl صفحه‌به‌صفحه جایی ثبت نمی‌شد | — | `tests/seo-report.mjs`: جدول Markdown (وضعیت، Canonical، robots، H1، عنوان، طول توضیح، نوع JSON-LD) برای همه صفحات + پورتفولیو + یک 404، در Summary جاب‌های `check` و `verify` | خروجی CI | ✅ |
+| P1-L8 | CI (job `check`) | اولین اجرای CI روی PR #3: تست `font-display` شکست خورد (`the site font is declared`)، چون سرور standalone در CI بدون `.next/static` اجرا می‌شد و CSS پاسخ 404 می‌داد؛ در Docker این فایل‌ها کپی می‌شوند | CI با ایمیج Production یکسان نبود و تست‌های مربوط به CSS/فونت واقعیت را نمی‌دیدند | کپی `.next/static` و `public` کنار سرور standalone، مثل Dockerfile (`3a2afcc`)؛ تست حالا وضعیت ۲۰۰ فایل CSS را هم بررسی می‌کند | تست ۱۲ | ✅ |
 
 ## 4. Reproduction evidence
 
@@ -119,40 +120,64 @@
 
 ## 8. Regression results
 
-روی Build تولیدی و دیتابیس تازه:
-
-| بررسی | نتیجه |
-| --- | --- |
-| تست‌های سئو | ✅ ۱۶/۱۶ |
-| ESLint روی `tests/` | ✅ |
-| YAML ورک‌فلو | ✅ معتبر |
-| Lint/Typecheck/Build/SEO در CI | بخش ۱۱ |
+| بررسی | محلی (Build تولیدی، دیتابیس تازه) | CI روی PR #3 (`3a2afcc`) |
+| --- | --- | --- |
+| Lint / Typecheck / Build | ✅ | ✅ |
+| تست‌های سئو | ✅ ۱۶/۱۶ | ✅ ۱۶/۱۶ |
+| YAML ورک‌فلو | ✅ | ✅ |
 
 ## 9. Git branch and commit SHA(s)
 
-- شاخه: `phase-01-seo-closeout`
-- کامیت‌ها و Merge: بخش ۱۳ (بعد از Merge به‌روزرسانی می‌شود).
+| مورد | SHA |
+| --- | --- |
+| تست‌ها، گزارش Crawl، بررسی سخت‌گیرانه دامنه | `63ddf5b` |
+| اصلاح CI (فایل‌های static) | `3a2afcc` |
+| Merge در `main` | `5ca68b14581a6e127b8d87faae0bca8b0dd8890a` |
 
 ## 10. PR
 
-بخش ۱۳.
+[irancss/seodaily#3](https://github.com/irancss/seodaily/pull/3) — «Phase 01: SEO production closeout and verification» (Merge شد).
 
 ## 11. CI status
 
-بخش ۱۳.
+- PR #3: اجرای اول ❌ (P1-L8)، اجرای دوم `36456778021` ✅.
+- `main` بعد از Merge: اجرای `36457079402` — `check` ✅ · `deploy` ✅ · `verify` ✅.
 
 ## 12. Deployment status
 
-بخش ۱۳.
+✅ Deploy خودکار روی سرور (job `deploy`، اجرای `36457079402`): ساخت ایمیج، انتقال با SSH، `docker compose up`، سلامت کانتینر. Migration جدیدی در این فاز نبود.
 
 ## 13. Production verification
 
-وضعیت قبل از این فاز (اجرای `36454881646` روی `9fe81b7`):
-- Smoke test ۱۱ مسیر: همه ۲۰۰، یک H1، Canonical درست، indexable.
-- `http://seodaily.ir/seo`، `http://www.seodaily.ir/seo`، `https://www.seodaily.ir/seo` → `301 https://seodaily.ir/seo`.
-- تست‌های سئو روی Production: ۹/۹.
+از Runner گیت‌هاب روی `https://seodaily.ir` (job `verify`، اجرای `36457079402`):
 
-نتیجه بعد از Merge این فاز در ادامه ثبت می‌شود.
+**نسخه‌های دامنه (سخت‌گیرانه):**
+
+| از | نتیجه |
+| --- | --- |
+| `http://seodaily.ir/` | 301 → `https://seodaily.ir/` → 200 |
+| `http://www.seodaily.ir/` | 301 → `https://seodaily.ir/` → 200 |
+| `https://www.seodaily.ir/` | 301 → `https://seodaily.ir/` → 200 |
+| `http://seodaily.ir/seo` | 301 → `https://seodaily.ir/seo` → 200 |
+| `http://www.seodaily.ir/seo` | 301 → `https://seodaily.ir/seo` → 200 |
+| `https://www.seodaily.ir/seo` | 301 → `https://seodaily.ir/seo` → 200 |
+
+**Crawl کامل Production** (خروجی `tests/seo-report.mjs`):
+
+| مسیر | وضعیت | Canonical | Robots | H1 | طول توضیح | JSON-LD |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/` | 200 | `https://seodaily.ir` | index | 1 | 152 | FAQPage, Organization, WebSite |
+| `/web-design` | 200 | خودارجاع | index | 1 | 141 | FAQPage, Service, BreadcrumbList, Organization, WebSite |
+| `/seo` | 200 | خودارجاع | index | 1 | 137 | FAQPage, Service, BreadcrumbList, Organization, WebSite |
+| `/services` | 200 | خودارجاع | index | 1 | 145 | FAQPage, BreadcrumbList, Organization, WebSite |
+| `/pricing` | 200 | خودارجاع | index | 1 | 127 | BreadcrumbList, Organization, WebSite |
+| `/about` | 200 | خودارجاع | index | 1 | 127 | AboutPage, BreadcrumbList, Organization, WebSite |
+| `/contact` | 200 | خودارجاع | index | 1 | 125 | ContactPage, BreadcrumbList, Organization, WebSite |
+| ۱۴ صفحه `/services/*` | همه 200 | خودارجاع | index | 1 | ۱۳۰–۱۴۸ | FAQPage, Service, BreadcrumbList, Organization, WebSite |
+| `/portfolio` | 200 | خودارجاع | noindex, follow | 1 | 111 | BreadcrumbList, Organization, WebSite |
+| مسیر ناموجود | **404** | — | noindex | 0 | — | — |
+
+**تست‌های سئو روی Production:** ✅ **۱۶/۱۶**. شامل همه صفحات Sitemap، لینک‌های داخلی (همه ۲۰۰)، نبود Placeholder، محتوای بلند خدمات، `font-display: optional` در CSS واقعی، 404 واقعی، ریدایرکت Slash انتهایی و noindex پنل مدیریت.
 
 ## 14. Remaining manual items
 
@@ -168,9 +193,11 @@
 
 ## Checklist
 
-- [x] اصلاحات سئو در `main` (#1، #2)
+- [x] اصلاحات سئو در `main` (#1، #2، #3)
 - [x] Migration غیرمخرب و تست‌شده روی دیتابیس یک‌بارمصرف
-- [x] تست‌های سئو ۱۶/۱۶ (محلی)
-- [ ] CI این فاز
-- [ ] Merge و Deploy
-- [ ] Production: Crawl، دامنه‌ها، ۱۶ تست
+- [x] Lint / Typecheck / Build
+- [x] تست‌های سئو ۱۶/۱۶ (محلی، CI و **Production**)
+- [x] Merge (`5ca68b1`) و Deploy خودکار
+- [x] نسخه‌های دامنه: ۶/۶ با یک 301 مستقیم
+- [x] Crawl کامل Production: ۲۱ صفحه ۲۰۰ و indexable، پورتفولیو noindex، 404 واقعی
+- [ ] Search Console — فقط دستی (بخش ۱۴)
