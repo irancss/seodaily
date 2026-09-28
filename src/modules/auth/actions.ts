@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { clientIp, slidingWindow } from "@/lib/rate-limit";
+import { safeAdminPath } from "@/modules/auth/next-path";
 
 import { createSession, destroySession, verifyCredentials } from "@/modules/auth/session";
 
@@ -35,7 +36,7 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
 
   failures.reset(clientKey);
   await createSession(user.id);
-  redirect("/admin");
+  redirect(safeAdminPath(form.get("next")));
 }
 
 export async function logout() {

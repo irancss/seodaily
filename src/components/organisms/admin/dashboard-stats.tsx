@@ -13,10 +13,10 @@ export function DashboardStats({ services, projects, leads, newLeads }: Dashboar
   ];
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {stats.map((s) => (
         <li key={s.label}>
-          <Link href={s.href} className="flex items-center gap-4 rounded-xl border border-line bg-white p-5 text-ink no-underline hover:border-brand hover:text-ink">
+          <Link href={s.href} className="flex flex-col items-start gap-3 rounded-xl border border-line bg-white p-4 text-ink no-underline hover:border-brand hover:text-ink sm:flex-row sm:items-center sm:gap-4 sm:p-5">
             <span className="flex size-12 items-center justify-center rounded-md bg-soft text-brand">
               <Icon name={s.icon} size={22} />
             </span>

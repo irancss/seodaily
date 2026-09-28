@@ -3,6 +3,7 @@ import { Suspense, type ReactNode } from "react";
 
 import { Icon } from "@/components/atoms";
 import { AdminNav } from "@/components/organisms";
+import { UnsavedChangesGuard } from "@/components/organisms/admin/unsaved-changes-guard";
 import { FlashToaster } from "@/components/organisms/flash-toaster";
 import { logout } from "@/modules/auth/actions";
 
@@ -13,6 +14,7 @@ export function AdminShell({ user, newLeads, children }: { user: { email: string
       <Suspense fallback={null}>
         <FlashToaster />
       </Suspense>
+      <UnsavedChangesGuard />
       <aside className="sticky top-0 z-20 border-b border-line bg-white lg:h-dvh lg:border-b-0 lg:border-l print:hidden">
         <div className="flex h-full flex-col gap-4 p-4">
           <div className="flex items-center justify-between gap-2">

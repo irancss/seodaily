@@ -4,10 +4,11 @@ import { useActionState } from "react";
 
 import { login, type LoginState } from "@/modules/auth/actions";
 
-export function LoginForm() {
+export function LoginForm({ next = "/admin" }: { next?: string }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
   return (
     <form action={action} className="mt-8 flex flex-col gap-5">
+      <input type="hidden" name="next" value={next} />
       {state.error && (
         <p role="alert" className="rounded-sm bg-error-bg px-4 py-3 text-sm font-medium text-error">
           {state.error}
