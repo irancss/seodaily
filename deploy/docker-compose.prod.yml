@@ -1,11 +1,21 @@
 # Production stack. The deploy workflow copies this file to the server as
-# $DEPLOY_PATH/docker-compose.yml and loads the app image over SSH, so the
-# server never has to reach Docker Hub or npm.
+# $DEPLOY_PATH/docker-compose.yml and ships the app image over SSH, so the
+# server never has to reach Docker Hub or npm. ops/deploy.sh switches
+# versions (deploy/RUNBOOK.md).
+
+# Container logs rotate instead of filling the disk (Docker keeps them forever by default).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   db:
     image: postgres:16-alpine
     pull_policy: never
     restart: unless-stopped
+    logging: *logging
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-seodaily}
       POSTGRES_USER: ${POSTGRES_USER:-seodaily}
@@ -19,9 +29,12 @@ services:
       retries: 10
 
   app:
-    image: seodaily:latest
+    # seodaily:latest is the live version; ops/deploy.sh sets APP_IMAGE_TAG
+    # only for the candidate it tests before switching.
+    image: seodaily:${APP_IMAGE_TAG:-latest}
     pull_policy: never
     restart: unless-stopped
+    logging: *logging
     depends_on:
       db:
         condition: service_healthy

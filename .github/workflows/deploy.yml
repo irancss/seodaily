@@ -41,6 +41,8 @@ jobs:
         run: "! grep -nP '[^\\x00-\\x7F]' scripts/windows/*.ps1"
       - run: npm ci
       - run: npm run lint
+      - name: Deploy and ops scripts (POSIX sh, shellcheck)
+        run: shellcheck -s sh -S warning deploy/ship.sh deploy/ops/*.sh
       - run: npm run typecheck
       - name: Unit tests (pricing, validation, text rules)
         run: npm run test:unit
@@ -128,65 +130,46 @@ jobs:
         with:
           context: .
           load: true
-          tags: |
-            seodaily:${{ steps.tag.outputs.short }}
-            seodaily:latest
+          tags: seodaily:${{ steps.tag.outputs.short }}
+          build-args: APP_VERSION=${{ steps.tag.outputs.short }}
           cache-from: type=gha,scope=app
           cache-to: type=gha,scope=app,mode=max
 
       - name: Set up SSH
         if: steps.gate.outputs.enabled == 'true'
-        run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          if [ -n "${{ secrets.DEPLOY_KNOWN_HOSTS }}" ]; then
-            printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          else
-            ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" > ~/.ssh/known_hosts
-          fi
-          cat > ~/.ssh/config <<CFG
-          Host prod
-            HostName $DEPLOY_HOST
-            Port $DEPLOY_PORT
-            User $DEPLOY_USER
-            IdentityFile ~/.ssh/deploy_key
-            ServerAliveInterval 30
-          CFG
+        uses: ./.github/actions/prod-ssh
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
 
-      - name: Ship images to the server
+      # Only the changed layers travel, through a registry on the server (deploy/ship.sh).
+      - name: Ship the image to the server
+        if: steps.gate.outputs.enabled == 'true'
+        run: sh deploy/ship.sh "${{ steps.tag.outputs.short }}"
+
+      - name: Stack file and ops scripts
         if: steps.gate.outputs.enabled == 'true'
         run: |
-          ssh prod "mkdir -p '$DEPLOY_PATH'"
-          docker save "seodaily:${GITHUB_SHA::12}" seodaily:latest | gzip | ssh prod 'gunzip | docker load'
-          # The database image is sent once; the server may not reach Docker Hub.
-          if ! ssh prod 'docker image inspect postgres:16-alpine >/dev/null 2>&1'; then
-            docker pull postgres:16-alpine
-            docker save postgres:16-alpine | gzip | ssh prod 'gunzip | docker load'
-          fi
-          scp deploy/docker-compose.prod.yml "prod:$DEPLOY_PATH/docker-compose.yml"
+          ssh prod "mkdir -p '$DEPLOY_PATH/ops'"
+          scp -q deploy/docker-compose.prod.yml "prod:$DEPLOY_PATH/docker-compose.yml"
+          scp -q deploy/ops/*.sh "prod:$DEPLOY_PATH/ops/"
 
-      - name: Start the new version
+      # Backup, then the new version is started and health-checked next to the
+      # running one before it takes over; any failure leaves the old one live.
+      - name: Switch to the new version
+        if: steps.gate.outputs.enabled == 'true'
+        run: ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/deploy.sh' '${{ steps.tag.outputs.short }}'"
+
+      - name: Nightly backups and server status
         if: steps.gate.outputs.enabled == 'true'
         run: |
-          ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh -s" <<'REMOTE'
-          set -e
-          cd "$DEPLOY_PATH"
-          test -f .env || { echo "Missing $DEPLOY_PATH/.env on the server"; exit 1; }
-          docker compose up -d --remove-orphans
-          for i in $(seq 1 30); do
-            if docker compose exec -T app wget -qO- http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
-              echo "healthy"; break
-            fi
-            [ "$i" = 30 ] && { docker compose logs --tail 80 app; exit 1; }
-            sleep 3
-          done
-          # Migrations and the service-content upgrade run when the container starts.
-          docker compose logs app 2>&1 | grep -E "migrations|service content|seeded|admin user" | tail -5 || true
-          # Keep the five most recent versions for rollback.
-          docker images seodaily --format '{{.Tag}} {{.CreatedAt}}' | grep -v '^latest ' | sort -k2 -r | tail -n +6 | awk '{print "seodaily:"$1}' | xargs -r docker rmi >/dev/null 2>&1 || true
-          docker image prune -f >/dev/null
-          REMOTE
+          ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/cron.sh'"
+          # The first time: one backup and restore drill right away, so there is a baseline.
+          ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/nightly.sh' --first-time" || echo "::warning::backup or restore check failed (log above)"
+          ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/status.sh'" | tee -a "$GITHUB_STEP_SUMMARY" || echo "::warning::server status reports a problem (log above)"
 
   verify:
     # Checks the live site after a deploy, from outside the server.
@@ -202,6 +185,21 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: The deployed commit is live
+        run: |
+          want=${GITHUB_SHA::12}
+          for i in $(seq 1 10); do
+            got=$(curl -sS -m 20 "$SITE/api/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+            [ "$got" = "$want" ] && { echo "live: $got"; exit 0; }
+            sleep 3
+          done
+          echo "expected $want, production reports '${got:-nothing}'"; exit 1
+      - name: TLS certificate is valid for 14+ days
+        run: |
+          end=$(echo | openssl s_client -connect seodaily.ir:443 -servername seodaily.ir 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          days=$(( ($(date -d "$end" +%s) - $(date +%s)) / 86400 ))
+          echo "certificate valid until $end ($days days)"
+          [ "$days" -ge 14 ]
       - name: Smoke test production pages
         run: |
           fail=0

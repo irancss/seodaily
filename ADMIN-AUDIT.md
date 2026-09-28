@@ -127,9 +127,34 @@ AD-M1، AD-M2 و AD-L1 (بخش ۳).
 | امنیت | ✅ ۹/۹ |
 | E2E | ✅ ۲۱/۲۱ |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات و تست‌ها: `298a3bc` (شاخه `phase-08-admin`)
+- Merge در `main`: `7d9d9f397c8cd2056dc42125ec79e30bd86f5449`
+
+## 10. PR
+
+[irancss/seodaily#13](https://github.com/irancss/seodaily/pull/13) — Merge شد.
+
+## 11. CI status
+
+- PR #13 (اجرای `36468023618`): `check` ✅، شامل تست‌های واحد `safeAdminPath` و E2E ورود با `?next=` و هشدار تغییرات ذخیره‌نشده.
+- `main` (اجرای `36469549371`): `check` ✅ · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`، همه ✅:
+- Smoke test
+- نسخه‌های دامنه
+- سئو ۱۶/۱۶
+- امنیت فقط‌خواندنی، که ریدایرکت `/admin/*` به صفحه ورود (با `?next=` مسیر پنل) را روی Production بررسی می‌کند
+- چیدمان ۸ عرض
+
+جریان کامل ورود و هشدار ذخیره‌نشده به حساب مدیر نیاز دارد و فقط در CI روی دیتابیس یک‌بارمصرف اجرا می‌شود.
 
 ## 14. Remaining manual items
 

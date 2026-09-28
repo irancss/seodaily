@@ -1,0 +1,45 @@
+name: Production monitor
+
+# Once a day from outside and over SSH: site health, TLS certificate, disk,
+# database, container restarts, last backup and restore drill. A failed run
+# is e-mailed by GitHub, which is the alert. About one runner minute a day.
+on:
+  schedule:
+    - cron: "41 5 * * *"   # 09:11 Tehran
+  workflow_dispatch:
+
+concurrency:
+  group: production-ops
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SITE: https://seodaily.ir
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/seodaily' }}
+    steps:
+      - name: Site answers and reports a healthy database
+        run: |
+          body=$(curl -sS -m 30 "$SITE/api/health")
+          echo "$body"
+          echo "$body" | grep -q '"status":"ok"'
+      - name: TLS certificate is valid for 14+ days
+        run: |
+          end=$(echo | openssl s_client -connect seodaily.ir:443 -servername seodaily.ir 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          days=$(( ($(date -d "$end" +%s) - $(date +%s)) / 86400 ))
+          echo "certificate valid until $end ($days days)"
+          [ "$days" -ge 14 ]
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+      - uses: ./.github/actions/prod-ssh
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      - name: Server status (disk, database, backups, restarts)
+        run: ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/status.sh'" | tee -a "$GITHUB_STEP_SUMMARY"

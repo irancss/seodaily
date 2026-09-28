@@ -1,0 +1,40 @@
+name: SSH to production
+description: Configures the `prod` SSH host (one shared connection) from the deploy secrets.
+inputs:
+  host: { required: true }
+  port: { required: false, default: "22" }
+  user: { required: true }
+  key: { required: true }
+  known-hosts: { required: false, default: "" }
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+        PORT: ${{ inputs.port }}
+        USER_NAME: ${{ inputs.user }}
+        KEY: ${{ inputs.key }}
+        KNOWN_HOSTS: ${{ inputs.known-hosts }}
+      run: |
+        install -m 700 -d ~/.ssh
+        printf '%s\n' "$KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        if [ -n "$KNOWN_HOSTS" ]; then
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+        else
+          echo "::warning::DEPLOY_KNOWN_HOSTS is not set; trusting the host key the server presents now (deploy/RUNBOOK.md)."
+          ssh-keyscan -p "$PORT" "$HOST" > ~/.ssh/known_hosts
+        fi
+        # One SSH connection shared by all the steps (the handshake to the server is slow).
+        cat > ~/.ssh/config <<CFG
+        Host prod
+          HostName $HOST
+          Port $PORT
+          User $USER_NAME
+          IdentityFile ~/.ssh/deploy_key
+          ServerAliveInterval 30
+          ControlMaster auto
+          ControlPath ~/.ssh/cm-%C
+          ControlPersist 10m
+        CFG

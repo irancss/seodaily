@@ -1,0 +1,44 @@
+name: Rollback production
+
+# Puts an earlier version back live, with the same checks as a deploy
+# (deploy/ops/deploy.sh). Empty tag = the version before the current one.
+# The tags on the server are the first 12 characters of the commit SHA.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (12-character commit SHA); empty = previous version"
+        required: false
+        default: ""
+
+concurrency:
+  group: CI / Deploy-refs/heads/main
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    env:
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/seodaily' }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Tag format
+        run: echo "$TAG" | grep -Eq '^([0-9a-f]{12})?$' || { echo "tag must be 12 hex characters or empty"; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+      - uses: ./.github/actions/prod-ssh
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      - name: Versions on the server
+        run: ssh prod "tail -n 10 '$DEPLOY_PATH/deploys.log'; docker images seodaily --format '{{.Tag}} {{.CreatedAt}}'"
+      - name: Roll back
+        run: ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/rollback.sh' $TAG"
+      - name: Live version
+        run: curl -sS -m 30 https://seodaily.ir/api/health
