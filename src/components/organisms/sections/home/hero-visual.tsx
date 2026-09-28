@@ -79,7 +79,7 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
       </div>
 
       {/* Organic traffic chart */}
-      <div className="float-card float absolute top-0 -left-3 hidden w-[210px] p-4 sm:block lg:-left-12" style={vars({ i: 0 })}>
+      <div className="float-card float absolute top-0 -left-3 hidden w-[210px] p-4 sm:block lg:-left-4 min-[1440px]:-left-12" style={vars({ i: 0 })}>
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7]">
           <span className="font-semibold text-ink"><span className="css-label" data-label="ترافیک ارگانیک" /></span>
           <span className="flex items-center gap-1 font-bold text-success">

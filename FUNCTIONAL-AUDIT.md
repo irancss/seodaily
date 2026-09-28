@@ -141,9 +141,32 @@ after failed save, db image: /uploads/muliwtt8-8b2f221390268f3e.png file exists:
 | E2E قبلی: پنل و سایت (۱۹ مرحله)، ماشین‌حساب عمومی، ویرایشگر تعرفه، قرارداد، منو | ✅ |
 | پیمایش Console و CSP (۲۳ صفحه) | ✅ |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge در این بخش‌ها ثبت می‌شود.
+- اصلاحات و تست‌ها: `87bbd44` (شاخه `phase-03-functional`)
+- Merge در `main`: `b6cb5f9da07592f42c5800b95efb517875b4c3c9`
+
+## 10. PR
+
+[irancss/seodaily#7](https://github.com/irancss/seodaily/pull/7) — Merge شد.
+
+## 11. CI status
+
+- PR #7: `check` ✅. شامل تست واحد و E2E که برای اولین بار در CI اجرا شدند.
+- `main` (اجرای `36461638334`): `check` ✅ (Lint، Typecheck، واحد ۲۰/۲۰، Build، سئو، امنیت، E2E ۹/۹) · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار. Migration جدیدی در این فاز نبود.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`:
+- Smoke test و نسخه‌های دامنه ✅
+- سئو ۱۶/۱۶ ✅
+- امنیت فقط‌خواندنی ✅
+
+سفرهای E2E داده می‌نویسند و عمداً روی Production اجرا نمی‌شوند؛ نتیجه آن‌ها روی Build همان کامیت در CI سبز است. صفحه خطای قطع DB روی Production قابل آزمون نیست (نیاز به قطع دیتابیس واقعی دارد) و روی Build تولیدی تأیید شد.
 
 ## 14. Remaining manual items
 

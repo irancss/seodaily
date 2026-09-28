@@ -147,7 +147,7 @@ export function ServiceHeroVisual({ service, categoryTitle }: { service: Service
       {/* The service itself */}
       <div
         aria-hidden="true"
-        className="float-card float absolute top-0 -left-3 hidden max-w-[260px] items-center gap-3 py-3 ps-3 pe-5 sm:flex lg:-left-10"
+        className="float-card float absolute top-0 -left-3 hidden max-w-[260px] items-center gap-3 py-3 ps-3 pe-5 sm:flex lg:-left-4 min-[1440px]:-left-10"
         style={vars({ i: 0 })}
       >
         <span className="icon-gradient size-11 rounded-full">

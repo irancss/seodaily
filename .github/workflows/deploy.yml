@@ -195,4 +195,8 @@ jobs:
         run: BASE_URL="$SITE" SITE_ORIGIN="$SITE" npm run test:seo
       - name: Security checks against production (read-only; no login, no form posts)
         run: BASE_URL="$SITE" npm run test:security
+      - name: Browser for the layout checks
+        run: npm ci --no-audit --no-fund && npx playwright-core install --with-deps chromium
+      - name: Responsive layout on production (8 widths, read-only)
+        run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/layout.test.mjs
 

@@ -54,7 +54,7 @@ export function HomeServicesIntroSection({ categories, services }: Props) {
           title="برای رشد آنلاین، از *کجا* شروع کنیم؟"
           text="بسته به وضعیت فعلی کسب‌وکار، ممکن است به یک سایت جدید، بازطراحی سایت فعلی، سئو یا ترکیبی از این خدمات نیاز داشته باشید."
         />
-        <div className="mt-8 grid gap-5 lg:mt-14 lg:grid-cols-12 lg:gap-6">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-5 lg:mt-14 lg:grid-cols-12 lg:gap-6">
           {categories.map((category, i) => {
             const ui = CATEGORY_UI[category.slug] ?? CATEGORY_UI["web-design"];
             const subs = services[category.slug] ?? [];
