@@ -6,6 +6,7 @@ import { db, schema } from "@/db";
 import { errorSummary } from "@/lib/log";
 import { failed, saved, str } from "@/lib/form-actions";
 import { requireAdmin } from "@/modules/auth/session";
+import { isDuplicateLead } from "@/modules/leads/duplicates";
 import { businessField, nameField, phoneField } from "@/modules/leads/fields";
 import { clientIp, RATE_LIMIT_MESSAGE, rateLimited } from "@/modules/leads/rate-limit";
 import { writeSetting } from "@/modules/settings/queries";
@@ -104,6 +105,9 @@ export async function submitEstimate(_prev: EstimateState, form: FormData): Prom
 
   const data = parsed.data;
   try {
+    if (await isDuplicateLead({ name: data.name, phone: data.phone, service, description: data.note, total: estimate.total })) {
+      return { status: "success", total: estimate.total };
+    }
     await db.insert(schema.leads).values({
       name: data.name,
       phone: data.phone,

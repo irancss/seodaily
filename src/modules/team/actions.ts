@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { bool, failed, int, saved, str } from "@/lib/form-actions";
 import { requireAdmin } from "@/modules/auth/session";
-import { deleteImage, saveImage, UploadError } from "@/modules/uploads/storage";
+import { deleteImage, stageImage, UploadError, type StagedImage } from "@/modules/uploads/storage";
 
 export async function saveMember(form: FormData) {
   await requireAdmin();
@@ -13,14 +13,11 @@ export async function saveMember(form: FormData) {
   const name = str(form, "name", 120);
   if (!name) failed("/admin/team", "نام را وارد کنید.");
   const existing = id ? await db.query.teamMembers.findFirst({ where: eq(schema.teamMembers.id, id) }) : undefined;
+  if (id && !existing) failed("/admin/team", "این عضو دیگر وجود ندارد (احتمالاً حذف شده است).");
 
-  let photoUrl = existing?.photoUrl ?? "";
+  let photo: StagedImage;
   try {
-    const uploaded = await saveImage(form.get("photo"));
-    if (uploaded || bool(form, "photo_remove")) {
-      await deleteImage(photoUrl);
-      photoUrl = uploaded ?? "";
-    }
+    photo = await stageImage(form.get("photo"), existing?.photoUrl ?? "", bool(form, "photo_remove"));
   } catch (error) {
     if (error instanceof UploadError) failed("/admin/team", error.message);
     throw error;
@@ -30,12 +27,18 @@ export async function saveMember(form: FormData) {
     name,
     role: str(form, "role", 120),
     bio: str(form, "bio", 600),
-    photoUrl,
+    photoUrl: photo.url,
     sortOrder: int(form, "sortOrder"),
     published: bool(form, "published"),
   };
-  if (id) await db.update(schema.teamMembers).set(values).where(eq(schema.teamMembers.id, id));
-  else await db.insert(schema.teamMembers).values(values);
+  try {
+    if (id) await db.update(schema.teamMembers).set(values).where(eq(schema.teamMembers.id, id));
+    else await db.insert(schema.teamMembers).values(values);
+  } catch (error) {
+    await photo.rollback();
+    throw error;
+  }
+  await photo.commit();
   saved("/admin/team");
 }
 

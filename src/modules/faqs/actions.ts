@@ -21,8 +21,13 @@ export async function saveFaq(form: FormData) {
   const answer = str(form, "answer", 3000);
   if (!question || !answer) failed(back, "سؤال و پاسخ هر دو لازم هستند.");
   const values = { page, question, answer, sortOrder: int(form, "sortOrder") };
-  if (id) await db.update(schema.faqs).set(values).where(eq(schema.faqs.id, id));
-  else await db.insert(schema.faqs).values(values);
+  if (id) {
+    const updated = await db.update(schema.faqs).set(values).where(eq(schema.faqs.id, id)).returning({ id: schema.faqs.id });
+    // Deleted meanwhile (another tab): say so instead of reporting a save.
+    if (updated.length === 0) failed(back, "این سؤال دیگر وجود ندارد (احتمالاً حذف شده است).");
+  } else {
+    await db.insert(schema.faqs).values(values);
+  }
   saved(back);
 }
 

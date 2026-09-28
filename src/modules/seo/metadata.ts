@@ -15,8 +15,13 @@ const DEFAULT_SITE_URL = process.env.NODE_ENV === "production" ? "https://seodai
  * the admin «site URL» setting, else SITE_URL, else the production domain.
  */
 export async function getSiteUrl() {
-  const general = await getGeneral();
-  let url = general.siteUrl.trim() || process.env.SITE_URL?.trim() || DEFAULT_SITE_URL;
+  // robots.txt depends on this; it must not turn into a 5xx (which Google reads
+  // as "crawl nothing") just because the settings table is unreachable.
+  const stored = await getGeneral().then(
+    (general) => general.siteUrl.trim(),
+    () => "",
+  );
+  let url = stored || process.env.SITE_URL?.trim() || DEFAULT_SITE_URL;
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
   return url.replace(/\/+$/, "");
 }

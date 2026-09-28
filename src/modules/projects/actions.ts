@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { bool, failed, int, isSlug, isUniqueViolation, saved, str, toSlug } from "@/lib/form-actions";
 import { requireAdmin } from "@/modules/auth/session";
-import { deleteImage, saveImage, UploadError } from "@/modules/uploads/storage";
+import { deleteImage, stageImage, UploadError, type StagedImage } from "@/modules/uploads/storage";
 
 export async function saveProject(form: FormData) {
   await requireAdmin();
@@ -24,13 +24,9 @@ export async function saveProject(form: FormData) {
   const existing = id ? await db.query.projects.findFirst({ where: eq(schema.projects.id, id) }) : undefined;
   if (id && !existing) failed("/admin/projects", "پروژه پیدا نشد.");
 
-  let imageUrl = existing?.imageUrl ?? "";
+  let image: StagedImage;
   try {
-    const uploaded = await saveImage(form.get("image"));
-    if (uploaded || bool(form, "image_remove")) {
-      await deleteImage(imageUrl);
-      imageUrl = uploaded ?? "";
-    }
+    image = await stageImage(form.get("image"), existing?.imageUrl ?? "", bool(form, "image_remove"));
   } catch (error) {
     if (error instanceof UploadError) failed(back, error.message);
     throw error;
@@ -44,7 +40,7 @@ export async function saveProject(form: FormData) {
     category: str(form, "category", 40),
     summary: str(form, "summary", 400),
     description: str(form, "description", 10000),
-    imageUrl,
+    imageUrl: image.url,
     websiteUrl,
     problem: str(form, "problem", 3000),
     solution: str(form, "solution", 3000),
@@ -69,9 +65,11 @@ export async function saveProject(form: FormData) {
       }
     });
   } catch (error) {
+    await image.rollback();
     if (isUniqueViolation(error)) failed(back, "پروژه دیگری با همین نامک وجود دارد.");
     throw error;
   }
+  await image.commit();
   saved(`/admin/projects/${savedId}`);
 }
 

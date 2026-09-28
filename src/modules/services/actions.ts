@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { bool, failed, int, isSlug, isUniqueViolation, lines, rows, saved, str, toSlug } from "@/lib/form-actions";
 import { requireAdmin } from "@/modules/auth/session";
-import { deleteImage, saveImage, UploadError } from "@/modules/uploads/storage";
+import { deleteImage, stageImage, UploadError, type StagedImage } from "@/modules/uploads/storage";
 
 export async function saveService(form: FormData) {
   await requireAdmin();
@@ -23,13 +23,9 @@ export async function saveService(form: FormData) {
   const existing = id ? await db.query.services.findFirst({ where: eq(schema.services.id, id) }) : undefined;
   if (id && !existing) failed("/admin/services", "خدمت پیدا نشد.");
 
-  let imageUrl = existing?.imageUrl ?? "";
+  let image: StagedImage;
   try {
-    const uploaded = await saveImage(form.get("image"));
-    if (uploaded || bool(form, "image_remove")) {
-      await deleteImage(imageUrl);
-      imageUrl = uploaded ?? "";
-    }
+    image = await stageImage(form.get("image"), existing?.imageUrl ?? "", bool(form, "image_remove"));
   } catch (error) {
     if (error instanceof UploadError) failed(back, error.message);
     throw error;
@@ -45,7 +41,7 @@ export async function saveService(form: FormData) {
     heroDescription: str(form, "heroDescription", 1500),
     overview: str(form, "overview", 5000),
     sections: rows(form, "sections", ["title", "body"] as const).slice(0, 8),
-    imageUrl,
+    imageUrl: image.url,
     problemIntro: str(form, "problemIntro", 2000),
     problems: lines(form, "problems"),
     includesIntro: str(form, "includesIntro", 600),
@@ -74,9 +70,11 @@ export async function saveService(form: FormData) {
       savedId = row.id;
     }
   } catch (error) {
+    await image.rollback();
     if (isUniqueViolation(error)) failed(back, "خدمت دیگری با همین نامک وجود دارد.");
     throw error;
   }
+  await image.commit();
   saved(`/admin/services/${savedId}`);
 }
 
