@@ -29,11 +29,24 @@ function inspect(html) {
   };
 }
 
-async function page(path) {
-  const res = await get(path);
-  const html = res.status === 200 ? await res.text() : "";
-  return { res, html, ...inspect(html) };
+const pages = new Map();
+/** Fetches a page once per run; the checks below read the same response. */
+function page(path) {
+  if (!pages.has(path)) {
+    pages.set(path, (async () => {
+      const res = await get(path);
+      const html = res.status === 200 ? await res.text() : "";
+      return { res, html, ...inspect(html) };
+    })());
+  }
+  return pages.get(path);
 }
+
+/** Text a visitor reads: the HTML without scripts, styles and tags. */
+const visibleText = (html) =>
+  decode(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+const jsonLdTypes = (p) => p.jsonLd.flatMap((block) => [JSON.parse(block)].flat().map((item) => item["@type"]));
+const pathOf = (url) => new URL(url).pathname.replace(/^$/, "/");
 
 let sitemapUrls = [];
 
@@ -114,6 +127,95 @@ test("structured data is valid JSON-LD and has no ratings or reviews", async () 
       for (const item of Array.isArray(data) ? data : [data]) assert.equal(item["@context"], "https://schema.org");
     }
   }
+});
+
+test("every sitemap page: title, description, one H1, lang/dir, unique title and description", async () => {
+  assert.ok(sitemapUrls.length > 0);
+  const titles = new Map();
+  const descriptions = new Map();
+  for (const url of sitemapUrls) {
+    const path = pathOf(url);
+    const p = await page(path);
+    assert.equal(p.res.status, 200, `${path} status`);
+    assert.ok(p.title.length >= 10 && p.title.length <= 70, `${path} title length ${p.title.length}`);
+    assert.ok(p.description.length >= 50 && p.description.length <= 200, `${path} description length ${p.description.length}`);
+    assert.equal(p.h1, 1, `${path} has exactly one H1`);
+    assert.match(p.lang ?? "", /^fa/, `${path} lang`);
+    assert.equal(p.dir, "rtl", `${path} dir`);
+    assert.ok(!titles.has(p.title), `${path} title duplicates ${titles.get(p.title)}`);
+    assert.ok(!descriptions.has(p.description), `${path} description duplicates ${descriptions.get(p.description)}`);
+    titles.set(p.title, path);
+    descriptions.set(p.description, path);
+  }
+});
+
+test("structured data types match the page: Organization/WebSite, BreadcrumbList, Service", async () => {
+  for (const url of sitemapUrls) {
+    const path = pathOf(url);
+    const types = jsonLdTypes(await page(path));
+    assert.ok(types.includes("Organization") && types.includes("WebSite"), `${path}: Organization + WebSite (${types})`);
+    if (path !== "/") assert.ok(types.includes("BreadcrumbList"), `${path}: BreadcrumbList (${types})`);
+    if (path.startsWith("/services/")) assert.ok(types.includes("Service"), `${path}: Service (${types})`);
+    assert.doesNotMatch(JSON.stringify(types), /Review|AggregateRating|LocalBusiness/, `${path}: no unsupported claims`);
+  }
+});
+
+test("service pages carry long-form content with contextual internal links", async () => {
+  const services = sitemapUrls.map(pathOf).filter((path) => path.startsWith("/services/"));
+  assert.ok(services.length >= 1, "services are listed in the sitemap");
+  for (const path of services) {
+    const { html } = await page(path);
+    assert.match(html, /id="service-overview"/, `${path}: overview section`);
+    const topics = [...html.matchAll(/<article[^>]+id="service-topic-\d+"[\s\S]*?<\/article>/g)].map((m) => m[0]);
+    assert.ok(topics.length >= 3, `${path}: ${topics.length} in-depth sections`);
+    const words = visibleText(html).split(" ").length;
+    assert.ok(words >= 800, `${path}: ${words} words`);
+    const contextual = topics.flatMap((t) => [...t.matchAll(/<a[^>]+href="(\/[^"]*)"/g)].map((m) => m[1]));
+    assert.ok(contextual.length >= 1, `${path}: contextual links in the article`);
+  }
+});
+
+test("internal links on public pages resolve (no 404 or redirect chains)", async () => {
+  const links = new Map();
+  for (const url of sitemapUrls) {
+    const path = pathOf(url);
+    for (const m of (await page(path)).html.matchAll(/<a[^>]+href="(\/(?!\/)[^"#?]*)/g)) {
+      const href = decode(m[1]);
+      if (!links.has(href)) links.set(href, path);
+    }
+  }
+  assert.ok(links.size >= 10, `${links.size} internal link targets`);
+  for (const [href, from] of links) {
+    const res = await get(href, { method: "GET" });
+    assert.equal(res.status, 200, `${href} (linked from ${from}) → ${res.status}`);
+    await res.body?.cancel();
+  }
+});
+
+test("no placeholder or broken template text on public pages", async () => {
+  for (const url of [...sitemapUrls, `${ORIGIN}/portfolio`]) {
+    const path = pathOf(url);
+    const text = visibleText((await page(path)).html);
+    const hit = text.match(/.{0,30}(lorem|ipsum|\bTODO\b|\bundefined\b|\bNaN\b|\[object Object\]|\{\{).{0,30}/i);
+    assert.equal(hit, null, `${path}: "${hit?.[0]}"`);
+  }
+});
+
+test("portfolio is either listed and indexable, or unlisted and noindex", async () => {
+  const p = await page("/portfolio");
+  assert.equal(p.res.status, 200);
+  const listed = sitemapUrls.includes(`${ORIGIN}/portfolio`);
+  if (listed) assert.doesNotMatch(p.robots, /noindex/, "listed portfolio must be indexable");
+  else assert.match(p.robots, /noindex/, "empty portfolio is noindex and left out of the sitemap");
+});
+
+test("fonts use font-display: optional (no swap layout shift)", async () => {
+  const { html } = await page("/");
+  const sheets = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
+  let faces = [];
+  for (const href of sheets) faces.push(...((await (await get(href)).text()).match(/@font-face\{[^}]*\}/g) || []));
+  assert.ok(faces.length >= 1, "the site font is declared");
+  for (const face of faces) assert.match(face, /font-display:optional/, face.slice(0, 80));
 });
 
 test("unknown URL: real 404 with noindex (no soft 404)", async () => {

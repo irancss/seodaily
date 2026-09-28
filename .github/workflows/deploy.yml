@@ -51,6 +51,7 @@ jobs:
           node .next/standalone/server.js > /tmp/server.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/api/health && break; sleep 1; done
           BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)
+          BASE_URL=http://127.0.0.1:3000 node tests/seo-report.mjs >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     # Every push to main goes live once the checks pass.
@@ -164,11 +165,21 @@ jobs:
             [ "$code" = 200 ] || fail=1
           done
           exit $fail
-      - name: Domain variants (informational; set on the server, see README)
+      - name: Domain variants redirect to the canonical host in one hop
         run: |
-          for url in http://seodaily.ir/seo http://www.seodaily.ir/seo https://www.seodaily.ir/seo https://seodaily.ir/seo; do
-            curl -sS -o /dev/null -m 30 -w "$url -> %{http_code} %{redirect_url}\n" "$url" || echo "$url -> unreachable"
+          fail=0
+          for pair in "http://seodaily.ir/|$SITE/" "http://www.seodaily.ir/|$SITE/" "https://www.seodaily.ir/|$SITE/" \
+                      "http://seodaily.ir/seo|$SITE/seo" "http://www.seodaily.ir/seo|$SITE/seo" "https://www.seodaily.ir/seo|$SITE/seo"; do
+            from=${pair%%|*}; to=${pair#*|}
+            out=$(curl -sS -o /dev/null -m 30 -w '%{http_code} %{redirect_url}' "$from") || { echo "UNREACHABLE $from"; fail=1; continue; }
+            final=$(curl -sS -o /dev/null -m 30 -w '%{http_code}' "${out#* }") || final=000
+            echo "$from -> $out -> $final"
+            [ "$out" = "301 $to" ] && [ "$final" = 200 ] || fail=1
           done
+          [ "$(curl -sS -o /dev/null -m 30 -w '%{http_code}' "$SITE/seo")" = 200 ] || fail=1
+          exit $fail
+      - name: SEO crawl report (job summary)
+        run: BASE_URL="$SITE" node tests/seo-report.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: SEO tests against production
         run: BASE_URL="$SITE" SITE_ORIGIN="$SITE" npm run test:seo
 
