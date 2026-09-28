@@ -1,14 +1,15 @@
 #!/bin/sh
 # Runs on the CI runner: puts seodaily:<tag> on the server (ssh host "prod").
-# Pushes to a private registry on the server through an SSH tunnel, so only
-# the layers that changed travel (the Node base and dependencies do not).
-# Falls back to sending the whole image when the registry path fails.
+# Pushes to a private registry on the server over SSH, so only the layers that
+# changed travel (the Node base and dependencies do not). The server refuses
+# SSH port forwarding, so deploy/registry-proxy.mjs carries each connection
+# in its own SSH session. Falls back to sending the whole image on any failure.
 set -eu
 TAG=${1:?usage: ship.sh <tag>}
 REMOTE_PORT=5055   # registry on the server, on 127.0.0.1 only
-LOCAL_PORT=15055   # tunnel end on the runner (off the commonly used 5000)
-SOCKET=$(mktemp -u)
+LOCAL_PORT=15055   # proxy on the runner (off the commonly used 5000)
 TUNNEL_LOG=$(mktemp)
+PROXY_PID=
 STEP=start
 
 # Called as an `if` condition, where `set -e` does not apply: every step checks itself.
@@ -32,9 +33,10 @@ if [ -z "$(docker ps -q -f name=^seodaily-registry$)" ]; then
     -e REGISTRY_HTTP_ADDR="127.0.0.1:$1" -v seodaily-registry:/var/lib/registry registry:2 >/dev/null
 fi
 REMOTE
-  STEP="SSH tunnel"
-  ssh -f -N -M -S "$SOCKET" -E "$TUNNEL_LOG" -o ExitOnForwardFailure=yes -L "$LOCAL_PORT:127.0.0.1:$REMOTE_PORT" prod || return 1
-  STEP="registry reachable through the tunnel"
+  STEP="SSH proxy"
+  node "$(dirname "$0")/registry-proxy.mjs" "$LOCAL_PORT" "$REMOTE_PORT" "$TUNNEL_LOG" >/dev/null &
+  PROXY_PID=$!
+  STEP="registry reachable through the proxy"
   i=0
   until CURL_ERROR=$(curl -fsS -o /dev/null "http://127.0.0.1:$LOCAL_PORT/v2/" 2>&1); do
     i=$((i + 1)); [ "$i" -ge 15 ] && return 1
@@ -49,8 +51,8 @@ REMOTE
     && docker rmi 127.0.0.1:$REMOTE_PORT/seodaily:$TAG >/dev/null"
 }
 
-close_tunnel() { ssh -S "$SOCKET" -O exit prod >/dev/null 2>&1 || true; }
-trap 'close_tunnel; rm -f "$TUNNEL_LOG"' EXIT
+stop_proxy() { [ -z "$PROXY_PID" ] || kill "$PROXY_PID" 2>/dev/null || true; }
+trap 'stop_proxy; rm -f "$TUNNEL_LOG"' EXIT
 
 # Why the registry path failed, for the next person reading the log.
 diagnose() {
@@ -67,7 +69,7 @@ if registry; then
   echo "shipped seodaily:$TAG through the registry in $(( $(date +%s) - start ))s"
 else
   diagnose
-  close_tunnel
+  stop_proxy
   docker save "seodaily:$TAG" | gzip | ssh prod 'gunzip | docker load'
   echo "shipped seodaily:$TAG as a full image in $(( $(date +%s) - start ))s"
 fi

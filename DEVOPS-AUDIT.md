@@ -172,7 +172,7 @@ status: app healthy {"version":"668c60d82c11"}، database OK، disk OK (۳ مس�
 - Registry که بالا نیاید حذف می‌شود تا در حلقه Restart نماند.
 - پورت سمت Runner از 5000 به 15055 منتقل شد.
 
-علت واقعی در لاگ Deploy بعدی دیده می‌شود (FINAL-RELEASE-AUDIT.md).
+**علت (Deploy فاز ۱۲):** sshd سرور Port forwarding را نمی‌پذیرد (`administratively prohibited`). اکنون هر اتصال با یک نشست SSH عادی حمل می‌شود (`deploy/registry-proxy.mjs`، FINAL-RELEASE-AUDIT.md F-M1b).
 
 ## 13. Production verification
 
