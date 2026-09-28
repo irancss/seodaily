@@ -33,7 +33,19 @@ function run(script, url) {
 }
 
 after(async () => {
-  for (const name of created) await admin.unsafe(`drop database if exists ${name} with (force)`);
+  for (const name of created) {
+    // FORCE may meet a backend it cannot end without superuser rights (an
+    // autovacuum worker on the fresh database); those finish within moments.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await admin.unsafe(`drop database if exists ${name} with (force)`);
+        break;
+      } catch (error) {
+        if (error.code !== "42501" || attempt >= 10) throw error;
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
+  }
   await admin.end();
 });
 

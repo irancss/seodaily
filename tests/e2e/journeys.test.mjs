@@ -435,6 +435,53 @@ test("admin: the contract for a stored lead renders with its details", async () 
   await page.context().close();
 });
 
+test("stored XSS: markup sent through the public form and the panel is shown as text, never run", async () => {
+  const payload = `<img src=x onerror="window.__xss=1"><script>window.__xss=1</script>`;
+  const phone = `0901${String(Date.now()).slice(-7)}`;
+
+  // Public form → admin lead list, detail and contract.
+  const visitor = await newPage();
+  await visitor.goto(`${BASE}/contact`);
+  await visitor.fill("#cf-name", `مهاجم ${payload}`.slice(0, 120));
+  await visitor.fill("#cf-phone", phone);
+  await visitor.check("input[value=seo]");
+  await visitor.fill("#cf-desc", `</textarea>${payload}`);
+  await visitor.click("form[aria-labelledby=cf-title] button[type=submit]");
+  await toast(visitor, "درخواست مشاوره ثبت شد");
+  const [lead] = await sql`select id from leads where phone = ${phone}`;
+  const page = await adminPage();
+  for (const path of ["/admin/leads", `/admin/leads/${lead.id}`, `/admin/leads/${lead.id}/contract`]) {
+    await page.goto(BASE + path);
+    await page.getByText("مهاجم", { exact: false }).first().waitFor();
+    assert.equal(await page.evaluate(() => window.__xss), undefined, `${path}: payload did not run`);
+    assert.equal(await page.locator("img[src=x], script:text('window.__xss')").count(), 0, `${path}: no element made from the payload`);
+  }
+
+  // Panel → public service page (and its JSON-LD).
+  const slug = `xss-${RUN}`;
+  await page.goto(`${BASE}/admin/services/new`);
+  await page.fill("input[name=title]", `خدمت ${payload}`.slice(0, 200));
+  await page.fill("input[name=slug]", slug);
+  await page.getByRole("button", { name: "ایجاد خدمت" }).click();
+  await page.waitForURL(/\/admin\/services\/\d+\?ok=/);
+  await visitor.goto(`${BASE}/services/${slug}`);
+  assert.equal(await visitor.evaluate(() => window.__xss), undefined, "public page: payload did not run");
+  assert.ok((await visitor.locator("h1").textContent()).includes("<script>"), "shown as text in the H1");
+  const html = await visitor.content();
+  for (const block of html.match(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g) ?? []) {
+    assert.ok(!/<script>window/.test(block.slice(1)), "JSON-LD cannot close its script tag");
+  }
+
+  await page.goto(`${BASE}/admin/services`);
+  const [service] = await sql`select id from services where slug = ${slug}`;
+  await page.goto(`${BASE}/admin/services/${service.id}`);
+  await page.getByRole("button", { name: "حذف خدمت" }).click();
+  await page.waitForURL(/\/admin\/services\?ok=/);
+  await sql`delete from leads where id = ${lead.id}`;
+  await visitor.context().close();
+  await page.context().close();
+});
+
 test("admin: login returns to the requested page, never to another site", async () => {
   const [lead] = await sql`insert into leads (name, phone, service) values (${`بازگشت ${RUN}`}, '09120000002', 'seo') returning id`;
   const page = await newPage();
