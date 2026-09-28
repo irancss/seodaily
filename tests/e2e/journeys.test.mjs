@@ -299,6 +299,142 @@ test("admin: a GTM container loads once on public pages, never in the panel, and
   await page.context().close();
 });
 
+test("admin: a published project with an image reaches the portfolio, its page and the sitemap, then is removed", async () => {
+  const page = await adminPage();
+  const slug = `e2e-project-${RUN}`;
+  const title = `پروژه آزمایشی ${RUN}`;
+  const sitemap = async () => (await page.request.get(`${BASE}/sitemap.xml`)).text();
+  const portfolioIndexed = async () => !/<meta name="robots" content="noindex/.test(await (await page.request.get(`${BASE}/portfolio`)).text());
+  const hadProjects = (await sql`select count(*)::int as n from projects where published`)[0].n > 0;
+
+  await page.goto(`${BASE}/admin/projects/new`);
+  await page.fill("input[name=title]", title);
+  await page.fill("input[name=slug]", slug);
+  await page.fill("[name=summary]", "خلاصه پروژه آزمایشی برای بررسی نمایش در سایت.");
+  await page.setInputFiles("input[name=image]", { name: "p.png", mimeType: "image/png", buffer: PNG });
+  await page.getByRole("button", { name: "ایجاد پروژه" }).click();
+  await page.waitForURL(/\/admin\/projects\/\d+\?ok=/);
+  const [created] = await sql`select id, image_url from projects where slug = ${slug}`;
+  assert.ok(created.image_url.startsWith("/uploads/"), "image stored");
+
+  const visitor = await newPage();
+  await visitor.goto(`${BASE}/portfolio`);
+  await visitor.getByText(title).first().waitFor();
+  const detail = await visitor.request.get(`${BASE}/portfolio/${slug}`);
+  assert.equal(detail.status(), 200, "project page is live");
+  assert.ok((await sitemap()).includes(`/portfolio/${slug}`), "project in the sitemap");
+  assert.ok(await portfolioIndexed(), "portfolio is indexable once it has a project");
+
+  await page.goto(`${BASE}/admin/projects/${created.id}`);
+  await page.getByRole("button", { name: "حذف پروژه" }).click();
+  await page.waitForURL(/\/admin\/projects(\?|$)/);
+  assert.equal((await visitor.request.get(`${BASE}/portfolio/${slug}`)).status(), 404, "deleted project is gone");
+  assert.equal((await visitor.request.get(BASE + created.image_url)).status(), 404, "its image is removed");
+  assert.ok(!(await sitemap()).includes(`/portfolio/${slug}`), "and out of the sitemap");
+  assert.equal(await portfolioIndexed(), hadProjects, "portfolio indexing back to its previous state");
+  await visitor.context().close();
+  await page.context().close();
+});
+
+test("admin: page texts and title reach the public page, then are restored", async () => {
+  const page = await adminPage();
+  const form = page.locator("form:has(input[name=page][value=about])");
+  await page.goto(`${BASE}/admin/pages`);
+  await page.locator("#about > summary").click();
+  const original = { title: await form.locator("[name=title]").inputValue(), metaTitle: await form.locator("[name=metaTitle]").inputValue() };
+  const save = async (title, metaTitle) => {
+    await page.goto(`${BASE}/admin/pages`);
+    if (!(await form.locator("[name=title]").isVisible())) await page.locator("#about > summary").click();
+    await form.locator("[name=title]").fill(title);
+    await form.locator("[name=metaTitle]").fill(metaTitle);
+    await form.getByRole("button", { name: "ذخیره" }).click();
+    await page.waitForURL(/ok=/);
+  };
+  await save(`درباره آزمایشی ${RUN}`, `عنوان سئو آزمایشی ${RUN}`);
+  const html = await (await page.request.get(`${BASE}/about`)).text();
+  assert.match(html, new RegExp(`<h1[^>]*>[^<]*درباره آزمایشی ${RUN}`), "H1 from the panel");
+  assert.match(html, new RegExp(`<title>عنوان سئو آزمایشی ${RUN}`), "title from the panel");
+  await save(original.title, original.metaTitle);
+  assert.doesNotMatch(await (await page.request.get(`${BASE}/about`)).text(), new RegExp(RUN), "restored");
+  await page.context().close();
+});
+
+test("admin: a team member with a photo appears on the about page, then is removed", async () => {
+  const page = await adminPage();
+  const name = `عضو آزمایشی ${RUN}`;
+  await page.goto(`${BASE}/admin/team`);
+  const form = page.locator("form:has(button:text-is('افزودن'))");
+  await form.locator("[name=name]").fill(name);
+  await form.locator("[name=role]").fill("نقش آزمایشی");
+  await form.locator("input[name=photo]").setInputFiles({ name: "t.png", mimeType: "image/png", buffer: PNG });
+  await form.getByRole("button", { name: "افزودن" }).click();
+  await page.waitForURL(/ok=/);
+  const [member] = await sql`select id, photo_url from team_members where name = ${name}`;
+  assert.ok(member.photo_url.startsWith("/uploads/"));
+  const about = await (await page.request.get(`${BASE}/about`)).text();
+  assert.ok(about.includes(name), "member on the about page");
+  assert.ok(about.includes(`alt="${name}"`), "photo with the member's name as alt text");
+
+  await page.goto(`${BASE}/admin/team`);
+  await page.locator(`form:has(input[name=id][value="${member.id}"])`).getByRole("button", { name: "حذف" }).click();
+  await page.waitForURL(/ok=/);
+  assert.ok(!(await (await page.request.get(`${BASE}/about`)).text()).includes(name), "removed from the about page");
+  assert.equal((await page.request.get(BASE + member.photo_url)).status(), 404, "photo removed");
+  await page.context().close();
+});
+
+test("admin: a menu item reaches the site header, and the default menu comes back", async () => {
+  const page = await adminPage();
+  const label = `منوی آزمایشی ${RUN}`.slice(0, 40);
+  await page.goto(`${BASE}/admin/menus`);
+  await page.getByRole("button", { name: "افزودن آیتم" }).first().click();
+  const item = page.locator("#menu-panel > ol > li").last();
+  await item.locator("input").first().fill(label);
+  await item.locator("input[dir=ltr]").fill("/about");
+  await page.getByRole("button", { name: "ذخیره منوها" }).click();
+  await page.waitForURL(/ok=/);
+  const visitor = await newPage();
+  await visitor.goto(`${BASE}/services`);
+  await visitor.locator("header nav").getByRole("link", { name: label }).waitFor({ state: "attached" });
+
+  await page.goto(`${BASE}/admin/menus`);
+  await page.getByRole("button", { name: "بازگشت به منوی پیش‌فرض" }).click();
+  await page.waitForURL(/ok=/);
+  await visitor.reload();
+  assert.equal(await visitor.locator("header nav").getByRole("link", { name: label }).count(), 0, "default menu restored");
+  await visitor.context().close();
+  await page.context().close();
+});
+
+test("admin: a price set in the pricing editor reaches the public calculator, and the default comes back", async () => {
+  const page = await adminPage();
+  await page.goto(`${BASE}/admin/pricing`, { waitUntil: "networkidle" });
+  const labels = page.getByLabel("عنوان گزینه");
+  let row = -1;
+  for (let i = 0; i < (await labels.count()); i++) if ((await labels.nth(i).inputValue()) === "سایت شرکتی") row = i;
+  assert.ok(row >= 0, "the «سایت شرکتی» option is in the editor");
+  await page.getByLabel("قیمت (تومان)").nth(row).fill("27500000");
+  await page.getByRole("button", { name: /^ذخیره تعرفه/ }).click();
+  await toast(page, "تعرفه‌ها ذخیره شد.");
+  const pricing = await (await page.request.get(`${BASE}/pricing`)).text();
+  assert.ok(pricing.includes("۲۷٬۵۰۰٬۰۰۰"), "new price on the public calculator");
+
+  await page.getByRole("button", { name: "بازگشت به ساختار پیش‌فرض" }).first().click();
+  await toast(page, "ساختار پیش‌فرض");
+  assert.ok(!(await (await page.request.get(`${BASE}/pricing`)).text()).includes("۲۷٬۵۰۰٬۰۰۰"), "default prices back");
+  await page.context().close();
+});
+
+test("admin: the contract for a stored lead renders with its details", async () => {
+  const page = await adminPage();
+  const [lead] = await sql`insert into leads (name, phone, service, business) values (${`مشتری قرارداد ${RUN}`}, '09350000000', 'seo', 'کسب‌وکار آزمایشی') returning id`;
+  const res = await page.goto(`${BASE}/admin/leads/${lead.id}/contract`);
+  assert.equal(res.status(), 200);
+  await page.getByText(`مشتری قرارداد ${RUN}`).first().waitFor();
+  await sql`delete from leads where id = ${lead.id}`;
+  await page.context().close();
+});
+
 test("admin: login returns to the requested page, never to another site", async () => {
   const [lead] = await sql`insert into leads (name, phone, service) values (${`بازگشت ${RUN}`}, '09120000002', 'seo') returning id`;
   const page = await newPage();
