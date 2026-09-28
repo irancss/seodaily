@@ -58,6 +58,8 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     environment: production
+    outputs:
+      enabled: ${{ steps.gate.outputs.enabled }}
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
       DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
@@ -128,7 +130,45 @@ jobs:
             [ "$i" = 30 ] && { docker compose logs --tail 80 app; exit 1; }
             sleep 3
           done
+          # Migrations and the service-content upgrade run when the container starts.
+          docker compose logs app 2>&1 | grep -E "migrations|service content|seeded|admin user" | tail -5 || true
           # Keep the five most recent versions for rollback.
           docker images seodaily --format '{{.Tag}} {{.CreatedAt}}' | grep -v '^latest ' | sort -k2 -r | tail -n +6 | awk '{print "seodaily:"$1}' | xargs -r docker rmi >/dev/null 2>&1 || true
           docker image prune -f >/dev/null
           REMOTE
+
+  verify:
+    # Checks the live site after a deploy, from outside the server.
+    needs: deploy
+    if: needs.deploy.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    env:
+      SITE: https://seodaily.ir
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Smoke test production pages
+        run: |
+          fail=0
+          for path in / /robots.txt /sitemap.xml /web-design /seo /services /services/technical-seo /services/seo-audit /pricing /about /contact; do
+            body=$(curl -sS -m 30 -w '\n%{http_code}' "$SITE$path") || { echo "FETCH FAILED $path"; fail=1; continue; }
+            code=$(printf '%s' "$body" | tail -n1)
+            html=$(printf '%s' "$body" | sed '$d')
+            title=$(printf '%s' "$html" | grep -o '<title>[^<]*' | head -1 | sed 's/<title>//')
+            canonical=$(printf '%s' "$html" | grep -o '<link rel="canonical" href="[^"]*"' | head -1 | sed 's/.*href="//;s/"$//')
+            h1=$(printf '%s' "$html" | grep -o '<h1[ >]' | wc -l)
+            robots=$(printf '%s' "$html" | grep -o '<meta name="robots" content="[^"]*"' | head -1 | sed 's/.*content="//;s/"$//')
+            echo "$code $path | h1=$h1 | canonical=$canonical | robots=${robots:-index} | $title"
+            [ "$code" = 200 ] || fail=1
+          done
+          exit $fail
+      - name: Domain variants (informational; set on the server, see README)
+        run: |
+          for url in http://seodaily.ir/seo http://www.seodaily.ir/seo https://www.seodaily.ir/seo https://seodaily.ir/seo; do
+            curl -sS -o /dev/null -m 30 -w "$url -> %{http_code} %{redirect_url}\n" "$url" || echo "$url -> unreachable"
+          done
+      - name: SEO tests against production
+        run: BASE_URL="$SITE" SITE_ORIGIN="$SITE" npm run test:seo
+
