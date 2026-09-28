@@ -6,8 +6,6 @@ export * from "./checkbox";
 export * from "./confirm-button";
 export * from "./dots";
 export * from "./empty-state";
-export * from "./grid-backdrop";
-export * from "./hero-badge";
 export * from "./highlight";
 export * from "./icon";
 export * from "./icon-tile";
