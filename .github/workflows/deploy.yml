@@ -48,6 +48,8 @@ jobs:
         run: |
           node scripts/migrate.mjs
           node scripts/seed.mjs
+          # Same layout as the Docker image: static assets next to the standalone server.
+          cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
           node .next/standalone/server.js > /tmp/server.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/api/health && break; sleep 1; done
           BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)

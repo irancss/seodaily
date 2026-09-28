@@ -212,8 +212,12 @@ test("portfolio is either listed and indexable, or unlisted and noindex", async 
 test("fonts use font-display: optional (no swap layout shift)", async () => {
   const { html } = await page("/");
   const sheets = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
-  let faces = [];
-  for (const href of sheets) faces.push(...((await (await get(href)).text()).match(/@font-face\{[^}]*\}/g) || []));
+  const faces = [];
+  for (const href of sheets) {
+    const res = await get(href);
+    assert.equal(res.status, 200, `${href} → ${res.status}`);
+    faces.push(...((await res.text()).match(/@font-face\{[^}]*\}/g) || []));
+  }
   assert.ok(faces.length >= 1, "the site font is declared");
   for (const face of faces) assert.match(face, /font-display:optional/, face.slice(0, 80));
 });
