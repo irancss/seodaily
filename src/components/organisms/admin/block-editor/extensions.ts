@@ -49,6 +49,26 @@ export const BlockId = Extension.create({
   },
 });
 
+/**
+ * Inserts a block after the top-level block holding the cursor, so toolbar
+ * blocks (table, callout, FAQ, CTA, image) never land inside a table cell or
+ * list item, where the content contract does not allow them.
+ */
+export function insertBlockAfter(editor: Editor, content: Record<string, unknown>) {
+  const { state } = editor;
+  const doc = state.doc;
+  const depth = state.selection.$from.depth;
+  const index = depth >= 1 ? state.selection.$from.index(0) : doc.childCount - 1;
+  let pos = 0;
+  for (let i = 0; i <= Math.min(index, doc.childCount - 1); i++) pos += doc.child(i).nodeSize;
+  // An empty paragraph at the cursor is replaced instead of left behind.
+  const current = doc.childCount ? doc.child(Math.max(0, index)) : null;
+  if (current && current.type.name === "paragraph" && current.content.size === 0) {
+    return editor.chain().focus().insertContentAt({ from: pos - current.nodeSize, to: pos }, content).run();
+  }
+  return editor.chain().focus().insertContentAt(pos, content).run();
+}
+
 /** Moves the top-level block holding the cursor one place up (-1) or down (+1). */
 export function moveBlock(editor: Editor, direction: -1 | 1): boolean {
   const { state, view } = editor;

@@ -1,6 +1,8 @@
 "use client";
 
-import { TableKit } from "@tiptap/extension-table";
+import { TableCell, TableHeader, TableKit } from "@tiptap/extension-table";
+import Blockquote from "@tiptap/extension-blockquote";
+import { ListItem } from "@tiptap/extension-list";
 import { CharacterCount, Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -10,8 +12,15 @@ import { uploadBlockImage } from "@/modules/blocks/actions";
 import { CODE_LANGUAGES, LIMITS, emptyDocument, isSafeHref, type BlockDocument } from "@/modules/blocks/schema";
 import { toast } from "@/lib/toast";
 
-import { BlockId, BlockKeymap, Callout, Cta, Faq, FaqItem, Figure, moveBlock } from "./extensions";
+import { BlockId, BlockKeymap, Callout, Cta, Faq, FaqItem, Figure, insertBlockAfter, moveBlock } from "./extensions";
 import { LinkPicker } from "./link-picker";
+
+// The same nesting rules as the stored contract (src/modules/blocks/validate.ts):
+// only paragraphs in table cells, paragraphs and lists in quotes and list items.
+const ContractTableCell = TableCell.extend({ content: "paragraph+" });
+const ContractTableHeader = TableHeader.extend({ content: "paragraph+" });
+const ContractBlockquote = Blockquote.extend({ content: "(paragraph | bulletList | orderedList)+" });
+const ContractListItem = ListItem.extend({ content: "paragraph (bulletList | orderedList)*" });
 
 type Props = {
   /** Name of the hidden form field that carries the JSON document. */
@@ -40,6 +49,16 @@ function ToolButton({ label, onClick, active, disabled, children }: { label: str
     </button>
   );
 }
+
+const cell = (type: string) => ({ type, content: [{ type: "paragraph" }] });
+const TABLE_3X3 = {
+  type: "table",
+  content: [
+    { type: "tableRow", content: [cell("tableHeader"), cell("tableHeader"), cell("tableHeader")] },
+    { type: "tableRow", content: [cell("tableCell"), cell("tableCell"), cell("tableCell")] },
+    { type: "tableRow", content: [cell("tableCell"), cell("tableCell"), cell("tableCell")] },
+  ],
+};
 
 function Separator() {
   return <span aria-hidden="true" className="mx-1 h-6 w-px bg-line" />;
@@ -147,17 +166,17 @@ function Toolbar({ editor, onLink, onImage }: { editor: Editor; onLink: () => vo
           ))}
         </select>
       )}
-      <ToolButton label="جداکننده" onClick={() => chain().setHorizontalRule().run()}>
+      <ToolButton label="جداکننده" onClick={() => insertBlockAfter(editor, { type: "horizontalRule" })}>
         ―
       </ToolButton>
       <Separator />
       <ToolButton label="تصویر" onClick={onImage}>
         تصویر
       </ToolButton>
-      <ToolButton label="جدول" onClick={() => chain().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+      <ToolButton label="جدول" disabled={s.table} onClick={() => insertBlockAfter(editor, TABLE_3X3)}>
         جدول
       </ToolButton>
-      <ToolButton label="باکس توضیح" onClick={() => chain().insertContent({ type: "callout", attrs: { tone: "info" }, content: [{ type: "paragraph" }] }).run()}>
+      <ToolButton label="باکس توضیح" onClick={() => insertBlockAfter(editor, { type: "callout", attrs: { tone: "info" }, content: [{ type: "paragraph" }] })}>
         باکس
       </ToolButton>
       <ToolButton
@@ -165,12 +184,12 @@ function Toolbar({ editor, onLink, onImage }: { editor: Editor; onLink: () => vo
         onClick={() =>
           s.faq
             ? chain().insertContent({ type: "faqItem", attrs: { question: "" }, content: [{ type: "paragraph" }] }).run()
-            : chain().insertContent({ type: "faq", content: [{ type: "faqItem", attrs: { question: "" }, content: [{ type: "paragraph" }] }] }).run()
+            : insertBlockAfter(editor, { type: "faq", content: [{ type: "faqItem", attrs: { question: "" }, content: [{ type: "paragraph" }] }] })
         }
       >
         {s.faq ? "+ پرسش" : "FAQ"}
       </ToolButton>
-      <ToolButton label="دعوت به اقدام" onClick={() => chain().insertContent({ type: "cta", attrs: { title: "", text: "", label: "درخواست مشاوره", href: "entity:page:contact" } }).run()}>
+      <ToolButton label="دعوت به اقدام" onClick={() => insertBlockAfter(editor, { type: "cta", attrs: { title: "", text: "", label: "درخواست مشاوره", href: "entity:page:contact" } })}>
         CTA
       </ToolButton>
       <Separator />
@@ -222,13 +241,17 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
   const fileInput = useRef<HTMLInputElement>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const start = initial ?? emptyDocument();
+  // Fixed for the editor's lifetime: a new object per render would make TipTap
+  // recreate the editor from it, wiping what was typed since.
+  const [start] = useState(() => initial ?? emptyDocument());
+  // Controlled: React re-renders (another field changing) would otherwise put a
+  // hidden input back to its initial value while the editor keeps the new text.
+  const [json, setJson] = useState(() => JSON.stringify(start));
 
   const sync = useCallback((editor: Editor, markDirty: boolean) => {
-    if (!hidden.current) return;
-    hidden.current.value = JSON.stringify({ v: start.v, doc: editor.getJSON() });
+    setJson(JSON.stringify({ v: start.v, doc: editor.getJSON() }));
     // Toolbar changes fire no native input event; tell the unsaved-changes guard.
-    if (markDirty) hidden.current.dispatchEvent(new Event("input", { bubbles: true }));
+    if (markDirty) hidden.current?.dispatchEvent(new Event("input", { bubbles: true }));
   }, [start.v]);
 
   const editor = useEditor({
@@ -236,9 +259,15 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3, 4] },
+        blockquote: false,
+        listItem: false,
         link: { openOnClick: false, autolink: true, isAllowedUri: (url) => isSafeHref(url), HTMLAttributes: { rel: null, target: null } },
       }),
-      TableKit.configure({ table: { resizable: false } }),
+      TableKit.configure({ table: { resizable: false }, tableCell: false, tableHeader: false }),
+      ContractTableCell,
+      ContractTableHeader,
+      ContractBlockquote,
+      ContractListItem,
       Placeholder.configure({ placeholder }),
       CharacterCount.configure({ limit: LIMITS.textChars }),
       BlockId,
@@ -282,7 +311,7 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
       if (size.height) fd.set("height", String(size.height));
       const result = await uploadBlockImage(fd);
       if (!result.ok) toast.error(result.error);
-      else editor.chain().focus().insertContent({ type: "figure", attrs: { src: result.src, alt: "", caption: "", width: result.width ?? null, height: result.height ?? null, ratio: "auto" } }).run();
+      else insertBlockAfter(editor, { type: "figure", attrs: { src: result.src, alt: "", caption: "", width: result.width ?? null, height: result.height ?? null, ratio: "auto" } });
     } catch {
       toast.error("بارگذاری تصویر انجام نشد.");
     } finally {
@@ -308,7 +337,7 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
         {label}
       </span>
       {hint && <p className="text-xs leading-[1.8] text-muted">{hint}</p>}
-      <input ref={hidden} type="hidden" name={name} defaultValue={JSON.stringify(start)} />
+      <input ref={hidden} type="hidden" name={name} value={json} readOnly />
       <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => onFile(e.target.files?.[0])} />
       <div className="overflow-hidden rounded-lg border border-line-strong bg-white focus-within:ring-2 focus-within:ring-brand/30">
         {editor ? (
