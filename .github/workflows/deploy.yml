@@ -13,6 +13,18 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      # For the SEO tests: the built app runs against a freshly seeded database.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: seodaily
+          POSTGRES_USER: seodaily
+          POSTGRES_PASSWORD: seodaily
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U seodaily"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,6 +37,20 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
+      - name: SEO tests (robots, sitemap, canonical, 404, metadata, admin noindex)
+        env:
+          DATABASE_URL: postgres://seodaily:seodaily@localhost:5432/seodaily
+          SESSION_SECRET: ci-only-session-secret-ci-only-session-secret
+          SITE_URL: https://seodaily.ir
+          UPLOAD_DIR: /tmp/uploads
+          PORT: "3000"
+          HOSTNAME: 127.0.0.1
+        run: |
+          node scripts/migrate.mjs
+          node scripts/seed.mjs
+          node .next/standalone/server.js > /tmp/server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/api/health && break; sleep 1; done
+          BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)
 
   deploy:
     # Every push to main goes live once the checks pass.

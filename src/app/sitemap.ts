@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [base, services, projects] = await Promise.all([getSiteUrl(), getAllPublishedServices(), getPublishedProjects()]);
 
   const pages = ["/", "/web-design", "/seo", "/services", "/pricing", ...(projects.length > 0 ? ["/portfolio"] : []), "/about", "/contact"];
-  const url = (path: string) => (path === "/" ? `${base}/` : `${base}${path}`);
+  const url = (path: string) => (path === "/" ? base : `${base}${path}`);
 
   return [
     ...pages.map((path) => ({ url: url(path) })),

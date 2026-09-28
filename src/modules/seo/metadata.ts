@@ -21,8 +21,10 @@ export async function getSiteUrl() {
   return url.replace(/\/+$/, "");
 }
 
+/** Absolute URL on the canonical origin; the home page is the bare origin (as Next renders its canonical). */
 export function absoluteUrl(base: string, path: string) {
   if (/^https?:\/\//.test(path)) return path;
+  if (path === "/" || path === "") return base;
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
@@ -93,7 +95,7 @@ export async function organizationJsonLd() {
       "@id": `${base}/#organization`,
       name: general.siteName,
       description: general.footerDescription,
-      url: `${base}/`,
+      url: base,
       logo: absoluteUrl(base, "/icon.svg"),
       ...(general.ogImage ? { image: absoluteUrl(base, general.ogImage) } : {}),
       ...(contact.phone ? { telephone: phoneE164(contact.phone) } : {}),
@@ -107,7 +109,7 @@ export async function organizationJsonLd() {
       "@type": "WebSite",
       "@id": `${base}/#website`,
       name: general.siteName,
-      url: `${base}/`,
+      url: base,
       inLanguage: "fa-IR",
       publisher: { "@id": `${base}/#organization` },
     },

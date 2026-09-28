@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
-    "db:seed": "node --env-file-if-exists=.env scripts/seed.mjs"
+    "db:seed": "node --env-file-if-exists=.env scripts/seed.mjs",
+    "test:seo": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
