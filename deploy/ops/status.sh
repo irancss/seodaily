@@ -32,6 +32,7 @@ done
 [ -f "$BACKUP_DIR/.last-failure" ] && note "last backup failure: $(cat "$BACKUP_DIR/.last-failure")"
 note "backups: $(du -sh "$BACKUP_DIR" 2>/dev/null | cut -f1) in $BACKUP_DIR"
 note "live version: $(tail -n 1 deploys.log 2>/dev/null || echo unknown)"
+note "rollback targets: $(docker images seodaily --format '{{.Tag}}' | grep -Ev '^(latest|previous|<none>)$' | tr '\n' ' ')"
 note "docker: $(docker system df --format '{{.Type}} {{.Size}}' | tr '\n' ' ')"
 
 [ "$problems" -eq 0 ]

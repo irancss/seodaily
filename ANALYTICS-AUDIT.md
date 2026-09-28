@@ -124,9 +124,38 @@ AN-H1، AN-H2 و AN-M1 (بخش ۳).
 | دیتابیس | ✅ ۴/۴ |
 | کنترل منفی (Build فاز ۹) | ❌ ۳/۴، شکست مورد انتظار |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات و تست‌ها: `a0d5c2a` (شاخه `phase-10-analytics`)
+- Merge در `main`: `40c2622f2fbb7f71615b670262ef6f67df970d3b`
+
+## 10. PR
+
+[irancss/seodaily#15](https://github.com/irancss/seodaily/pull/15) — Merge شد.
+
+## 11. CI status
+
+- PR #15 (اجرای `36471863631`): `check` ✅
+- `main` (اجرای `36473560585`): `check` ✅ · `deploy` ✅ · `verify` ✅
+
+## 12. Deployment status
+
+✅ Deploy خودکار.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`، همه ✅:
+
+- **Analytics events on production:**
+  - تماس شناور و فوتر: هر کدام یک `phone_click` با `placement` درست
+  - CTA در Hero و بلوک پایانی
+  - حداکثر یک نصب GTM، و بدون شناسه هیچ اسکریپت Google بار نمی‌شود
+  - مقدار تایپ‌شده در `dataLayer` نیست
+  - UTM در ریدایرکت اسلش پایانی حفظ می‌شود
+- **نسخه‌های دامنه با Query:** `https://www…/seo?utm_source=ci&utm_medium=verify` و `http://seodaily.ir/?gclid=ci` → یک ۳۰۱ به `https://seodaily.ir/…` با همان پارامترها
+- Smoke، سئو ۱۶/۱۶، امنیت، چیدمان و دسترس‌پذیری
+
+تبدیل‌ها (`generate_lead`) فقط در CI و روی دیتابیس یک‌بارمصرف آزمایش می‌شوند. روی Production درخواست ساختگی ثبت نشد.
 
 ## 14. Remaining manual items
 

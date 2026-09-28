@@ -139,9 +139,47 @@ OPS-H1، OPS-H2، OPS-M1 تا OPS-M5 و OPS-L4 (بخش ۳).
 | شبیه‌سازی Deploy (۱۰ سناریو، بخش ۴) | ✅ |
 | تست‌های اپ (تنها تغییر اپ: فیلد `version` در Health) | در CI همین PR |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات: `2893e5b` (شاخه `phase-11-devops`)
+- Merge در `main`: `668c60d82c11359299f63af616485feaa098d1b4`
+
+## 10. PR
+
+[irancss/seodaily#16](https://github.com/irancss/seodaily/pull/16) — Merge شد.
+
+## 11. CI status
+
+- PR #16 (اجرای `36474443282`): `check` ✅ (شامل shellcheck)
+- `main` (اجرای `36475011383`): `check` ✅ · `deploy` ✅ · `verify` ✅
+
+## 12. Deployment status
+
+✅ اولین Deploy با روش جدید، روی سرور واقعی:
+
+```
+database → backup before migrations: db-pre-deploy-…dump (84K)
+candidate seodaily:668c60d82c11: migrations applied
+switch → live: 668c60d82c11          (کل گام: ۹ ثانیه)
+nightly backup scheduled: 17 3 * * * … ops/nightly.sh
+db-daily-…dump (84K), uploads-….tar.gz
+restored: categories,…,users 4 14 0 1 1 = live: … 4 14 0 1 1 → restore check passed
+status: app healthy {"version":"668c60d82c11"}، database OK، disk OK (۳ مسیر)، last-success-daily 0h، last-restore-check 0h، restarts 0
+```
+
+**ارسال Image:** مسیر Registry روی سرور واقعی شکست خورد و Fallback کل Image را فرستاد (۸۱ ثانیه). Deploy بی‌مشکل ادامه یافت. اسکریپت علت را چاپ نمی‌کرد: هیچ فرمانی خطا نداد، پس شکست به احتمال زیاد در بررسی «دسترسی از تونل» بود. در فاز ۱۲:
+- گام شکست‌خورده، خطای curl، لاگ تونل SSH و وضعیت و لاگ Container Registry چاپ می‌شوند.
+- Registry که بالا نیاید حذف می‌شود تا در حلقه Restart نماند.
+- پورت سمت Runner از 5000 به 15055 منتقل شد.
+
+علت واقعی در لاگ Deploy بعدی دیده می‌شود (FINAL-RELEASE-AUDIT.md).
+
+## 13. Production verification
+
+در job `verify`، همه ✅:
+- **The deployed commit is live:** `668c60d82c11`
+- **TLS certificate is valid for 14+ days**
+- Smoke، نسخه‌های دامنه (+UTM)، سئو، امنیت، چیدمان، دسترس‌پذیری و Analytics
 
 ## 14. Remaining manual items
 
