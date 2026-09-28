@@ -1,28 +1,30 @@
 @import "tailwindcss";
 
-/* font-display: optional — the regular and bold files are preloaded, so they are
-   normally ready for the first paint; on a slow first visit the page keeps the
-   system font instead of re-flowing when Vazir arrives (no layout shift). */
+/* font-display: swap — Vazir must always end up on screen. (`optional` kept the
+   system font for the whole visit whenever a file took longer than ~100 ms,
+   which on slower connections — and for the never-preloaded medium weight —
+   meant pages without Vazir.) All three files are small and preloaded in the
+   root layout, so they are normally ready before the first paint anyway. */
 @font-face {
   font-family: "Vazir FD WOL";
   src: url("/fonts/Vazir-Regular-FD-WOL.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 @font-face {
   font-family: "Vazir FD WOL";
   src: url("/fonts/Vazir-Medium-FD-WOL.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 @font-face {
   font-family: "Vazir FD WOL";
   src: url("/fonts/Vazir-Bold-FD-WOL.woff2") format("woff2");
   font-weight: 600 700;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 
 /* Tokens from the «SEO Daily — Website Design System». */
@@ -144,6 +146,15 @@
     white-space: nowrap;
     cursor: pointer;
     transition: background-color 0.15s;
+  }
+  /* A long label on a narrow phone wraps inside the button instead of pushing
+     it past the screen edge (short labels are unaffected). */
+  @media (max-width: 639px) {
+    .btn {
+      max-width: 100%;
+      white-space: normal;
+      text-align: center;
+    }
   }
   .btn-primary {
     background: var(--color-brand);
@@ -820,11 +831,13 @@
     font-size: 15px;
   }
 
-  /* ---------- floating call button ---------- */
+  /* ---------- floating call button ----------
+     Bottom-left: in RTL lines start on the right, so a button on the right
+     covered the first words of paragraphs, form fields and buttons. */
   .fab-call {
     position: fixed;
     z-index: 40;
-    right: 16px;
+    left: 16px;
     bottom: 16px;
     display: inline-flex;
     align-items: center;
@@ -838,6 +851,11 @@
     background: var(--gradient-brand);
     box-shadow: 0 12px 30px rgb(37 99 235 / 0.4);
     text-decoration: none;
+  }
+  /* Out of the way while the visitor is typing (the phone keyboard is open). */
+  body:has(:is(input:not([type="checkbox"], [type="radio"]), textarea, select):focus) .fab-call {
+    opacity: 0;
+    pointer-events: none;
   }
   .fab-call:hover {
     color: #fff;

@@ -22,7 +22,7 @@ export function SeoHeroVisual() {
       {/* Technical check of the site. */}
       <div
         aria-hidden="true"
-        className="float-card float absolute top-0 -left-3 hidden w-[214px] p-4 sm:block xl:-left-12"
+        className="float-card float absolute top-0 -left-3 hidden w-[214px] p-4 sm:block min-[1440px]:-left-12"
         style={vars({ i: 0 })}
       >
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7] font-semibold text-ink">

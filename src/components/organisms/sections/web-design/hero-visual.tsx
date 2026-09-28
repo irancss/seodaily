@@ -14,7 +14,7 @@ export function WebDesignHeroVisual() {
       {/* Design system: type and brand colours. */}
       <div
         aria-hidden="true"
-        className="float-card float absolute top-0 -left-3 hidden w-[184px] p-4 sm:block lg:-top-2 xl:-left-10"
+        className="float-card float absolute top-0 -left-3 hidden w-[184px] p-4 sm:block lg:-top-2 min-[1440px]:-left-10"
         style={vars({ i: 0 })}
       >
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7] font-semibold text-ink">

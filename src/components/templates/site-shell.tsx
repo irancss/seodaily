@@ -21,7 +21,7 @@ export function SiteShell({ general, contact, menus, jsonLd, children }: Props) 
     <div className="flex min-h-dvh flex-col">
       <a
         href="#content"
-        className="sr-only z-50 rounded-sm bg-white px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:right-2"
+        className="sr-only z-50 rounded-sm bg-white focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:px-4 focus:py-2"
       >
         پرش به محتوا
       </a>

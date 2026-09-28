@@ -136,15 +136,16 @@ export function PricingCalculator({ service, label, pricing }: { service: Pricin
             </fieldset>
 
             {/* Mobile: the running total stays at the bottom while the options scroll by
-                (inset on the right, where the floating call button sits). */}
-            <div className="sticky bottom-4 z-20 ms-16 lg:hidden">
+                (inset on the left, where the floating call button sits). */}
+            <div className="sticky bottom-4 z-20 me-16 lg:hidden">
               <a
                 href={`#${summaryId}`}
                 className="surface-dark flex h-14 items-center justify-between gap-3 rounded-full ps-5 pe-2 text-white no-underline shadow-lg hover:text-white"
               >
                 <span className="flex min-w-0 flex-col">
                   <span className="text-[11px] leading-[1.6] text-inverse-muted">جمع برآورد</span>
-                  <span className="truncate text-[15px] leading-[1.5] font-bold">{formatTotal(estimate.total)}</span>
+                  {/* Two short lines rather than a cut-off label on narrow phones. */}
+                  <span className="line-clamp-2 text-[14px] leading-[1.35] font-bold text-balance min-[400px]:text-[15px]">{formatTotal(estimate.total)}</span>
                 </span>
                 <span className="btn btn-white h-10 shrink-0 rounded-full px-4 text-sm">ثبت درخواست</span>
               </a>

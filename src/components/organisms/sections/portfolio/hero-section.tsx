@@ -19,7 +19,8 @@ export function PortfolioHeroSection({ text, items }: Props) {
       breadcrumb={[{ label: "صفحه اصلی", href: "/" }, { label: "نمونه‌کارها" }]}
       badge={text.badge}
       title={text.title}
-      subtitle={text.subtitle}
+      // Until something is published the usual intro («a selection of projects…») would promise what the page does not show.
+      subtitle={items.length > 0 ? text.subtitle : "نمونه‌کارها پس از انتشار در همین صفحه نمایش داده می‌شوند. برای گفت‌وگو درباره پروژه خودتان، درخواست مشاوره بدهید."}
       actions={
         <>
           {items.length > 0 && (
