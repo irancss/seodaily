@@ -38,11 +38,11 @@ export function ContactForm({ budgets, defaultService }: { budgets: string[]; de
   useEffect(() => {
     if (state.status === "success") {
       successRef.current?.focus();
-      toast.success("درخواست مشاوره ثبت شد. به‌زودی با شما تماس می‌گیریم.");
+      toast.success("درخواست مشاوره ثبت شد. به‌زودی با شما تماس می‌گیریم.", { silent: true });
     }
     if (state.status === "error") {
       errorRef.current?.focus();
-      if (state.message) toast.error(state.message);
+      if (state.message) toast.error(state.message, { silent: true });
     }
   }, [state]);
 

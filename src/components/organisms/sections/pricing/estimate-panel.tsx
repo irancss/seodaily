@@ -118,11 +118,11 @@ export function EstimateForm({ service, selection, validate, estimateError, onRe
   useEffect(() => {
     if (state.status === "success") {
       successRef.current?.focus();
-      toast.success("درخواست شما ثبت شد. به‌زودی برای هماهنگی تماس می‌گیریم.");
+      toast.success("درخواست شما ثبت شد. به‌زودی برای هماهنگی تماس می‌گیریم.", { silent: true });
     }
     if (state.status === "error") {
       messageRef.current?.focus();
-      if (state.message) toast.error(state.message);
+      if (state.message) toast.error(state.message, { silent: true });
     }
   }, [state]);
 
