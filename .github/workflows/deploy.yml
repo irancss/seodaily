@@ -37,7 +37,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-      - name: SEO tests (robots, sitemap, canonical, 404, metadata, admin noindex)
+      - name: SEO and security tests against the built app
         env:
           DATABASE_URL: postgres://seodaily:seodaily@localhost:5432/seodaily
           SESSION_SECRET: ci-only-session-secret-ci-only-session-secret
@@ -45,6 +45,9 @@ jobs:
           UPLOAD_DIR: /tmp/uploads
           PORT: "3000"
           HOSTNAME: 127.0.0.1
+          # Disposable admin of the CI database only.
+          ADMIN_EMAIL: ci-admin@example.com
+          ADMIN_PASSWORD: ci-admin-password-123
         run: |
           node scripts/migrate.mjs
           node scripts/seed.mjs
@@ -54,6 +57,7 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/api/health && break; sleep 1; done
           BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)
           BASE_URL=http://127.0.0.1:3000 node tests/seo-report.mjs >> "$GITHUB_STEP_SUMMARY"
+          BASE_URL=http://127.0.0.1:3000 npm run test:security || (tail -50 /tmp/server.log; exit 1)
 
   deploy:
     # Every push to main goes live once the checks pass.
@@ -184,4 +188,6 @@ jobs:
         run: BASE_URL="$SITE" node tests/seo-report.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: SEO tests against production
         run: BASE_URL="$SITE" SITE_ORIGIN="$SITE" npm run test:seo
+      - name: Security checks against production (read-only; no login, no form posts)
+        run: BASE_URL="$SITE" npm run test:security
 

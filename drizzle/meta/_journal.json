@@ -22,6 +22,13 @@
       "when": 1790610217186,
       "tag": "0002_service_sections",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790615780863,
+      "tag": "0003_sessions",
+      "breakpoints": true
     }
   ]
 }

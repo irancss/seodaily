@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { db, schema } from "@/db";
+import { errorSummary } from "@/lib/log";
 import { failed, saved, str } from "@/lib/form-actions";
 import { requireAdmin } from "@/modules/auth/session";
 import { businessField, nameField, phoneField } from "@/modules/leads/fields";
@@ -118,7 +119,7 @@ export async function submitEstimate(_prev: EstimateState, form: FormData): Prom
       },
     });
   } catch (error) {
-    console.error("pricing: could not save estimate", error);
+    console.error("pricing: could not save estimate:", errorSummary(error));
     return { status: "error", message: "ثبت درخواست با خطا روبه‌رو شد. لطفاً دوباره تلاش کنید.", values };
   }
 
