@@ -146,12 +146,14 @@ F-M1، F-L1 و F-L2. همچنین `status.sh` اکنون Imageهای موجود 
 ## 10. PR
 
 - [irancss/seodaily#17](https://github.com/irancss/seodaily/pull/17) — Merge شد
-- PR پیگیری F-M1b — پایین‌تر
+- [irancss/seodaily#18](https://github.com/irancss/seodaily/pull/18) (F-M1b) — Merge شد: `e28ab3aa2474270b63f52ac4127bc003cc89ff5f`
 
 ## 11. CI status
 
 - PR #17 (اجرای `36477601179`): `check` ✅ (Lint، shellcheck، Typecheck، واحد، Build، سئو، امنیت، E2E ۳۷، دیتابیس)
-- `main` (اجرای `36478409128`): `check` ✅ · `deploy` ✅ · `verify` (بخش ۱۳)
+- `main` (اجرای `36478409128`): `check` ✅ · `deploy` ✅ · `verify` ✅
+- PR #18 (اجرای `36479842286`): `check` ✅
+- `main` (اجرای `36480466226`): `check` ✅ · `deploy` ✅ · `verify` ✅
 
 ## 12. Deployment status
 
@@ -168,7 +170,12 @@ rollback targets: 668c60d82c11 118a859e6ee0 40c26…fbb bd51e0ae1e6a 7d9d9f397c8
 ```
 
 - **آمادگی Rollback روی Production:** ۶ نسخه قبلی روی سرورند و `deploys.log` دو ورودی دارد، پس `rollback.sh` بدون Tag به `668c60d82c11` برمی‌گردد.
-- **ارسال Image:** هنوز Fallback کامل بود (۷۱ ثانیه)، ولی این بار با علت دقیق (F-M1b). اصلاح آن در PR پیگیری است.
+- **ارسال Image:** هنوز Fallback کامل بود (۷۱ ثانیه)، ولی این بار با علت دقیق (F-M1b).
+
+Deploy #18 (`e28ab3aa2474`):
+- `shipped seodaily:e28ab3aa2474 through the registry in 91s`: **مسیر Registry روی Production کار می‌کند**، بدون هشدار و بدون Fallback.
+- این اولین ارسال بود و Registry خالی بود، پس همه لایه‌ها فرستاده شدند و زمان برابر ارسال کامل است. از Deploy بعدی که کد برنامه را تغییر دهد، فقط لایه‌های تغییرکرده فرستاده می‌شوند (در شبیه‌سازی: ارسال دوم بدون لایه تازه).
+- سپس: `live: e28ab3aa2474`، `app healthy {"version":"e28ab3aa2474"}`، `rollback targets: 668c60d82c11 118a859e6ee0 e28ab3aa2474 …`.
 
 ## 13. Production verification
 
@@ -179,9 +186,26 @@ job `verify` روی `https://seodaily.ir` برای Commit `118a859e6ee0`:
 - دامنه‌ها و UTM ✅
 - سئو ۱۶/۱۶ ✅
 - امنیت (فقط‌خواندنی) ✅
-- چیدمان، دسترس‌پذیری و Analytics: نتیجه پایانی پایین‌تر
+- چیدمان ۸ عرض ✅
+- دسترس‌پذیری (axe + صفحه‌کلید) ✅
+- Analytics ✅
 
-نتیجه Deploy پیگیری (ارسال از راه Proxy) پایین‌تر ثبت می‌شود.
+همین مجموعه برای Deploy #18 (`e28ab3aa2474`) هم کامل سبز است.
+
+### Checklist
+
+| | |
+| --- | --- |
+| Clone تازه: install، lint، typecheck، build | ✅ |
+| واحد ۲۸ · سئو ۱۶ · امنیت ۹ · E2E ۳۷ · دیتابیس ۴ · shellcheck | ✅ |
+| نصب تازه و ارتقا از نسخه قبل از Audit (حفظ ویرایش‌های مدیر) | ✅ |
+| عملکرد: بدون پسرفت نسبت به فاز ۵ | ✅ |
+| Deploy امن (Candidate، Backup، بازگشت خودکار) روی Production | ✅ (۳ بار: #16، #17، #18) |
+| Backup شبانه و Restore drill روی Production | ✅ |
+| Rollback: آزموده در شبیه‌سازی، و نسخه‌ها روی Production موجود | ✅ |
+| ارسال لایه‌ای Image روی Production | ✅ (از #18) |
+| Production: نسخه، TLS، Smoke، دامنه‌ها، سئو، امنیت، چیدمان، a11y، Analytics | ✅ |
+| کارهای دستی شما | بخش ۱۴ |
 
 ## 14. Remaining manual items
 
