@@ -13,9 +13,14 @@ async function readSetting<T extends object>(key: string, defaults: T): Promise<
   const row = await db.query.settings.findFirst({ where: eq(schema.settings.key, key) });
   if (!row) return defaults;
   const merged = { ...defaults } as Record<string, unknown>;
-  for (const [field, value] of Object.entries(row.value as Record<string, unknown>)) {
+  const stored = row.value && typeof row.value === "object" && !Array.isArray(row.value) ? (row.value as Record<string, unknown>) : {};
+  for (const [field, value] of Object.entries(stored)) {
+    const fallback = merged[field];
+    // A value of another shape than the default (hand-edited row, older
+    // format) would crash the pages that render it: keep the default instead.
+    if (fallback !== undefined && (typeof value !== typeof fallback || Array.isArray(value) !== Array.isArray(fallback))) continue;
     // A text field emptied in the admin falls back to the default, as page texts do.
-    if (typeof value === "string" && !value.trim() && typeof merged[field] === "string") continue;
+    if (typeof value === "string" && !value.trim() && typeof fallback === "string") continue;
     merged[field] = value;
   }
   return merged as T;
