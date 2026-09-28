@@ -204,14 +204,15 @@ jobs:
         run: |
           fail=0
           for path in / /robots.txt /sitemap.xml /web-design /seo /services /services/technical-seo /services/seo-audit /pricing /about /contact; do
-            body=$(curl -sS -m 30 -w '\n%{http_code}' "$SITE$path") || { echo "FETCH FAILED $path"; fail=1; continue; }
-            code=$(printf '%s' "$body" | tail -n1)
+            body=$(curl -sS -m 30 -w '\n%{http_code} %{time_starttransfer}' "$SITE$path") || { echo "FETCH FAILED $path"; fail=1; continue; }
+            code=$(printf '%s' "$body" | tail -n1 | cut -d' ' -f1)
+            ttfb=$(printf '%s' "$body" | tail -n1 | cut -d' ' -f2)
             html=$(printf '%s' "$body" | sed '$d')
             title=$(printf '%s' "$html" | grep -o '<title>[^<]*' | head -1 | sed 's/<title>//')
             canonical=$(printf '%s' "$html" | grep -o '<link rel="canonical" href="[^"]*"' | head -1 | sed 's/.*href="//;s/"$//')
             h1=$(printf '%s' "$html" | grep -o '<h1[ >]' | wc -l)
             robots=$(printf '%s' "$html" | grep -o '<meta name="robots" content="[^"]*"' | head -1 | sed 's/.*content="//;s/"$//')
-            echo "$code $path | h1=$h1 | canonical=$canonical | robots=${robots:-index} | $title"
+            echo "$code $path | ttfb=${ttfb}s | h1=$h1 | canonical=$canonical | robots=${robots:-index} | $title"
             [ "$code" = 200 ] || fail=1
           done
           exit $fail

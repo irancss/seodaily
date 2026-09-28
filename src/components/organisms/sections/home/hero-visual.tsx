@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Dots, Icon } from "@/components/atoms";
 import { cx, vars } from "@/lib/utils";
 
@@ -70,7 +72,7 @@ export function HomeHeroVisual({ imageUrl }: { imageUrl?: string }) {
           </div>
           {imageUrl ? (
             <div className="relative h-[250px] sm:h-[300px] lg:h-[340px]">
-              <img src={imageUrl} alt="" fetchPriority="high" className="absolute inset-0 size-full object-cover object-top" />
+              <Image src={imageUrl} alt="" fill sizes="(min-width: 1024px) 45vw, 100vw" priority className="object-cover object-top" />
             </div>
           ) : (
             <SkeletonSite />

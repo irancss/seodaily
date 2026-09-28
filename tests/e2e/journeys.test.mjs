@@ -153,7 +153,16 @@ test("admin: service create, duplicate slug keeps the stored image, public page,
   const [created] = await sql`select id, image_url from services where slug = ${slug}`;
   assert.ok(created.image_url.startsWith("/uploads/"));
   assert.equal((await page.request.get(BASE + created.image_url)).status(), 200);
-  assert.equal((await page.request.get(`${BASE}/services/${slug}`)).status(), 200, "published page is live");
+  const servicePage = await page.request.get(`${BASE}/services/${slug}`);
+  assert.equal(servicePage.status(), 200, "published page is live");
+  // The page asks for a resized copy (next/image), never the original upload.
+  const html = await servicePage.text();
+  const optimized = html.match(/\/_next\/image\?url=%2Fuploads%2F[^"&]+&amp;w=\d+&amp;q=\d+/)?.[0];
+  assert.ok(optimized, "service image goes through the image optimizer");
+  assert.ok(!html.includes(`src="${created.image_url}"`), "original file is not embedded");
+  const resized = await page.request.get(BASE + optimized.replace(/&amp;/g, "&"), { headers: { Accept: "image/webp,*/*" } });
+  assert.equal(resized.status(), 200);
+  assert.equal(resized.headers()["content-type"], "image/webp");
 
   // A failing save (slug already used) must not delete the image the record still points to.
   await page.setInputFiles("input[name=image]", { name: "b.png", mimeType: "image/png", buffer: PNG });

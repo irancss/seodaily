@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { PlaceholderChip } from "@/components/atoms";
 import { cx } from "@/lib/utils";
 
@@ -8,6 +10,7 @@ export function Visual({
   label = "نمونه پروژه",
   tone = "soft",
   priority = false,
+  sizes = "(min-width: 1024px) 50vw, 100vw",
   className,
 }: {
   src?: string | null;
@@ -16,19 +19,14 @@ export function Visual({
   tone?: "soft" | "page";
   /** Above-the-fold picture (hero): load it right away instead of lazily. */
   priority?: boolean;
+  /** Rendered width, so the browser downloads a matching size. */
+  sizes?: string;
   className?: string;
 }) {
   if (src) {
     return (
       <div className={cx("relative overflow-hidden bg-page", className)}>
-        <img
-          src={src}
-          alt={alt}
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
-          fetchPriority={priority ? "high" : undefined}
-          className="absolute inset-0 size-full object-cover object-top"
-        />
+        <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover object-top" />
       </div>
     );
   }

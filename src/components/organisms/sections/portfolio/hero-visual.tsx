@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Dots } from "@/components/atoms";
 import { cx, vars } from "@/lib/utils";
 
@@ -55,14 +57,7 @@ function Frame({
       </div>
       {src ? (
         <div className={cx("relative bg-page", screen)}>
-          <img
-            src={src}
-            alt=""
-            loading={priority ? "eager" : "lazy"}
-            fetchPriority={priority ? "high" : undefined}
-            decoding="async"
-            className="absolute inset-0 size-full object-cover object-top"
-          />
+          <Image src={src} alt="" fill sizes="(min-width: 1024px) 30vw, 60vw" priority={priority} className="object-cover object-top" />
         </div>
       ) : (
         <Sketch className={screen} flip={flip} />

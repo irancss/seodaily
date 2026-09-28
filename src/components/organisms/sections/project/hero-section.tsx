@@ -35,7 +35,7 @@ export function ProjectHeroSection({ project }: Props) {
         <span aria-hidden="true" className="orb orb-soft-cyan -bottom-24 left-1/4 size-[480px]" />
         <div className="rounded-2xl border border-white/80 bg-white/60 p-1.5 shadow-[0_40px_90px_-30px_rgb(15_23_42/0.35)] backdrop-blur sm:p-2 lg:rounded-[28px] lg:p-3">
           <BrowserFrame url={url} shadow="none" className="rounded-xl lg:rounded-2xl">
-            <Visual src={project.imageUrl} alt={project.title} priority className="h-[240px] sm:h-[380px] lg:h-[560px]" />
+            <Visual src={project.imageUrl} alt={project.title} priority sizes="(min-width: 1280px) 1200px, 100vw" className="h-[240px] sm:h-[380px] lg:h-[560px]" />
           </BrowserFrame>
         </div>
       </div>
