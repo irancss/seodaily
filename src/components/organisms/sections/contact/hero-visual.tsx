@@ -33,7 +33,7 @@ export function ContactHeroVisual({ phone }: { phone: string }) {
         <span className="flex size-9 items-center justify-center rounded-full bg-success-bg text-success">
           <Icon name="check" size={18} strokeWidth={2.5} />
         </span>
-        <span className="text-sm leading-[1.7] font-semibold text-ink">{NEXT_STEPS[0]}</span>
+        <span className="css-label text-sm leading-[1.7] font-semibold text-ink" data-label={NEXT_STEPS[0]} />
       </div>
 
       {/* Direct line */}
@@ -43,9 +43,9 @@ export function ContactHeroVisual({ phone }: { phone: string }) {
             <Icon name="phone" size={18} />
           </span>
           <span className="flex flex-col">
-            <span className="text-xs leading-[1.7] text-muted">تماس مستقیم</span>
+            <span className="text-xs leading-[1.7] text-muted"><span className="css-label" data-label="تماس مستقیم" /></span>
             <span dir="ltr" className="text-sm leading-[1.7] font-bold text-ink">
-              {formatPhone(phone)}
+              <span className="css-label" data-label={formatPhone(phone)} />
             </span>
           </span>
         </div>

@@ -9,8 +9,9 @@ export function WordRotator({ words, className }: { words: string[]; className?:
       <span className="sr-only">{[...new Set(four)].join("، ")}</span>
       <span aria-hidden="true" className="rotator">
         <span className="rotator-list">
+          {/* Drawn by CSS so the page text holds each word only once (in the sr-only list). */}
           {loop.map((word, i) => (
-            <span key={i}>{word}</span>
+            <span key={i} className="css-label" data-label={word} />
           ))}
         </span>
       </span>

@@ -70,9 +70,8 @@ export function ContactForm({ budgets, defaultService }: { budgets: string[]; de
         </p>
       )}
 
-      {/* Honeypot: hidden from people and assistive tech. */}
+      {/* Honeypot for bots: no visible or readable text (so nothing leaks into search snippets), out of the tab order and hidden from assistive tech. */}
       <div aria-hidden="true" className="sr-only">
-        <label htmlFor="cf-fax">Fax</label>
         <input id="cf-fax" name="company_fax" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 

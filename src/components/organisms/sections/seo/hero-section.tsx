@@ -11,6 +11,7 @@ type Props = {
 export function SeoHeroSection({ text }: Props) {
   return (
     <PageHero
+      breadcrumb={[{ label: "صفحه اصلی", href: "/" }, { label: "سئو" }]}
       badge={text.badge}
       title={text.title}
       subtitle={text.subtitle}

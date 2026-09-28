@@ -26,13 +26,13 @@ export function SeoHeroVisual() {
         style={vars({ i: 0 })}
       >
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7] font-semibold text-ink">
-          بررسی فنی سایت
+          <span className="css-label" data-label="بررسی فنی سایت" />
           <Icon name="shield" size={15} className="text-brand" />
         </div>
         <ul className="mt-2.5 flex flex-col gap-2">
           {CHECKS.map((label) => (
             <li key={label} className="flex items-center justify-between gap-2 text-xs leading-[1.7] text-ink-2">
-              {label}
+              <span className="css-label" data-label={label} />
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-success-bg text-success">
                 <Icon name="check" size={12} />
               </span>
@@ -48,7 +48,7 @@ export function SeoHeroVisual() {
         style={vars({ i: 1 })}
       >
         <div className="flex items-center justify-between gap-2 text-xs leading-[1.7] font-semibold text-ink">
-          خوشه موضوعی
+          <span className="css-label" data-label="خوشه موضوعی" />
           <Icon name="sitemap" size={15} className="text-brand" />
         </div>
         <svg viewBox="0 0 168 86" className="mt-2 h-[86px] w-full" fill="none">

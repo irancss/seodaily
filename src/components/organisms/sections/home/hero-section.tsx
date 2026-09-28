@@ -8,7 +8,7 @@ import { HomeHeroVisual } from "./hero-visual";
 type Props = {
   text: PageText;
   heroImage?: string;
-  /** Business types cycled after «طراحی سایت و سئو برای». */
+  /** Business types cycled after «مناسب» under the title. */
   audiences: string[];
   phone: string;
 };
@@ -31,7 +31,7 @@ export function HomeHeroSection({ text, heroImage, audiences, phone }: Props) {
           </h1>
           {audiences.length > 0 && (
             <p className="animate-in mt-3 text-lg leading-[1.8] font-semibold text-inverse-muted lg:mt-4 lg:text-2xl lg:leading-[1.7]" style={vars({ i: 2 })}>
-              طراحی سایت و سئو برای <WordRotator words={audiences} className="text-white" />
+              مناسب <WordRotator words={audiences} className="text-white" />
             </p>
           )}
           <p className="body-lg animate-rise mt-4 max-w-[580px] lg:mt-5" style={vars({ i: 3 })}>

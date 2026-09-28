@@ -23,22 +23,22 @@ function CalculatorMock() {
   return (
     <div aria-hidden="true" className="w-full max-w-[340px] rounded-xl bg-white p-4 text-ink shadow-lg lg:p-5">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-bold">برآورد هزینه پروژه</span>
+        <span className="css-label text-sm font-bold" data-label="برآورد هزینه پروژه" />
         <Icon name="calculator" size={18} className="text-brand" />
       </div>
       <ul className="mt-3 flex flex-col divide-y divide-line">
         {rows.map(([label, on]) => (
           <li key={label} className="flex items-center justify-between gap-3 py-2.5 text-sm text-ink-2">
-            {label}
+            <span className="css-label" data-label={label} />
             <span className="mock-switch" data-on={on || undefined} />
           </li>
         ))}
       </ul>
       <div className="mt-2 flex items-center justify-between rounded-lg bg-soft px-3 py-2.5">
-        <span className="text-sm font-semibold">جمع کل</span>
+        <span className="css-label text-sm font-semibold" data-label="جمع کل" />
         <span className="flex items-center gap-1.5">
           <span className="block h-2.5 w-16 rounded-full bg-gradient-to-l from-brand to-brand-decorative" />
-          <span className="text-xs text-muted">تومان</span>
+          <span className="css-label text-xs text-muted" data-label="تومان" />
         </span>
       </div>
     </div>

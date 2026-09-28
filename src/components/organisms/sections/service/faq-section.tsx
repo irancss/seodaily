@@ -17,7 +17,7 @@ type Props = {
 
 export function ServiceFaqSection({ service, jsonLd, tone }: Props) {
   return (
-    <section className={cx("section", toneClass(tone))}>
+    <section id="service-faq" className={cx("section", toneClass(tone))}>
       <div className="container-site grid items-start gap-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-20">
         <div className="flex flex-col gap-6 lg:sticky lg:top-28">
           <SectionHeading

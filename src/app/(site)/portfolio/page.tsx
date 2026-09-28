@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { JsonLd } from "@/components/atoms";
 import {
   PortfolioCaseStudySection,
@@ -11,8 +13,11 @@ import { projectHref } from "@/modules/projects/routes";
 import { breadcrumbJsonLd, getSiteUrl, pageMetadata } from "@/modules/seo/metadata";
 import { getContact, getPageText } from "@/modules/settings/queries";
 
-export function generateMetadata() {
-  return pageMetadata("portfolio", "/portfolio");
+// Until real projects are published the page is only a placeholder: it stays
+// reachable (and its links followed) but is kept out of the index and the sitemap.
+export async function generateMetadata(): Promise<Metadata> {
+  const [meta, projects] = await Promise.all([pageMetadata("portfolio", "/portfolio"), getPublishedProjects()]);
+  return projects.length > 0 ? meta : { ...meta, robots: { index: false, follow: true } };
 }
 
 export default async function PortfolioPage() {
@@ -62,7 +67,7 @@ export default async function PortfolioPage() {
       {/* 05 · cta */}
       <PortfolioCtaSection text={text} padTop={!caseStudy} phone={contact.phone} />
 
-      <JsonLd data={listLd} />
+      {projects.length > 0 && <JsonLd data={listLd} />}
       <JsonLd
         data={await breadcrumbJsonLd([
           { name: "صفحه اصلی", path: "/" },

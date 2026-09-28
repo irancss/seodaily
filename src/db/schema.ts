@@ -11,6 +11,8 @@ import {
 
 export type TitledItem = { title: string; description: string };
 export type FaqItem = { question: string; answer: string };
+/** A free-form article section of a service page: an H2 and its text (see RichText). */
+export type ContentSection = { title: string; body: string };
 
 export const users = pgTable(
   "users",
@@ -49,6 +51,10 @@ export const services = pgTable(
     icon: text("icon").notNull().default("layers"),
     summary: text("summary").notNull().default(""),
     heroDescription: text("hero_description").notNull().default(""),
+    /** «<title> چیست؟» — what the service is, right under the hero. */
+    overview: text("overview").notNull().default(""),
+    /** In-depth sections (scope, cost/time factors, common mistakes…). */
+    sections: jsonb("sections").$type<ContentSection[]>().notNull().default([]),
     imageUrl: text("image_url").notNull().default(""),
     problemIntro: text("problem_intro").notNull().default(""),
     problems: jsonb("problems").$type<string[]>().notNull().default([]),

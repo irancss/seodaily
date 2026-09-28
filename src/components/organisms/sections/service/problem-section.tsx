@@ -14,7 +14,7 @@ type Props = {
 export function ServiceProblemSection({ service, tone }: Props) {
   const hasList = service.problems.length > 0;
   return (
-    <section className={cx("section", toneClass(tone))}>
+    <section id="service-problems" className={cx("section", toneClass(tone))}>
       <div
         className={cx(
           "container-site grid items-start gap-8 lg:gap-20",

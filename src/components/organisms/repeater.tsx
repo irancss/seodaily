@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Icon } from "@/components/atoms";
 
-type FieldDef = { key: string; label: string; multiline?: boolean; dir?: "ltr" };
+type FieldDef = { key: string; label: string; multiline?: boolean; rows?: number; dir?: "ltr" };
 
 /**
  * Editable list of rows (e.g. FAQ items, process steps). Serialises to a hidden
@@ -61,7 +61,7 @@ export function Repeater({
                     className: "field bg-white",
                   };
                   return f.multiline ? (
-                    <textarea key={f.key} rows={2} {...common} onChange={(e) => update(i, f.key, e.target.value)} />
+                    <textarea key={f.key} rows={f.rows ?? 2} {...common} onChange={(e) => update(i, f.key, e.target.value)} />
                   ) : (
                     <input key={f.key} type="text" {...common} onChange={(e) => update(i, f.key, e.target.value)} />
                   );

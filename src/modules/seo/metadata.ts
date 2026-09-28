@@ -7,14 +7,24 @@ import { phoneE164, plainText } from "@/lib/utils";
 import { getContact, getGeneral, getPageText } from "@/modules/settings/queries";
 import { type PageKey } from "@/modules/settings/types";
 
+/** Production origin used when neither the admin setting nor SITE_URL is set. */
+const DEFAULT_SITE_URL = process.env.NODE_ENV === "production" ? "https://seodaily.ir" : "http://localhost:3000";
+
+/**
+ * Canonical origin for canonical links, sitemap, robots and structured data:
+ * the admin «site URL» setting, else SITE_URL, else the production domain.
+ */
 export async function getSiteUrl() {
   const general = await getGeneral();
-  const url = general.siteUrl.trim() || process.env.SITE_URL || "http://localhost:3000";
+  let url = general.siteUrl.trim() || process.env.SITE_URL?.trim() || DEFAULT_SITE_URL;
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
   return url.replace(/\/+$/, "");
 }
 
+/** Absolute URL on the canonical origin; the home page is the bare origin (as Next renders its canonical). */
 export function absoluteUrl(base: string, path: string) {
   if (/^https?:\/\//.test(path)) return path;
+  if (path === "/" || path === "") return base;
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
@@ -77,18 +87,21 @@ export async function organizationJsonLd() {
   const [general, contact, base] = await Promise.all([getGeneral(), getContact(), getSiteUrl()]);
   return [
     {
+      // Organization rather than a LocalBusiness type: there is no public
+      // street address to publish, and LocalBusiness markup without one is
+      // incomplete. Only values that exist in the settings are included.
       "@context": "https://schema.org",
-      "@type": "ProfessionalService",
+      "@type": "Organization",
       "@id": `${base}/#organization`,
       name: general.siteName,
       description: general.footerDescription,
       url: base,
+      logo: absoluteUrl(base, "/icon.svg"),
       ...(general.ogImage ? { image: absoluteUrl(base, general.ogImage) } : {}),
       ...(contact.phone ? { telephone: phoneE164(contact.phone) } : {}),
       ...(contact.email ? { email: contact.email } : {}),
       ...(contact.address ? { address: contact.address } : {}),
       ...(contact.socials.length ? { sameAs: contact.socials.map((s) => s.url) } : {}),
-      areaServed: "IR",
       knowsLanguage: "fa",
     },
     {

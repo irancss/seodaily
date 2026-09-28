@@ -36,7 +36,7 @@ export async function saveGeneral(form: FormData) {
     siteUrl,
     footerDescription: str(form, "footerDescription", 400),
     footerNote: str(form, "footerNote", 120),
-    industries: rows(form, "industries", ["title", "url"] as const).map((r) => ({ title: r.title, url: r.url ? cleanUrl(r.url) : "/contact" })),
+    industries: rows(form, "industries", ["title", "url"] as const).map((r) => ({ title: r.title, url: r.url ? cleanUrl(r.url) : "" })),
     budgets: lines(form, "budgets"),
     techOptions: lines(form, "techOptions"),
     ogImage,
