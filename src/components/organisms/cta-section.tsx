@@ -34,7 +34,7 @@ export function CtaSection({
   const dark = tone === "dark";
 
   return (
-    <section className={cx("flex grow items-center pb-16 lg:pb-24", padTop && "pt-16 lg:pt-24")}>
+    <section data-placement="cta" className={cx("flex grow items-center pb-16 lg:pb-24", padTop && "pt-16 lg:pt-24")}>
       <div className="container-site">
         <div
           className={cx(

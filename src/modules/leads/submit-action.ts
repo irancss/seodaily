@@ -15,6 +15,8 @@ export type ContactState = {
   message?: string;
   errors?: Partial<Record<"name" | "phone" | "website" | "service" | "description", string>>;
   values?: Record<string, string>;
+  /** Set only when this submission stored a new lead: the conversion to measure (not a retry or a bot). */
+  lead?: { service: string };
 };
 
 const schemaInput = z.object({
@@ -85,5 +87,5 @@ export async function submitConsultation(_prev: ContactState, formData: FormData
     };
   }
 
-  return { status: "success" };
+  return { status: "success", lead: { service: data.service } };
 }

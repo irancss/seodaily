@@ -218,11 +218,13 @@ jobs:
             [ "$code" = 200 ] || fail=1
           done
           exit $fail
-      - name: Domain variants redirect to the canonical host in one hop
+      - name: Domain variants redirect to the canonical host in one hop (campaign parameters kept)
         run: |
           fail=0
           for pair in "http://seodaily.ir/|$SITE/" "http://www.seodaily.ir/|$SITE/" "https://www.seodaily.ir/|$SITE/" \
-                      "http://seodaily.ir/seo|$SITE/seo" "http://www.seodaily.ir/seo|$SITE/seo" "https://www.seodaily.ir/seo|$SITE/seo"; do
+                      "http://seodaily.ir/seo|$SITE/seo" "http://www.seodaily.ir/seo|$SITE/seo" "https://www.seodaily.ir/seo|$SITE/seo" \
+                      "https://www.seodaily.ir/seo?utm_source=ci&utm_medium=verify|$SITE/seo?utm_source=ci&utm_medium=verify" \
+                      "http://seodaily.ir/?gclid=ci|$SITE/?gclid=ci"; do
             from=${pair%%|*}; to=${pair#*|}
             out=$(curl -sS -o /dev/null -m 30 -w '%{http_code} %{redirect_url}' "$from") || { echo "UNREACHABLE $from"; fail=1; continue; }
             final=$(curl -sS -o /dev/null -m 30 -w '%{http_code}' "${out#* }") || final=000
@@ -248,4 +250,6 @@ jobs:
         run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/layout.test.mjs
       - name: Accessibility on production (axe WCAG 2.2 AA + keyboard, read-only)
         run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/a11y.test.mjs
+      - name: Analytics events on production (clicks only, read-only)
+        run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/analytics.test.mjs
 

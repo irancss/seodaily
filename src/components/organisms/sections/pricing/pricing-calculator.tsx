@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
+import { trackOnce } from "@/lib/analytics";
 import { toast } from "@/lib/toast";
 import { cx } from "@/lib/utils";
 import { computeEstimate, initialChoices, isCountOnly } from "@/modules/pricing/estimate";
@@ -31,6 +32,7 @@ export function PricingCalculator({ service, label, pricing }: { service: Pricin
   const [showErrors, setShowErrors] = useState(false);
   // Bumped for a new estimate after a successful request, to reset the form.
   const [round, setRound] = useState(0);
+  const view = useRef({});
 
   const estimate = useMemo(() => computeEstimate(pricing, { planId, choices }), [pricing, planId, choices]);
   const plan = pricing.plans.find((p) => p.id === planId);
@@ -50,7 +52,12 @@ export function PricingCalculator({ service, label, pricing }: { service: Pricin
     );
   }
 
+  function started() {
+    trackOnce(view.current, "pricing_start", { event: "pricing_start", service });
+  }
+
   function setChoice(groupId: string, value: Choices[string] | undefined) {
+    started();
     setChoices((prev) => {
       const next = { ...prev };
       if (value === undefined) delete next[groupId];
@@ -61,6 +68,7 @@ export function PricingCalculator({ service, label, pricing }: { service: Pricin
 
   function choosePlan(id: string | null) {
     setPlanId(id);
+    if (id) started();
     if (id) document.getElementById(summaryId)?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 

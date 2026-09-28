@@ -129,9 +129,38 @@
 | E2E (سفرها و چیدمان) | ✅ ۱۹/۱۹ |
 | CLS پس از تغییرات | ✅ ۰ |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات: شاخه `phase-05-perf`، آخرین Commit `e127adf`
+- Merge در `main`: `29260eea8c420b7183a2b3e45a118465830c40a9`
+
+## 10. PR
+
+[irancss/seodaily#10](https://github.com/irancss/seodaily/pull/10) — Merge شد.
+
+## 11. CI status
+
+- PR #10 (اجرای `36465250430`): `check` ✅.
+- `main` (اجرای `36466402470`): `check` ✅ · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار (Build image حدود ۱ دقیقه و ۳۶ ثانیه با کش لایه‌ها، ارسال Image به سرور ۲ دقیقه و ۸ ثانیه، راه‌اندازی ۹ ثانیه). گلوگاه زمان Deploy انتقال کامل Image از طریق SSH است. در فاز ۱۱ بررسی می‌شود.
+
+## 13. Production verification
+
+Smoke test در job `verify` (TTFB از Runner گیت‌هاب، یعنی خارج از ایران، شامل فاصله شبکه و TLS):
+
+| صفحه | TTFB |
+| --- | --- |
+| `/` | 1.56s (اولین درخواست، چند ثانیه بعد از راه‌اندازی Container) |
+| `/robots.txt`، `/sitemap.xml`، `/web-design`، `/seo`، `/services/technical-seo` | 1.26–1.38s |
+| `/services`، `/services/seo-audit`، `/pricing`، `/about`، `/contact` | 0.70–0.76s |
+
+- همه ۲۰۰، با یک H1 و Canonical درست.
+- TTFB سمت سرور روی Build محلی حدود ۳۵ms است. پس بیشتر عدد بالا زمان رفت‌وبرگشت Runner تا سرور و گرم‌شدن اولیه است، نه رندر.
+- عدد واقعی کاربر ایرانی از این Runner قابل اندازه‌گیری نیست. پیشنهاد: پایش از داخل ایران یا داده CrUX و Search Console، بعد از جمع‌شدن ترافیک.
+- چیدمان Production ۸ عرض ✅. نسخه‌های دامنه ✅. سئو و امنیت ✅.
 
 ## 14. Remaining manual items
 

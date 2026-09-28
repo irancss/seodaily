@@ -19,6 +19,12 @@ export async function saveGeneral(form: FormData) {
   if (siteUrl && !/^https?:\/\//i.test(siteUrl)) siteUrl = `https://${siteUrl}`;
   if (siteUrl && !URL.canParse(siteUrl)) failed("/admin/settings", "آدرس سایت معتبر نیست.");
 
+  // The ID ends up inside an inline script, so only the exact GTM format is stored.
+  // A pasted snippet is accepted and reduced to its ID.
+  const gtmInput = str(form, "gtmId", 4000).toUpperCase();
+  const gtmId = /GTM-[A-Z0-9]{4,12}\b/.exec(gtmInput)?.[0] ?? "";
+  if (gtmInput && !gtmId) failed("/admin/settings", "شناسه Google Tag Manager باید به شکل GTM-XXXXXXX باشد.");
+
   let ogImage: StagedImage;
   try {
     ogImage = await stageImage(form.get("ogImage"), current.ogImage, form.get("ogImage_remove") === "on");
@@ -38,6 +44,7 @@ export async function saveGeneral(form: FormData) {
       techOptions: lines(form, "techOptions"),
       ogImage: ogImage.url,
       googleVerification: str(form, "googleVerification", 200).replace(/^.*content="([^"]+)".*$/s, "$1"),
+      gtmId,
     });
   } catch (error) {
     await ogImage.rollback();

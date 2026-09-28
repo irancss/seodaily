@@ -52,6 +52,8 @@ async function adminPage() {
 }
 
 const toast = (page, text) => page.locator(".toast").filter({ hasText: text }).first().waitFor({ timeout: 15_000 });
+/** Measurement events in window.dataLayer (see src/lib/analytics.ts), without GTM's own. */
+const events = (page) => page.evaluate(() => (window.dataLayer ?? []).filter((e) => !String(e.event).startsWith("gtm.")));
 const leadCount = async (phone) => (await sql`select count(*)::int as n from leads where phone = ${phone}`)[0].n;
 
 test("navigation works on phone, tablet and desktop widths", async () => {
@@ -84,6 +86,7 @@ test("contact form: validation, success, persistence and no duplicate on resubmi
   await page.click("form[aria-labelledby=cf-title] button[type=submit]");
   await page.locator("#cf-name-error").waitFor();
   assert.match(await page.textContent("#cf-phone-error"), /شماره تماس/);
+  assert.deepEqual(await events(page), [], "a failed submit is no conversion");
 
   // Invalid phone keeps what was typed.
   await page.fill("#cf-name", "آزمون سفر کاربر");
@@ -94,12 +97,19 @@ test("contact form: validation, success, persistence and no duplicate on resubmi
   await page.waitForFunction(() => /معتبر نیست/.test(document.querySelector("#cf-phone-error")?.textContent ?? ""));
   assert.equal(await page.inputValue("#cf-name"), "آزمون سفر کاربر", "values survive a failed submit");
   assert.equal(await page.inputValue("#cf-desc"), `درخواست آزمایشی ${RUN}`);
+  assert.deepEqual(await events(page), [{ event: "form_start", form: "contact" }], "form_start once, however many fields were typed");
 
   // Valid submit with Persian digits.
   await page.fill("#cf-phone", phone.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]));
   await page.click("form[aria-labelledby=cf-title] button[type=submit]");
   await toast(page, "درخواست مشاوره ثبت شد");
   assert.equal(await leadCount(phone), 1, "saved once, phone normalised to Latin digits");
+  assert.deepEqual(await events(page), [
+    { event: "form_start", form: "contact" },
+    { event: "generate_lead", form: "contact", service: "seo" },
+  ]);
+  const sent = JSON.stringify(await events(page));
+  for (const personal of ["آزمون سفر کاربر", phone, phone.slice(-7), RUN]) assert.ok(!sent.includes(personal), `no personal data in analytics: ${personal}`);
 
   // The same request sent again (double click / retry) is not stored twice.
   await page.goto(`${BASE}/contact`);
@@ -110,6 +120,7 @@ test("contact form: validation, success, persistence and no duplicate on resubmi
   await page.click("form[aria-labelledby=cf-title] button[type=submit]");
   await toast(page, "درخواست مشاوره ثبت شد");
   assert.equal(await leadCount(phone), 1, "resubmission is idempotent");
+  assert.deepEqual(await events(page), [{ event: "form_start", form: "contact" }], "a retry of a stored lead is not counted again");
   await page.context().close();
 });
 
@@ -126,6 +137,7 @@ test("pricing calculator: required choice, server-computed total, stored estimat
   await panel.getByRole("button", { name: "ثبت درخواست برآورد" }).click();
   await panel.getByText("«نوع سایت» را انتخاب کنید.").waitFor();
   assert.equal(await leadCount(phone), 0);
+  assert.deepEqual(await events(page), [{ event: "form_start", form: "estimate" }]);
 
   // Default configuration: site type and design are the required choices.
   await panel.getByRole("radio", { name: /فروشگاه اینترنتی/ }).check();
@@ -136,6 +148,19 @@ test("pricing calculator: required choice, server-computed total, stored estimat
   assert.equal(lead.service, "web-design");
   assert.equal(lead.estimate.source, "calculator");
   assert.equal(lead.estimate.total, lead.estimate.items.reduce((s, i) => s + i.amount, 0), "total is the sum of the stored items");
+  assert.deepEqual(await events(page), [
+    { event: "form_start", form: "estimate" },
+    { event: "pricing_start", service: "web-design" },
+    { event: "generate_lead", form: "estimate", service: "web-design", estimate_total_toman: lead.estimate.total },
+  ]);
+
+  // Leaving and coming back (client navigation, then Back) does not count the lead again.
+  await page.locator('header a[href="/contact"]').first().click();
+  await page.waitForURL(/\/contact$/);
+  await page.goBack();
+  await page.waitForURL(/\/pricing$/);
+  await panel.getByRole("button", { name: "ثبت درخواست برآورد" }).waitFor();
+  assert.equal((await events(page)).filter((e) => e.event === "generate_lead").length, 1, "one conversion after Back");
   await page.context().close();
 });
 
@@ -235,6 +260,41 @@ test("admin: contact phone change reaches the public footer, then is restored", 
   await page.goto(`${BASE}/admin/settings`);
   await save(original);
   await page.waitForURL(/ok=/);
+  await visitor.context().close();
+  await page.context().close();
+});
+
+test("admin: a GTM container loads once on public pages, never in the panel, and only in its exact format", async () => {
+  const page = await adminPage();
+  const save = async (value) => {
+    await page.goto(`${BASE}/admin/settings`);
+    await page.fill("input[name=gtmId]", value);
+    await page.locator("form:has(input[name=gtmId]) button[type=submit]").click();
+    await page.waitForURL(/(ok|error)=/);
+  };
+  const gtmScripts = (p) => p.evaluate(() => [...document.scripts].filter((s) => s.id === "gtm" || /googletagmanager/.test(s.src)).map((s) => s.id || s.src));
+
+  await save("UA-12345-1");
+  assert.match(decodeURIComponent(page.url()), /GTM-XXXXXXX/, "a GA3 ID is refused");
+  await save("  gtm-ab12cd3 ");
+  assert.match(page.url(), /ok=/);
+  assert.equal(await page.inputValue("input[name=gtmId]"), "GTM-AB12CD3", "stored normalised");
+  assert.deepEqual(await gtmScripts(page), [], "no tag in the admin panel");
+
+  const visitor = await newPage();
+  await visitor.goto(`${BASE}/services`);
+  await visitor.waitForFunction(() => document.getElementById("gtm"));
+  assert.equal((await gtmScripts(visitor)).filter((s) => s === "gtm").length, 1, "one loader");
+  assert.equal(await visitor.evaluate(() => window.dataLayer.filter((e) => e.event === "gtm.js").length), 1, "GTM started once");
+  // Client navigation must not add a second copy.
+  await visitor.locator('header a[href="/contact"]').first().click();
+  await visitor.waitForURL(/\/contact$/);
+  assert.equal(await visitor.evaluate(() => window.dataLayer.filter((e) => e.event === "gtm.js").length), 1, "still once after navigation");
+
+  await save("");
+  assert.match(page.url(), /ok=/);
+  await visitor.goto(`${BASE}/services`);
+  assert.deepEqual(await gtmScripts(visitor), [], "cleared ID removes the tag");
   await visitor.context().close();
   await page.context().close();
 });
