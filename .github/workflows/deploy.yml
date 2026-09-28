@@ -3,16 +3,22 @@ name: CI / Deploy
 on:
   push:
     branches: [main]
+    # Reports and other docs change nothing that is built or deployed.
+    paths-ignore: ["**/*.md", "docs/**", "LICENSE"]
   pull_request:
+    paths-ignore: ["**/*.md", "docs/**", "LICENSE"]
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  # A newer push to the same PR makes the older run pointless; deploys on main
+  # are never cancelled halfway.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       # For the SEO tests: the built app runs against a freshly seeded database.
       postgres:
@@ -38,7 +44,18 @@ jobs:
       - run: npm run typecheck
       - name: Unit tests (pricing, validation, text rules)
         run: npm run test:unit
+      # Next.js reuses compiled output for unchanged files.
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
       - run: npm run build
+      - name: Cache the Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Browser for the E2E journeys
         run: npx playwright-core install --with-deps chromium
       - name: SEO, security and E2E tests against the built app
@@ -69,6 +86,7 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: check
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     environment: production
     outputs:
       enabled: ${{ steps.gate.outputs.enabled }}
@@ -91,9 +109,28 @@ jobs:
       - uses: actions/checkout@v4
         if: steps.gate.outputs.enabled == 'true'
 
+      - name: Image tag
+        id: tag
+        if: steps.gate.outputs.enabled == 'true'
+        run: echo "short=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        if: steps.gate.outputs.enabled == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      # Layers (base image, npm ci, …) come from the Actions cache when their
+      # inputs did not change, so only the app build is redone.
       - name: Build image
         if: steps.gate.outputs.enabled == 'true'
-        run: docker build -t "seodaily:${GITHUB_SHA::12}" -t seodaily:latest .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: |
+            seodaily:${{ steps.tag.outputs.short }}
+            seodaily:latest
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,scope=app,mode=max
 
       - name: Set up SSH
         if: steps.gate.outputs.enabled == 'true'
@@ -154,6 +191,7 @@ jobs:
     needs: deploy
     if: needs.deploy.outputs.enabled == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       SITE: https://seodaily.ir
     steps:
@@ -161,6 +199,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Smoke test production pages
         run: |
           fail=0
@@ -195,6 +234,11 @@ jobs:
         run: BASE_URL="$SITE" SITE_ORIGIN="$SITE" npm run test:seo
       - name: Security checks against production (read-only; no login, no form posts)
         run: BASE_URL="$SITE" npm run test:security
+      - name: Cache the Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Browser for the layout checks
         run: npm ci --no-audit --no-fund && npx playwright-core install --with-deps chromium
       - name: Responsive layout on production (8 widths, read-only)
