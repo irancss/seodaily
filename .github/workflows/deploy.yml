@@ -80,6 +80,8 @@ jobs:
           BASE_URL=http://127.0.0.1:3000 node tests/seo-report.mjs >> "$GITHUB_STEP_SUMMARY"
           BASE_URL=http://127.0.0.1:3000 npm run test:security || (tail -50 /tmp/server.log; exit 1)
           BASE_URL=http://127.0.0.1:3000 npm run test:e2e || (tail -50 /tmp/server.log; exit 1)
+          # Migration/seed safety on throwaway databases next to the CI one.
+          npm run test:db
 
   deploy:
     # Every push to main goes live once the checks pass.
