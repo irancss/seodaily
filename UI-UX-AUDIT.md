@@ -120,9 +120,35 @@
 | E2E (سفرها و چیدمان) | ✅ ۹ سفر + ۱۱ تست چیدمان |
 | کنترل منفی فونت روی نسخه قبلی | ❌ شکست مورد انتظار |
 
-## 9–13. Git, PR, CI, Deploy, Production
+## 9. Git branch and commit SHA(s)
 
-بعد از Merge ثبت می‌شود.
+- اصلاحات و تست‌ها: `0c3c9a4` (شاخه `phase-04-ui`)
+- Merge در `main`: `dcdf33d8180cc0201ec026a6ed672d67a0554b19`
+
+## 10. PR
+
+[irancss/seodaily#8](https://github.com/irancss/seodaily/pull/8) — Merge شد.
+
+## 11. CI status
+
+- PR #8: `check` ✅ (شامل E2E چیدمان ۸ عرض).
+- `main` (اجرای `36463968405`): `check` ✅ · `deploy` ✅ · `verify` ✅.
+
+## 12. Deployment status
+
+✅ Deploy خودکار.
+
+## 13. Production verification
+
+در job `verify` روی `https://seodaily.ir`، همه ✅:
+- Smoke test
+- نسخه‌های دامنه
+- سئو ۱۶/۱۶، شامل `font-display: swap` و Preload هر سه فایل فونت روی CSS واقعی
+- امنیت فقط‌خواندنی
+- **چیدمان Production**:
+  - ۸ عرض × ۹ صفحه، بدون اسکرول افقی و بدون کارت یا دکمه بیرون‌زده
+  - **وزیر روی اتصال کند شبیه‌سازی‌شده روی سایت واقعی رسم می‌شود**
+  - دکمه تماس در سمت چپ و پنهان هنگام تایپ
 
 ## 14. Remaining manual items
 
