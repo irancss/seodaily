@@ -91,8 +91,11 @@ test("server actions reject cross-origin posts (CSRF)", async () => {
 });
 
 test("uploads only serve generated image names", async () => {
+  // 404 from the app, or 400 when the reverse proxy already refuses a traversal.
   for (const path of ["/uploads/..%2F..%2Fetc%2Fpasswd", "/uploads/%2e%2e/package.json", "/uploads/a/b.png", "/uploads/x.svg", "/uploads/x.html", "/uploads/missing-file.png"]) {
-    assert.equal((await get(path)).status, 404, path);
+    const res = await get(path);
+    assert.ok([400, 404].includes(res.status), `${path} → ${res.status}`);
+    assert.doesNotMatch(await res.text(), /root:|"name":\s*"seodaily"/, `${path}: no file content`);
   }
 });
 
