@@ -27,10 +27,14 @@ export function decodeSlug(slug: string) {
   }
 }
 
+/** Persian (۰–۹) and Arabic (٠–٩) digits as Latin digits; everything else unchanged. */
+export function toLatinDigits(value: string) {
+  return value.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+
 /** Digits only (Persian/Arabic digits converted), keeping a leading +. */
 export function phoneDigits(raw: string) {
-  const western = raw.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
-  return western.replace(/(?!^\+)[^\d]/g, "");
+  return toLatinDigits(raw).replace(/(?!^\+)[^\d]/g, "");
 }
 
 /** International form for tel: links and structured data (Iranian numbers get +98). */

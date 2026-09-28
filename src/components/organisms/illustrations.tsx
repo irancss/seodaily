@@ -6,19 +6,6 @@ import { Dots, Icon } from "@/components/atoms";
 
 import { cx } from "@/lib/utils";
 
-function Bar({ w, h = 8, strong = false, brand = false, className }: { w: string | number; h?: number; strong?: boolean; brand?: boolean; className?: string }) {
-  return (
-    <span
-      className={cx(
-        "block shrink-0 rounded-full",
-        brand ? "bg-brand/25" : strong ? "bg-line-strong" : "bg-line",
-        className,
-      )}
-      style={{ width: w, height: h }}
-    />
-  );
-}
-
 const LINE_TONES = {
   line: "bg-line",
   strong: "bg-line-strong",
@@ -288,101 +275,6 @@ export function SerpMockup() {
           ))}
         </div>
       </div>
-    </div>
-  );
-}
-
-function DiagramLabel({ children }: { children: string }) {
-  return (
-    <span className="flex h-11 items-center justify-center gap-2 rounded-full border border-line bg-white text-sm leading-[1.7] font-medium text-ink shadow-sm">
-      <span className="size-2 rounded-full bg-brand" />
-      {children}
-    </span>
-  );
-}
-
-/** About hero on mobile: the four parts in a 2×2 layout around a website. */
-function SystemDiagramCompact({ label }: { label: string }) {
-  return (
-    <div role="img" aria-label={label} className="relative h-[268px] overflow-hidden rounded-xl border border-line bg-white lg:hidden">
-      <div aria-hidden="true" className="grid-bg absolute inset-0 opacity-60 [--grid:20px]" />
-      <svg aria-hidden="true" viewBox="0 0 348 266" preserveAspectRatio="none" fill="none" className="absolute inset-0 size-full">
-        {["M174 133L94 42", "M174 133L254 42", "M174 133L94 224", "M174 133L254 224"].map((d) => (
-          <path key={d} d={d} stroke="#2563eb" strokeOpacity="0.35" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-        ))}
-      </svg>
-      <div aria-hidden="true" className="absolute inset-x-5 top-5 grid grid-cols-2 gap-3">
-        <DiagramLabel>طراحی</DiagramLabel>
-        <DiagramLabel>محتوا</DiagramLabel>
-      </div>
-      <div aria-hidden="true" className="absolute top-1/2 left-1/2 h-24 w-[150px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-line bg-white shadow-md">
-        <div className="flex h-[22px] items-center border-b border-line bg-page px-2"><Dots size={6} /></div>
-        <div className="flex flex-col gap-1.5 p-2.5">
-          <Bar w="70%" h={7} strong />
-          <Bar w="90%" h={5} />
-          <span className="mt-0.5 block h-3.5 w-11 rounded-sm bg-brand/25" />
-        </div>
-      </div>
-      <div aria-hidden="true" className="absolute inset-x-5 bottom-5 grid grid-cols-2 gap-3">
-        <DiagramLabel>ساختار فنی</DiagramLabel>
-        <DiagramLabel>مسیر کاربر</DiagramLabel>
-      </div>
-    </div>
-  );
-}
-
-const DIAGRAM_LABEL = "طراحی، محتوا، ساختار فنی و مسیر کاربر به‌عنوان اجزای یک سیستم واحد حول وب‌سایت";
-
-/** About hero: four parts around a website. */
-export function SystemDiagram() {
-  return (
-    <>
-      <SystemDiagramCompact label={DIAGRAM_LABEL} />
-      <SystemDiagramFull />
-    </>
-  );
-}
-
-function SystemDiagramFull() {
-  const nodes = [
-    { label: "طراحی", top: "12%", left: "50%" },
-    { label: "محتوا", top: "50%", left: "83.4%" },
-    { label: "ساختار فنی", top: "87.5%", left: "50%" },
-    { label: "مسیر کاربر", top: "50%", left: "16.6%" },
-  ];
-  return (
-    <div
-      role="img"
-      aria-label={DIAGRAM_LABEL}
-      className="relative hidden h-[400px] overflow-hidden rounded-xl border border-line bg-white lg:block"
-    >
-      <div aria-hidden="true" className="grid-bg absolute inset-0 opacity-60" style={{ ["--grid" as string]: "24px" }} />
-      <svg aria-hidden="true" viewBox="0 0 494 398" preserveAspectRatio="none" fill="none" className="absolute inset-0 size-full">
-        <ellipse cx="247" cy="199" rx="165" ry="151" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 6" vectorEffect="non-scaling-stroke" />
-        {["M247 199V48", "M247 199V350", "M247 199H412", "M247 199H82"].map((d) => (
-          <path key={d} d={d} stroke="#2563eb" strokeOpacity="0.35" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-        ))}
-      </svg>
-      <div aria-hidden="true" className="absolute top-1/2 left-1/2 h-24 w-36 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-line bg-white shadow-md lg:h-32 lg:w-[184px]">
-        <div className="flex h-[26px] items-center border-b border-line bg-page px-2.5"><Dots size={7} /></div>
-        <div className="flex flex-col gap-2 p-3">
-          <Bar w="70%" strong />
-          <Bar w="90%" h={6} />
-          <Bar w="60%" h={6} className="hidden lg:block" />
-          <span className="mt-1 block h-4 w-14 rounded-sm bg-brand/25" />
-        </div>
-      </div>
-      {nodes.map((n) => (
-        <span
-          key={n.label}
-          aria-hidden="true"
-          className="absolute inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm leading-[1.7] font-medium whitespace-nowrap text-ink shadow-sm lg:px-4 lg:py-2"
-          style={{ top: n.top, left: n.left }}
-        >
-          <span className="size-2 rounded-full bg-brand" />
-          {n.label}
-        </span>
-      ))}
     </div>
   );
 }
