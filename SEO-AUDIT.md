@@ -1,6 +1,6 @@
 # SEO Audit — seodaily.ir
 
-> تاریخ: ۱۴۰۵/۰۷/۰۶ (۲۰۲۶-۰۹-۲۸) · شاخه: `seo-audit` (محلی، **push نشده**) · پایه: `main` @ `90e6cfb`
+> تاریخ: ۱۴۰۵/۰۷/۰۶ (۲۰۲۶-۰۹-۲۸) · شاخه: `seo-audit` → Merge در `main` با [PR #1](https://github.com/irancss/seodaily/pull/1) · Merge commit: `9fe81b7` · Deploy: ✅
 >
 > نقش‌ها: Technical SEO، Content Architecture، Web Engineering، Code Review.
 > محدودیت محیط: دسترسی به `https://seodaily.ir` از این محیط (سیاست شبکه) مسدود بود؛ بنابراین همه بررسی‌ها روی **کد Repository** و یک **Build تولیدی محلی** انجام شد که با همان Seed محیط Production (دیتابیس تازه + `scripts/seed.mjs`) و `SITE_URL=https://seodaily.ir` اجرا شده است. مواردی که فقط روی سرور واقعی قابل تأیید است در بخش ۱۷ و ۱۸ آمده‌اند.
@@ -30,7 +30,7 @@
 | متن Placeholder/تزئینی در HTML | ۲۰ صفحه | ۰ |
 | تست خودکار سئو | ندارد | ۹ تست (در CI) |
 
-هیچ داده، مشتری، نمونه‌کار، آمار، Rating، Review، عضو تیم یا آدرسی جعل نشده است. هیچ Push یا Deploy انجام نشده است.
+هیچ داده، مشتری، نمونه‌کار، آمار، Rating، Review، عضو تیم یا آدرسی جعل نشده است. تغییرات با PR #1 در `main` ادغام و به‌صورت خودکار روی سرور Deploy شد (بخش ۲۱).
 
 ## 2. Initial Findings
 
@@ -331,8 +331,8 @@ CI (`.github/workflows/deploy.yml`، job `check`): سرویس Postgres → build
 
 ## 17. Remaining Manual Tasks
 
-1. **Push/Deploy (نیاز به اجازه شما):** تغییرات روی شاخه محلی `seo-audit` است. Push به `main` = Deploy خودکار. ترتیب پیشنهادی: Push شاخه و ساخت PR → سبز شدن CI → Merge.
-2. **سرور:** جایگزینی `deploy/nginx-seodaily.ir.conf` (یا Apache) و گرفتن گواهی برای هر دو نام؛ سپس چهار دستور `curl` داخل README را اجرا کنید (باید ۳×301 و ۱×200 باشد).
+1. ~~Push/Deploy~~ — ✅ انجام شد (بخش ۲۱).
+2. ~~ریدایرکت‌های دامنه روی سرور~~ — ✅ روی Production فعال است: `http://`، `http://www.` و `https://www.` هر سه با یک 301 به `https://seodaily.ir` می‌روند (بررسی خودکار در job `verify`).
 3. **`SITE_URL=https://seodaily.ir`** در `.env` سرور و خالی/صحیح بودن «آدرس اصلی سایت» در پنل (مقدار پنل بر `SITE_URL` مقدم است).
 4. **متن‌های ذخیره‌شده در پنل:** پیش‌فرض‌های جدید Title/Description/H1 فقط برای فیلدهایی اعمال می‌شوند که در «متن و سئوی صفحات» خالی‌اند. اگر قبلاً مقداری ذخیره کرده‌اید، با جدول بخش ۹ مقایسه کنید.
 5. **صفحات خدمت ویرایش‌شده:** اگر در پنل خدمتی را ذخیره کرده‌اید، محتوای جدید روی آن اعمال نمی‌شود (لاگ کانتینر: `kept (edited or missing): …`). محتوای آماده در `scripts/service-content/*.mjs` است.
@@ -396,4 +396,27 @@ CI (`.github/workflows/deploy.yml`، job `check`): سرویس Postgres → build
 | ریدایرکت‌های دامنه (nginx واقعی) | ✅ |
 | همه لینک‌های داخلی (۲۲ مقصد) | ✅ ۲۰۰ |
 | Layout موبایل و دسکتاپ (اسکرین‌شات، overflow افقی ۰، بدون خطای Console) | ✅ |
-| Push / Deploy | ⛔ انجام نشد (نیاز به اجازه) |
+| Push / Deploy | ✅ انجام شد — PR #1، Merge `9fe81b7`، Deploy خودکار موفق |
+
+## 21. Push, Merge و Deploy
+
+| مورد | وضعیت |
+| --- | --- |
+| شاخه | `seo-audit` push شد (آخرین commit: `c83f335`) |
+| Pull Request | [irancss/seodaily#1](https://github.com/irancss/seodaily/pull/1) — «SEO audit and full technical/content remediation» |
+| CI روی PR | ✅ Run `36454516776` (`1b4f566`) و `36454655640` (`c83f335`): lint، typecheck، build، تست‌های سئو ۹/۹ |
+| Merge | ✅ روش merge commit؛ `main` = `9fe81b711356c207f65b8dd656691f6e2d8720e9` |
+| CI/Deploy روی main | ✅ Run `36454881646`: `check` ✅ · `deploy` ✅ · `verify` ✅ |
+| Migration `0002_service_sections` | ✅ فقط `ADD COLUMN` با مقدار پیش‌فرض (غیرمخرب)؛ لاگ: `migrations applied` |
+| ارتقای محتوای خدمات | ✅ لاگ: `service content v2: updated 14` (هیچ خدمت ویرایش‌شده‌ای بازنویسی نشد) |
+| سلامت کانتینر | ✅ `healthy` |
+
+### Production Verification (`https://seodaily.ir`، job `verify`)
+
+- Smoke test ۱۱ مسیر (`/`، `/web-design`، `/seo`، `/services`، `/services/technical-seo`، `/services/seo-audit`، `/pricing`، `/about`، `/contact`، `/robots.txt`، `/sitemap.xml`): همه **۲۰۰**، یک H1، `robots=index`، Canonical خودارجاع (صفحه اصلی: `https://seodaily.ir`) و Titleهای جدید.
+- نسخه‌های دامنه: `http://seodaily.ir`، `http://www.seodaily.ir`، `https://www.seodaily.ir` → **301** (یک مرحله) به `https://seodaily.ir`؛ دامنه اصلی → ۲۰۰.
+- تست‌های سئو روی Production: ✅ **۹/۹**.
+
+### باقی‌مانده واقعی (کار دستی)
+
+موارد ۳ تا ۱۰ بخش ۱۷ (تنظیم پنل، OG Image، Privacy Policy، اطلاعات اعتماد واقعی، تأیید ادعاهای خدماتی) و کارهای Search Console در بخش ۱۸.
