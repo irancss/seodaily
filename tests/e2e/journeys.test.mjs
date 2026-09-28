@@ -239,12 +239,58 @@ test("admin: contact phone change reaches the public footer, then is restored", 
   await page.context().close();
 });
 
+test("admin: login returns to the requested page, never to another site", async () => {
+  const [lead] = await sql`insert into leads (name, phone, service) values (${`بازگشت ${RUN}`}, '09120000002', 'seo') returning id`;
+  const page = await newPage();
+  await page.goto(`${BASE}/admin/leads/${lead.id}`);
+  await page.waitForURL(/\/admin\/login\?next=/);
+  await page.fill("#email", ADMIN_EMAIL);
+  await page.fill("#password", ADMIN_PASSWORD);
+  await page.click("button[type=submit]");
+  await page.waitForURL(`${BASE}/admin/leads/${lead.id}`);
+  await page.context().close();
+
+  const other = await newPage();
+  await other.goto(`${BASE}/admin/login?next=${encodeURIComponent("https://evil.example/admin")}`);
+  await other.fill("#email", ADMIN_EMAIL);
+  await other.fill("#password", ADMIN_PASSWORD);
+  await other.click("button[type=submit]");
+  await other.waitForURL(`${BASE}/admin`);
+  await other.context().close();
+});
+
+test("admin: leaving a form with unsaved edits asks first", async () => {
+  const page = await adminPage();
+  const dialogs = [];
+  page.removeAllListeners("dialog");
+  let answer = false;
+  page.on("dialog", (d) => {
+    dialogs.push(d.message());
+    return answer ? d.accept() : d.dismiss();
+  });
+  await page.goto(`${BASE}/admin/settings`);
+  const footerNote = page.locator("input[name=footerNote]");
+  await footerNote.fill(`${await footerNote.inputValue()} `);
+  await page.locator("aside").getByRole("link", { name: /درخواست/ }).first().click();
+  await page.waitForTimeout(500);
+  assert.match(dialogs[0] ?? "", /ذخیره‌نشده/);
+  assert.match(page.url(), /\/admin\/settings$/, "stays when the admin cancels");
+  answer = true;
+  await page.locator("aside").getByRole("link", { name: /درخواست/ }).first().click();
+  await page.waitForURL(/\/admin\/leads/);
+  // Nothing typed: no question.
+  await page.locator("aside").getByRole("link", { name: /داشبورد/ }).first().click();
+  await page.waitForURL(`${BASE}/admin`);
+  assert.equal(dialogs.length, 2);
+  await page.context().close();
+});
+
 test("logout ends the session", async () => {
   const page = await adminPage();
   await page.locator("aside").getByRole("button", { name: "خروج" }).click();
   await page.waitForURL(/\/admin\/login$/);
   await page.goto(`${BASE}/admin/leads`);
-  assert.match(page.url(), /\/admin\/login$/);
+  assert.match(page.url(), /\/admin\/login\?next=%2Fadmin%2Fleads$/);
   await page.context().close();
 });
 

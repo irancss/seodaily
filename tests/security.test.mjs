@@ -61,7 +61,8 @@ test("admin pages and data require a session", async () => {
   for (const path of ["/admin", "/admin/leads", "/admin/leads/1", "/admin/settings", "/admin/account", "/admin/leads/1/contract"]) {
     const res = await get(path);
     assert.ok([302, 303, 307].includes(res.status), `${path} → ${res.status}`);
-    assert.match(res.headers.get("location") || "", /\/admin\/login$/);
+    // The login page may carry ?next= back to a panel page (never another site).
+    assert.match(res.headers.get("location") || "", /\/admin\/login(\?next=%2Fadmin[^&]*)?$/);
   }
   const forged = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.invalid-signature";
   const res = await get("/admin/leads", { headers: { cookie: `sd_session=${forged}` } });

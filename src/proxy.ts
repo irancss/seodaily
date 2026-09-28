@@ -32,7 +32,10 @@ export async function proxy(request: NextRequest) {
       // fall through to the redirect
     }
   }
-  return NextResponse.redirect(new URL("/admin/login", request.url));
+  // Back to the requested page after logging in (checked again by the login action).
+  const login = new URL("/admin/login", request.url);
+  if (pathname !== "/admin") login.searchParams.set("next", pathname + request.nextUrl.search);
+  return NextResponse.redirect(login);
 }
 
 export const config = {

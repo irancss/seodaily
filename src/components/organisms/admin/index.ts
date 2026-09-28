@@ -25,3 +25,4 @@ export * from "./quick-actions";
 export * from "./service-tabs";
 export * from "./services-by-category";
 export * from "./team-member-form";
+export * from "./unsaved-changes-guard";
