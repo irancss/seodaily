@@ -25,7 +25,7 @@ function ProjectTile({ item }: { item: PortfolioItem }) {
     <Link href={projectHref(item.slug)} className="card-link group flex h-full flex-col gap-4 text-ink no-underline hover:text-ink lg:gap-5">
       <div className="relative rounded-xl transition-[transform,box-shadow] duration-500 ease-[var(--ease-out)] group-hover:-translate-y-1 group-hover:shadow-lg">
         <BrowserFrame compact shadow="sm" className="rounded-xl">
-          <Visual src={item.imageUrl} alt={item.title} className="img-zoom h-[240px] sm:h-[280px] lg:h-[300px]" />
+          <Visual src={item.imageUrl} alt={item.title} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="img-zoom h-[240px] sm:h-[280px] lg:h-[300px]" />
         </BrowserFrame>
         {item.projectType && (
           <span className="chip absolute top-10 right-3 bg-white/90 text-xs shadow-sm backdrop-blur lg:top-12 lg:right-4">
@@ -73,7 +73,7 @@ function ProjectFeature({ item, dark = false }: { item: PortfolioItem; dark?: bo
         )}
         <div className={cx("rounded-xl", dark && "frame-glass p-1.5 lg:p-2")}>
           <BrowserFrame compact shadow={dark ? "none" : "md"} className="rounded-xl">
-            <Visual src={item.imageUrl} alt={item.title} className="img-zoom h-[220px] sm:h-[320px] lg:h-[400px]" />
+            <Visual src={item.imageUrl} alt={item.title} sizes="(min-width: 1024px) 60vw, 100vw" className="img-zoom h-[220px] sm:h-[320px] lg:h-[400px]" />
           </BrowserFrame>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Icon } from "@/components/atoms";
 import { SectionHeading } from "@/components/molecules";
 import type { TeamMember } from "@/db/schema";
@@ -21,7 +23,7 @@ export function AboutTeamSection({ team }: Props) {
                 <div className="card-fancy flex h-full flex-col items-start rounded-xl p-6 lg:p-8">
                   <span className="rounded-[22px] bg-gradient-to-br from-brand to-brand-decorative p-[3px] shadow-brand">
                     {m.photoUrl ? (
-                      <img src={m.photoUrl} alt={m.name} loading="lazy" className="size-20 rounded-[19px] border-2 border-white object-cover" />
+                      <Image src={m.photoUrl} alt={m.name} width={80} height={80} className="size-20 rounded-[19px] border-2 border-white object-cover" />
                     ) : (
                       <span aria-hidden="true" className="flex size-20 items-center justify-center rounded-[19px] border-2 border-white bg-soft text-brand">
                         <Icon name="team" size={32} />

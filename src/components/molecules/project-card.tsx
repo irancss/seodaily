@@ -38,6 +38,7 @@ export function ProjectCard({
           <Visual
             src={project.imageUrl}
             alt={project.title}
+            sizes={large ? "(min-width: 1024px) 58vw, 100vw" : "(min-width: 1024px) 42vw, 100vw"}
             className={cx("img-zoom", height ?? (large ? "h-[240px] grow lg:min-h-[480px]" : "h-[240px] lg:h-[212px]"))}
           />
         </BrowserFrame>

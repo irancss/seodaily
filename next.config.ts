@@ -33,6 +33,13 @@ const nextConfig: NextConfig = {
   // Do not write AGENTS.md / CLAUDE.md into the repository during `next dev`.
   agentRules: false,
   compress: true,
+  images: {
+    // Uploaded pictures are served resized (WebP, per screen width) instead of
+    // the original file, which may be a multi-megabyte screenshot.
+    localPatterns: [{ pathname: "/uploads/**", search: "" }],
+    // Upload names are never reused, so optimized copies never go stale.
+    minimumCacheTTL: 31_536_000,
+  },
   experimental: {
     serverActions: {
       // Images are uploaded through server actions (limit 5 MB + form fields).
