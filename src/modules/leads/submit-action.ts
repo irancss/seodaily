@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { errorSummary } from "@/lib/log";
 import { SERVICE_CHOICES } from "@/db/schema";
+import { isDuplicateLead } from "@/modules/leads/duplicates";
 import { businessField, nameField, phoneField } from "@/modules/leads/fields";
 import { clientIp, RATE_LIMIT_MESSAGE, rateLimited } from "@/modules/leads/rate-limit";
 import { getGeneral } from "@/modules/settings/queries";
@@ -63,6 +64,9 @@ export async function submitConsultation(_prev: ContactState, formData: FormData
   const budget = budgets.includes(data.budget) ? data.budget : "";
 
   try {
+    if (await isDuplicateLead({ name: data.name, phone: data.phone, service: data.service, description: data.description })) {
+      return { status: "success" };
+    }
     await db.insert(schema.leads).values({
       name: data.name,
       phone: data.phone,

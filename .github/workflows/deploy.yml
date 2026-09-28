@@ -36,8 +36,12 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      - name: Unit tests (pricing, validation, text rules)
+        run: npm run test:unit
       - run: npm run build
-      - name: SEO and security tests against the built app
+      - name: Browser for the E2E journeys
+        run: npx playwright-core install --with-deps chromium
+      - name: SEO, security and E2E tests against the built app
         env:
           DATABASE_URL: postgres://seodaily:seodaily@localhost:5432/seodaily
           SESSION_SECRET: ci-only-session-secret-ci-only-session-secret
@@ -58,6 +62,7 @@ jobs:
           BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)
           BASE_URL=http://127.0.0.1:3000 node tests/seo-report.mjs >> "$GITHUB_STEP_SUMMARY"
           BASE_URL=http://127.0.0.1:3000 npm run test:security || (tail -50 /tmp/server.log; exit 1)
+          BASE_URL=http://127.0.0.1:3000 npm run test:e2e || (tail -50 /tmp/server.log; exit 1)
 
   deploy:
     # Every push to main goes live once the checks pass.

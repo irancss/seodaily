@@ -15,10 +15,12 @@ export async function updateLead(form: FormData) {
   const id = int(form, "id");
   const status = str(form, "status") as LeadStatus;
   if (!LEAD_STATUSES.includes(status)) redirect(`/admin/leads/${id}?error=${encodeURIComponent("وضعیت نامعتبر است.")}`);
-  await db
+  const updated = await db
     .update(schema.leads)
     .set({ status, adminNote: str(form, "adminNote", 5000), updatedAt: new Date() })
-    .where(eq(schema.leads.id, id));
+    .where(eq(schema.leads.id, id))
+    .returning({ id: schema.leads.id });
+  if (updated.length === 0) redirect(`/admin/leads?error=${encodeURIComponent("این درخواست دیگر وجود ندارد (احتمالاً حذف شده است).")}`);
   redirect(`/admin/leads/${id}?ok=${encodeURIComponent("ذخیره شد.")}`);
 }
 

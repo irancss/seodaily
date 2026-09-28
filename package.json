@@ -12,7 +12,9 @@
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
     "db:seed": "node --env-file-if-exists=.env scripts/seed.mjs",
     "test:seo": "node --test tests/seo.test.mjs",
-    "test:security": "node --test --test-concurrency=1 tests/security.test.mjs"
+    "test:security": "node --test --test-concurrency=1 tests/security.test.mjs",
+    "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/support/register.mjs --test tests/unit/*.test.mjs",
+    "test:e2e": "node --test --test-concurrency=1 tests/e2e/*.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -33,6 +35,7 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.6",
+    "playwright-core": "1.63.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3"
   }

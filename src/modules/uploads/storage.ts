@@ -46,6 +46,24 @@ export async function saveImage(file: FormDataEntryValue | null): Promise<string
   return `/uploads/${name}`;
 }
 
+/**
+ * An image change that is only final once the record is saved: `commit`
+ * removes the replaced file after a successful write, `rollback` removes the
+ * new upload when the write fails, so the database never points at a deleted
+ * file and failed saves leave no orphans.
+ */
+export type StagedImage = { url: string; commit(): Promise<void>; rollback(): Promise<void> };
+
+export async function stageImage(file: FormDataEntryValue | null, current: string, remove: boolean): Promise<StagedImage> {
+  const uploaded = await saveImage(file);
+  if (!uploaded && !remove) return { url: current, commit: async () => {}, rollback: async () => {} };
+  return {
+    url: uploaded ?? "",
+    commit: () => deleteImage(current),
+    rollback: () => deleteImage(uploaded),
+  };
+}
+
 export async function deleteImage(url: string | null | undefined) {
   if (!url?.startsWith("/uploads/")) return;
   const name = path.basename(url);
