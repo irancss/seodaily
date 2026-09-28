@@ -70,7 +70,8 @@ export function PricingCalculator({ service, label, pricing }: { service: Pricin
     setShowErrors(true);
     // The first problem in page order; `plan` and `empty` belong to no group.
     const group = pricing.groups.find((g) => errors[g.id]);
-    toast.error(group ? errors[group.id] : Object.values(errors)[0]);
+    // The group shows the same message inline (role="alert"), so the toast is visual only.
+    toast.error(group ? errors[group.id] : Object.values(errors)[0], { silent: true });
     const target = group && document.getElementById(groupDomId(group.id));
     if (target) {
       target.scrollIntoView({ behavior: scrollBehavior(), block: "center" });

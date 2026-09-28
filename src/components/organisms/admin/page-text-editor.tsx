@@ -26,12 +26,11 @@ export function PageTextEditor({ pageKey, label, path, siteUrl, defaults: d, val
   return (
     <Card>
       <details id={pageKey} open={open}>
-        <summary className="flex items-center justify-between gap-4">
-          <span className="text-lg font-bold">{label}</span>
-          <Link href={path} target="_blank" className="text-xs" dir="ltr">
-            {path}
-          </Link>
-        </summary>
+        {/* The summary is itself the toggle button, so the page link sits outside it. */}
+        <summary className="text-lg font-bold">{label}</summary>
+        <Link href={path} target="_blank" className="mt-2 inline-flex min-h-6 items-center gap-1 text-xs">
+          مشاهده صفحه <span dir="ltr">{path}</span>
+        </Link>
 
         {/* Google result preview with the effective values. */}
         <div className="mt-4 rounded-md border border-line bg-page p-4" aria-label="پیش‌نمایش نتیجه گوگل">

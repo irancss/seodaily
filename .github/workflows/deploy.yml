@@ -246,4 +246,6 @@ jobs:
         run: npm ci --no-audit --no-fund && npx playwright-core install --with-deps chromium
       - name: Responsive layout on production (8 widths, read-only)
         run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/layout.test.mjs
+      - name: Accessibility on production (axe WCAG 2.2 AA + keyboard, read-only)
+        run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/a11y.test.mjs
 

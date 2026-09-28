@@ -71,12 +71,18 @@ export function Toaster() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-[60] flex flex-col items-center gap-2 px-4">
       <div role="status" aria-live="polite" className="flex flex-col items-center gap-2">
-        {items.filter((t) => t.kind !== "error").map((t) => (
+        {items.filter((t) => t.kind !== "error" && !t.silent).map((t) => (
           <ToastCard key={t.id} item={t} onClose={dismiss} />
         ))}
       </div>
       <div role="alert" aria-live="assertive" className="flex flex-col items-center gap-2">
-        {items.filter((t) => t.kind === "error").map((t) => (
+        {items.filter((t) => t.kind === "error" && !t.silent).map((t) => (
+          <ToastCard key={t.id} item={t} onClose={dismiss} />
+        ))}
+      </div>
+      {/* Already announced by the page itself: visual only, so it is not read twice. */}
+      <div aria-hidden="true" className="flex flex-col items-center gap-2">
+        {items.filter((t) => t.silent).map((t) => (
           <ToastCard key={t.id} item={t} onClose={dismiss} />
         ))}
       </div>
