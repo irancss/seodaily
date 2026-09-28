@@ -1,25 +1,28 @@
 @import "tailwindcss";
 
+/* font-display: optional — the regular and bold files are preloaded, so they are
+   normally ready for the first paint; on a slow first visit the page keeps the
+   system font instead of re-flowing when Vazir arrives (no layout shift). */
 @font-face {
   font-family: "Vazir FD WOL";
   src: url("/fonts/Vazir-Regular-FD-WOL.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 @font-face {
   font-family: "Vazir FD WOL";
   src: url("/fonts/Vazir-Medium-FD-WOL.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 @font-face {
   font-family: "Vazir FD WOL";
   src: url("/fonts/Vazir-Bold-FD-WOL.woff2") format("woff2");
   font-weight: 600 700;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 /* Tokens from the «SEO Daily — Website Design System». */
