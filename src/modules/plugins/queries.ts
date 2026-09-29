@@ -352,6 +352,17 @@ export async function entityHrefs(docs: (BlockDocument | null | undefined)[]) {
   for (const l of links) map[`entity:${l.type}:${l.id}`] = null;
   for (const r of pluginRows) map[`entity:plugin:${r.id}`] = `/plugins/${r.slug}`;
   for (const r of categoryRows) map[`entity:plugin_category:${r.id}`] = `/plugins/${r.slug}`;
+  const articleIds = links.filter((l) => l.type === "article").map((l) => Number(l.id)).filter(Number.isSafeInteger);
+  const serviceIds = links.filter((l) => l.type === "service").map((l) => Number(l.id)).filter(Number.isSafeInteger);
+  const blogCategoryIds = links.filter((l) => l.type === "blog_category").map((l) => Number(l.id)).filter(Number.isSafeInteger);
+  const [articleRows, serviceRows, blogCategoryRows] = await Promise.all([
+    articleIds.length ? db.select({ id: schema.articles.id, slug: schema.articles.slug }).from(schema.articles).innerJoin(schema.blogCategories, eq(schema.articles.categoryId, schema.blogCategories.id)).where(and(inArray(schema.articles.id, articleIds), eq(schema.articles.status, "published"), eq(schema.blogCategories.enabled, true), eq(schema.blogCategories.archived, false))) : [],
+    serviceIds.length ? db.select({ id: schema.services.id, slug: schema.services.slug }).from(schema.services).where(and(inArray(schema.services.id, serviceIds), eq(schema.services.published, true))) : [],
+    blogCategoryIds.length ? db.select({ id: schema.blogCategories.id, slug: schema.blogCategories.slug }).from(schema.blogCategories).where(and(inArray(schema.blogCategories.id, blogCategoryIds), eq(schema.blogCategories.enabled, true), eq(schema.blogCategories.archived, false))) : [],
+  ]);
+  for (const r of articleRows) map[`entity:article:${r.id}`] = `/blog/${r.slug}`;
+  for (const r of serviceRows) map[`entity:service:${r.id}`] = `/services/${r.slug}`;
+  for (const r of blogCategoryRows) map[`entity:blog_category:${r.id}`] = `/blog/${r.slug}`;
   return map;
 }
 

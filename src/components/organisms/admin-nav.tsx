@@ -15,6 +15,7 @@ const ITEMS: { href: string; label: string; icon: IconName }[] = [
   { href: "/admin/team", label: "تیم", icon: "team" },
   { href: "/admin/pricing", label: "تعرفه و ماشین‌حساب", icon: "bar-chart" },
   { href: "/admin/plugins", label: "افزونه‌های وردپرس", icon: "grid-plus" },
+  { href: "/admin/blog", label: "بلاگ و مقاله‌ها", icon: "grid-plus" },
   { href: "/admin/contracts", label: "قالب قرارداد", icon: "doc-check" },
   { href: "/admin/menus", label: "منوی سایت", icon: "menu" },
   { href: "/admin/pages", label: "متن و سئوی صفحات", icon: "file" },

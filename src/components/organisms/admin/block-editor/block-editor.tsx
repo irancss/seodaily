@@ -1,6 +1,6 @@
 "use client";
 
-import { TableCell, TableHeader, TableKit } from "@tiptap/extension-table";
+import { Table, TableCell, TableHeader, TableKit } from "@tiptap/extension-table";
 import Blockquote from "@tiptap/extension-blockquote";
 import { ListItem } from "@tiptap/extension-list";
 import { CharacterCount, Placeholder } from "@tiptap/extensions";
@@ -14,11 +14,15 @@ import { toast } from "@/lib/toast";
 
 import { BlockId, BlockKeymap, Callout, Cta, Faq, FaqItem, Figure, insertBlockAfter, moveBlock } from "./extensions";
 import { LinkPicker } from "./link-picker";
+import { MediaPicker } from "./media-picker";
 
 // The same nesting rules as the stored contract (src/modules/blocks/validate.ts):
 // only paragraphs in table cells, paragraphs and lists in quotes and list items.
 const ContractTableCell = TableCell.extend({ content: "paragraph+" });
 const ContractTableHeader = TableHeader.extend({ content: "paragraph+" });
+const ContractTable = Table.extend({
+  addAttributes() { return { ...this.parent?.(), caption: { default: "", parseHTML: (element) => element.querySelector("caption")?.textContent ?? "", renderHTML: () => ({}) } }; },
+});
 const ContractBlockquote = Blockquote.extend({ content: "(paragraph | bulletList | orderedList)+" });
 const ContractListItem = ListItem.extend({ content: "paragraph (bulletList | orderedList)*" });
 
@@ -29,6 +33,8 @@ type Props = {
   label: string;
   hint?: string;
   placeholder?: string;
+  onDocumentChange?: (document: BlockDocument) => void;
+  suggestions?: { href: string; label: string; reason: string }[];
 };
 
 function ToolButton({ label, onClick, active, disabled, children }: { label: string; onClick: () => void; active?: boolean; disabled?: boolean; children: React.ReactNode }) {
@@ -92,6 +98,7 @@ function Toolbar({ editor, onLink, onImage }: { editor: Editor; onLink: () => vo
       codeBlock: e.isActive("codeBlock"),
       language: String(e.getAttributes("codeBlock").language ?? ""),
       table: e.isActive("table"),
+      tableCaption: String(e.getAttributes("table").caption ?? ""),
       faq: e.isActive("faq"),
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
@@ -207,6 +214,7 @@ function Toolbar({ editor, onLink, onImage }: { editor: Editor; onLink: () => vo
       </ToolButton>
       {s.table && (
         <div className="flex w-full flex-wrap items-center gap-0.5 border-t border-line pt-1" aria-label="ابزار جدول">
+          <label className="flex items-center gap-2 px-2 text-sm">عنوان جدول<input className="field h-9 max-w-48" value={s.tableCaption} maxLength={200} onChange={(e) => chain().updateAttributes("table", { caption: e.target.value }).run()} /></label>
           <ToolButton label="ردیف بعد" onClick={() => chain().addRowAfter().run()}>
             + ردیف
           </ToolButton>
@@ -235,7 +243,7 @@ function Toolbar({ editor, onLink, onImage }: { editor: Editor; onLink: () => vo
  * The panel's block editor (TipTap/ProseMirror). The document goes to the
  * server action as JSON in a hidden field; the server validates it again.
  */
-export function BlockEditor({ name, initial, label, hint, placeholder = "متن را اینجا بنویسید…" }: Props) {
+export function BlockEditor({ name, initial, label, hint, onDocumentChange, suggestions = [], placeholder = "متن را اینجا بنویسید…" }: Props) {
   const id = useId();
   const hidden = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -249,10 +257,12 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
   const [json, setJson] = useState(() => JSON.stringify(start));
 
   const sync = useCallback((editor: Editor, markDirty: boolean) => {
-    setJson(JSON.stringify({ v: start.v, doc: editor.getJSON() }));
+    const document = { v: start.v, doc: editor.getJSON() } as BlockDocument;
+    setJson(JSON.stringify(document));
+    if (markDirty) onDocumentChange?.(document);
     // Toolbar changes fire no native input event; tell the unsaved-changes guard.
     if (markDirty) hidden.current?.dispatchEvent(new Event("input", { bubbles: true }));
-  }, [start.v]);
+  }, [start.v, onDocumentChange]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -263,7 +273,8 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
         listItem: false,
         link: { openOnClick: false, autolink: true, isAllowedUri: (url) => isSafeHref(url), HTMLAttributes: { rel: null, target: null } },
       }),
-      TableKit.configure({ table: { resizable: false }, tableCell: false, tableHeader: false }),
+      TableKit.configure({ table: false, tableCell: false, tableHeader: false }),
+      ContractTable.configure({ resizable: false }),
       ContractTableCell,
       ContractTableHeader,
       ContractBlockquote,
@@ -337,7 +348,9 @@ export function BlockEditor({ name, initial, label, hint, placeholder = "متن 
         {label}
       </span>
       {hint && <p className="text-xs leading-[1.8] text-muted">{hint}</p>}
+      {suggestions.length > 0 && <div className="rounded-md border border-line bg-page p-3"><p className="mb-2 text-sm">پیشنهاد لینک؛ متن پیشنهادی همان عنوان مقصد است. انتخاب متن در ادیتور حفظ می‌شود.</p><ul className="grid gap-2">{suggestions.map((s) => <li key={s.href} className="flex flex-wrap items-center gap-3 text-sm"><span>{s.label} · {s.reason}</span><button type="button" className="btn btn-secondary min-h-9 px-3" onMouseDown={(e) => e.preventDefault()} onClick={() => applyLink(s.href, s.label)}>تأیید و درج لینک</button></li>)}</ul></div>}
       <input ref={hidden} type="hidden" name={name} value={json} readOnly />
+      <MediaPicker onSelect={(image) => { if (editor) insertBlockAfter(editor, { type: "figure", attrs: { ...image, alt: "", caption: "", ratio: "auto" } }); }} />
       <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => onFile(e.target.files?.[0])} />
       <div className="overflow-hidden rounded-lg border border-line-strong bg-white focus-within:ring-2 focus-within:ring-brand/30">
         {editor ? (

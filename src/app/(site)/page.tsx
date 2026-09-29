@@ -12,6 +12,7 @@ import {
 } from "@/components/organisms/sections/home";
 import { getFaqs } from "@/modules/faqs/queries";
 import { latestPlugins } from "@/modules/plugins/queries";
+import { HomeBlogSection } from "@/components/organisms/sections/home/blog-section";
 import { getPublishedProjects } from "@/modules/projects/queries";
 import { faqJsonLd, pageMetadata } from "@/modules/seo/metadata";
 import { COLLAB_PROCESS } from "@/modules/services/content";
@@ -62,6 +63,7 @@ export default async function HomePage() {
       <HomeWhyUsSection stats={stats} />
       {featured.length > 0 && <HomePortfolioSection projects={featured} />}
       {plugins.length > 0 && <HomePluginsSection plugins={plugins} />}
+      <HomeBlogSection />
       <HomeProcessSection />
       {general.industries.length > 0 && <HomeIndustriesSection industries={general.industries} />}
       {faqs.length > 0 && <HomeFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} phone={contact.phone} />}

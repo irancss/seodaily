@@ -55,9 +55,10 @@ export const MARKS = ["bold", "italic", "underline", "strike", "code", "link"] a
  * page keeps its links: "entity:plugin:12", "entity:plugin_category:3",
  * "entity:page:contact" (fixed site pages).
  */
-export const ENTITY_LINK_RE = /^entity:(plugin|plugin_category|page):([a-z0-9-]{1,40})$/;
+export const ENTITY_LINK_RE = /^entity:(plugin|plugin_category|article|blog_category|service|page):([a-z0-9-]{1,40})$/;
 export const SITE_PAGES: Record<string, { href: string; label: string }> = {
   home: { href: "/", label: "صفحه اصلی" },
+  blog: { href: "/blog", label: "بلاگ" },
   contact: { href: "/contact", label: "تماس و درخواست مشاوره" },
   pricing: { href: "/pricing", label: "تعرفه‌ها" },
   services: { href: "/services", label: "خدمات" },

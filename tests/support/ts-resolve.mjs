@@ -7,6 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const SRC = fileURLToPath(new URL("../../src/", import.meta.url));
 
 export async function resolve(specifier, context, next) {
+  // Next's CommonJS subpath entry points have no ESM extension mapping.
+  if (["next/cache", "next/headers", "next/navigation"].includes(specifier)) return next(`${specifier}.js`, context);
   let target = null;
   if (specifier.startsWith("@/")) target = SRC + specifier.slice(2);
   else if ((specifier.startsWith("./") || specifier.startsWith("../")) && context.parentURL?.includes("/src/")) {

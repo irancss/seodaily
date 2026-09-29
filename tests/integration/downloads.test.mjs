@@ -153,7 +153,11 @@ test("PL-T25: 41st logical download from one address is refused, also with paral
   for (let i = 0; i < 42; i++) {
     const u = users[i % 3];
     const g = await grants.issueGrant({ sessionId: u.sessionId, userId: u.userId, releaseId: rels[i].releaseId, ipHash: "ip-shared" });
-    jobs.push(grants.authorizeFile({ grantId: g.grantId, sessionId: u.sessionId, ipHash: "ip-shared", start: true }));
+    const job = grants.authorizeFile({ grantId: g.grantId, sessionId: u.sessionId, ipHash: "ip-shared", start: true });
+    // An expected quota rejection may arrive while later grants are being issued.
+    // Attach a handler immediately; allSettled still observes the original promise.
+    void job.catch(() => {});
+    jobs.push(job);
   }
   const res = await Promise.allSettled(jobs);
   assert.equal(res.filter((r) => r.status === "fulfilled").length, 40);

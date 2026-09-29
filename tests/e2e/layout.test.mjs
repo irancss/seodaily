@@ -7,7 +7,7 @@ import { after, before, test } from "node:test";
 import { chromium } from "playwright-core";
 
 const BASE = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
-const PAGES = ["/", "/web-design", "/seo", "/services", "/services/technical-seo", "/pricing", "/portfolio", "/about", "/contact"];
+const PAGES = ["/", "/web-design", "/seo", "/services", "/services/technical-seo", "/pricing", "/portfolio", "/blog", "/about", "/contact"];
 const WIDTHS = [320, 360, 390, 430, 768, 1024, 1280, 1440];
 
 let browser;

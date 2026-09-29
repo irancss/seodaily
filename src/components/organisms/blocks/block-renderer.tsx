@@ -181,15 +181,17 @@ export function BlockRenderer({
   anchorPrefix = "",
   priorityImages = 0,
   className = "",
+  stableAnchors = false,
 }: {
   document: BlockDocument | null | undefined;
   hrefs?: HrefMap;
   anchorPrefix?: string;
   priorityImages?: number;
   className?: string;
+  stableAnchors?: boolean;
 }) {
   if (!document || document.v !== BLOCK_DOC_VERSION || !Array.isArray(document.doc?.content)) return null;
-  const anchors = new Map(outline(document, anchorPrefix).map((o) => [o.blockId, o.anchor]));
+  const anchors = new Map(outline(document, anchorPrefix, stableAnchors).map((o) => [o.blockId, o.anchor]));
   const ctx: Ctx = { hrefs, anchors, imageIndex: { n: 0 }, priorityImages };
   return <div className={`block-content ${className}`}>{blocks(document.doc.content, ctx)}</div>;
 }
