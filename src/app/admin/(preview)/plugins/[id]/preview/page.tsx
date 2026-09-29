@@ -38,7 +38,7 @@ export default async function PluginPreview({ params }: Props) {
         </Link>
       </div>
       <main>
-        <PluginPageView plugin={view} hrefs={hrefs} download={<DownloadBox releases={plugin.releases} />} />
+        <PluginPageView plugin={view} hrefs={hrefs} download={<DownloadBox releases={plugin.releases} preview />} />
       </main>
     </div>
   );
