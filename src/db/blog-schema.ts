@@ -1,4 +1,5 @@
-import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, check, index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import type { ArticleDraft, CategoryData } from "@/modules/blog/types";
 
 export const blogCategories = pgTable("blog_categories", {
@@ -18,7 +19,7 @@ export const articles = pgTable("blog_articles", {
   publishedAt: timestamp("published_at", { withTimezone: true }), contentModifiedAt: timestamp("content_modified_at", { withTimezone: true }),
   scheduledFor: timestamp("scheduled_for", { withTimezone: true }), scheduleVersion: integer("schedule_version"),
   scheduleError: text("schedule_error").notNull().default(""),
-}, (t) => [index("blog_articles_public_idx").on(t.status, t.publishedAt, t.id), index("blog_articles_category_idx").on(t.categoryId, t.status), index("blog_articles_schedule_idx").on(t.scheduledFor)]);
+}, (t) => [check("blog_articles_status_check", sql`${t.status} in ('draft','published','scheduled','archived','trash')`), index("blog_articles_public_idx").on(t.status, t.publishedAt, t.id), index("blog_articles_category_idx").on(t.categoryId, t.status), index("blog_articles_schedule_idx").on(t.scheduledFor).where(sql`${t.scheduledFor} is not null`)]);
 
 export const articleRevisions = pgTable("blog_article_revisions", {
   id: serial("id").primaryKey(), articleId: integer("article_id").notNull().references(() => articles.id),

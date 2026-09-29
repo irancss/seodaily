@@ -5,14 +5,15 @@ import { blogMetadata } from "@/modules/blog/seo";
 import { ArticleView } from "@/components/organisms/blog/article-view";
 import { ArticleCard } from "@/components/organisms/blog/article-card";
 import { BlogList, pageNumber } from "@/components/organisms/blog/blog-list";
+import { documentText } from "@/modules/blocks/text";
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 export async function generateMetadata({ params, searchParams }: Props) {
   const route = await blogRoute((await params).slug); if (!route) notFound();
-  if (route.type === "article") { const a = await articleById(route.id); if (!a) notFound(); return blogMetadata(a.data, a.data.title, a.data.excerpt, `/blog/${a.slug}`, a.data.image, true); }
+  if (route.type === "article") { const a = await articleById(route.id); if (!a) notFound(); return blogMetadata(a.data, a.data.title, a.data.excerpt || documentText(a.data.content, 180), `/blog/${a.slug}`, a.data.image, true); }
   const c = (await publicCategories()).find((c) => c.id === route.id); if (!c) notFound();
   const p = await searchParams, page = pageNumber(p.page);
-  return blogMetadata({ ...c.data, canonicalUrl: page > 1 ? "" : c.data.canonicalUrl }, `${c.data.h1 || c.title}${page > 1 ? ` — صفحه ${page}` : ""}`, c.data.description, `/blog/${c.slug}${page > 1 ? `?page=${page}` : ""}`, c.data.image, false, !!p.q || !c.total);
+  return blogMetadata({ ...c.data, canonicalUrl: page > 1 ? "" : c.data.canonicalUrl }, `${c.data.h1 || c.title}${page > 1 ? ` — صفحه ${page}` : ""}`, c.data.description || `مقاله‌های منتشرشده در دسته ${c.title} از بلاگ سئو دیلی؛ فهرست مطالب و تازه‌ترین مقاله‌های این دسته.`, `/blog/${c.slug}${page > 1 ? `?page=${page}` : ""}`, c.data.image, false, !!p.q || !c.total);
 }
 export default async function BlogDetail({ params, searchParams }: Props) {
   const route = await blogRoute((await params).slug); if (!route) notFound();

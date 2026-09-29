@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { listArticles, publicCategories } from "@/modules/blog/queries";
 import { ArticleCard } from "./article-card";
+import { JsonLd } from "@/components/atoms/json-ld";
+import { breadcrumbJsonLd } from "@/modules/seo/metadata";
 export function pageNumber(value?: string) { if (!value) return 1; if (!/^[1-9]\d{0,5}$/.test(value)) notFound(); return Number(value); }
 export async function BlogList({ params, category }: { params: Record<string, string | undefined>; category?: Awaited<ReturnType<typeof publicCategories>>[number] }) {
   const page = pageNumber(params.page), query = String(params.q || "").trim().slice(0, 100), path = category ? `/blog/${category.slug}` : "/blog";
@@ -10,7 +12,7 @@ export async function BlogList({ params, category }: { params: Record<string, st
   const [result, categories] = await Promise.all([listArticles({ page, query, categoryId: category?.id }), publicCategories()]);
   if (page > result.pages) notFound();
   const href = (n: number) => `${path}${n > 1 || query ? `?${new URLSearchParams({ ...(n > 1 ? { page: String(n) } : {}), ...(query ? { q: query } : {}) })}` : ""}`;
-  return <div className="container-site py-10 lg:py-16"><nav aria-label="مسیر صفحه" className="mb-5 text-sm text-muted"><Link href="/">خانه</Link> / <Link href="/blog">بلاگ</Link>{category && ` / ${category.title}`}</nav><h1 className="text-3xl leading-relaxed font-bold">{category ? category.data.h1 || category.title : "بلاگ سئو دیلی"}</h1>{category?.data.description && <p className="mt-4 max-w-3xl whitespace-pre-line text-muted">{category.data.description}</p>}{category?.data.image && <Image src={category.data.image} alt={category.data.imageAlt} width={1200} height={630} className="my-6 h-auto max-h-64 w-full object-contain" />}
+  return <div className="container-site py-10 lg:py-16"><JsonLd data={await breadcrumbJsonLd([{ name: "خانه", path: "/" }, { name: "بلاگ", path: "/blog" }, ...(category ? [{ name: category.title, path }] : [])])} /><nav aria-label="مسیر صفحه" className="mb-5 text-sm text-muted"><Link href="/">خانه</Link> / <Link href="/blog">بلاگ</Link>{category && ` / ${category.title}`}</nav><h1 className="text-3xl leading-relaxed font-bold">{category ? category.data.h1 || category.title : "بلاگ سئو دیلی"}</h1>{category?.data.description && <p className="mt-4 max-w-3xl whitespace-pre-line text-muted">{category.data.description}</p>}{category?.data.image && <Image src={category.data.image} alt={category.data.imageAlt} width={1200} height={630} className="my-6 h-auto max-h-64 w-full object-contain" />}
     <form action={path} className="my-6 flex gap-3"><label className="sr-only" htmlFor="blog-search">جست‌وجوی بلاگ</label><input id="blog-search" name="q" defaultValue={query} maxLength={100} className="field max-w-md" placeholder="جست‌وجوی مقاله…" /><button className="btn btn-primary px-5">جست‌وجو</button></form>
     <nav aria-label="دسته‌های بلاگ" className="mb-8 flex flex-wrap gap-3"><Link href="/blog" className="btn btn-secondary min-h-10 px-4 text-sm">همه مقاله‌ها</Link>{categories.map((c) => <Link href={`/blog/${c.slug}`} className="btn btn-secondary min-h-10 px-4 text-sm" key={c.id}>{c.title}</Link>)}</nav>
     {query && <p className="mb-6 text-muted">{result.total.toLocaleString("fa-IR")} نتیجه برای «{query}»</p>}

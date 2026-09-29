@@ -7,6 +7,7 @@ import { CONTENT_TAG } from "@/lib/cache";
 import { requireAdmin } from "@/modules/auth/session";
 import { claimSlug } from "@/modules/slugs/registry";
 import { isSafeImageSrc } from "@/modules/blocks/schema";
+import { storedImageSize } from "@/modules/uploads/metadata";
 import { canonicalInput, cleanText, tehranSchedule } from "./content";
 import { createArticle, mutateArticle } from "./publication";
 import { emptyCategory, type BlogOptions } from "./types";
@@ -27,7 +28,8 @@ export async function saveBlogCategory(form: FormData) {
     const data = emptyCategory();
     for (const key of ["h1", "description", "imageAlt", "seoTitle", "seoDescription", "ogTitle", "ogDescription"] as const) data[key] = cleanText(form.get(key), key === "description" ? 4000 : 500);
     data.canonicalUrl = canonicalInput(form.get("canonicalUrl")); data.noindex = form.get("noindex") === "on";
-    for (const key of ["image", "ogImage"] as const) { data[key] = String(form.get(key) ?? ""); if (data[key] && !isSafeImageSrc(data[key])) throw new Error("تصویر معتبر نیست."); }
+    for (const key of ["image", "ogImage"] as const) { data[key] = String(form.get(key) ?? ""); if (data[key]) { if (!isSafeImageSrc(data[key])) throw new Error("تصویر معتبر نیست."); await storedImageSize(data[key]); } }
+    if (data.image && !data.imageAlt) throw new Error("توضیح تصویر دسته الزامی است.");
     const title = cleanText(form.get("title")); if (!title) throw new Error("نام دسته الزامی است.");
     await db.transaction(async (tx) => {
       const t = schema.blogCategories;

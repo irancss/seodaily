@@ -1,8 +1,9 @@
 CREATE TABLE blog_categories (
- id serial PRIMARY KEY, slug text NOT NULL UNIQUE, title text NOT NULL, data jsonb NOT NULL,
+ id serial PRIMARY KEY, slug text NOT NULL, title text NOT NULL, data jsonb NOT NULL,
  enabled boolean NOT NULL DEFAULT true, archived boolean NOT NULL DEFAULT false, sort_order integer NOT NULL DEFAULT 0,
  version integer NOT NULL DEFAULT 1, updated_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX blog_categories_slug_idx ON blog_categories(slug);
 --> statement-breakpoint
 CREATE TABLE blog_articles (
  id serial PRIMARY KEY, slug text NOT NULL DEFAULT '', status text NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','scheduled','archived','trash')),

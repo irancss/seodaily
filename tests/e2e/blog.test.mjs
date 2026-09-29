@@ -3,13 +3,22 @@ import assert from "node:assert/strict";
 import { before, after, test } from "node:test";
 import { chromium } from "playwright-core";
 import postgres from "postgres";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 const BASE = process.env.BASE_URL || "http://127.0.0.1:3000";
 if (/seodaily\.ir/.test(BASE)) throw new Error("Blog fixtures must never run against production");
 const RUN = Date.now().toString(36);
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 let browser, sql;
 before(async () => { browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}); sql = postgres(process.env.DATABASE_URL, { max: 3 }); });
-after(async () => { await browser?.close(); await sql?.end(); });
+after(async () => {
+  if (sql) {
+    await sql`update blog_articles set status='trash',scheduled_for=null where slug like ${`%${RUN}%`} or draft->>'slug' like ${`%${RUN}%`}`;
+    await sql`update blog_categories set enabled=false where slug=${`category-${RUN}`}`;
+  }
+  await browser?.close(); await sql?.end();
+});
 async function admin() { const page = await browser.newPage(); await page.goto(`${BASE}/admin/login`); await page.fill("#email", process.env.ADMIN_EMAIL); await page.fill("#password", process.env.ADMIN_PASSWORD); await page.click("button[type=submit]"); await page.waitForURL(/\/admin$/); return page; }
 async function until(fn, timeout = 15000) { const end = Date.now() + timeout; while (Date.now() < end) { if (await fn()) return; await new Promise((r) => setTimeout(r, 100)); } throw new Error("condition did not become true"); }
 let categoryId, articleId, publishedDraft;
@@ -35,6 +44,8 @@ test("blog admin: category, autosave, required media, preview isolation, publish
   await until(async () => (await sql`select status from blog_articles where id=${articleId}`)[0].status === "published");
   const [published] = await sql`select * from blog_articles where id=${articleId}`; publishedDraft = published.published;
   await visitor.goto(`${BASE}/blog/${slug}`); assert.equal(await visitor.locator("h1").textContent(), publishedDraft.title);
+  await visitor.addScriptTag({ content: AXE });
+  const violations = await visitor.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"] } })).violations.map((v) => `${v.id}: ${v.nodes[0]?.target}`)); assert.deepEqual(violations, []);
   assert.equal(await visitor.locator('link[rel=canonical]').getAttribute("href"), `https://seodaily.ir/blog/${slug}`);
   assert.equal(await visitor.locator('meta[property="og:image"]').getAttribute("content"), `https://seodaily.ir${publishedDraft.image}`);
   assert.ok((await visitor.locator('script[type="application/ld+json"]').allTextContents()).some((t) => JSON.parse(t).some?.((x) => x["@type"] === "BlogPosting")));

@@ -13,6 +13,7 @@ const { db } = await import("../../src/db/index.ts");
 const { claimSlug, resolveSlug } = await import("../../src/modules/slugs/registry.ts");
 const { articleById, listArticles, latestArticles, relatedArticles, blogSitemapRows } = await import("../../src/modules/blog/queries.ts");
 const { entityHrefs } = await import("../../src/modules/plugins/queries.ts");
+const { auditArticleLinks, incomingArticleLinks } = await import("../../src/modules/blog/link-audit.ts");
 const file = "blog1234-0123456789abcdef.png";
 await writeFile(path.join(uploads, file), Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"));
 const [category] = await sql`insert into blog_categories(slug,title,data) values ('seo','SEO',${sql.json(emptyCategory())}) returning *`;
@@ -121,4 +122,31 @@ test("article/category race shares one database namespace; invalid category and 
   assert.equal(await publishDueArticles(due), 0);
   const [failure] = await sql`select status,schedule_error,scheduled_for from blog_articles where id=${row.id}`;
   assert.equal(failure.status, "draft"); assert.ok(failure.schedule_error); assert.equal(failure.scheduled_for, null);
+});
+
+test("link audit safely reports malformed local URLs and checks end CTA without fetching external hosts", async () => {
+  const draft = input("link-audit");
+  draft.content.doc.content = [{ type: "paragraph", content: [
+    { type: "text", text: "broken", marks: [{ type: "link", attrs: { href: "/blog/%E0%A4%A" } }] },
+    { type: "text", text: "external", marks: [{ type: "link", attrs: { href: "https://127.0.0.1/never-fetch" } }] },
+  ] }];
+  const audit = await auditArticleLinks({ ...draft, endCta: true, ctaHref: "entity:article:999999" });
+  assert.equal(audit.length, 3);
+  assert.equal(audit[0].resolved, null); assert.ok(audit[0].warning);
+  assert.equal(audit[1].resolved, "https://127.0.0.1/never-fetch"); assert.ok(audit[1].warning);
+  assert.equal(audit[2].resolved, null); assert.ok(audit[2].warning);
+});
+
+test("incoming links include manual alias URLs but exclude private drafts; manual related preserves order", async () => {
+  let target = await published("incoming-target");
+  const other = await published("related-other");
+  const source = await published("incoming-source");
+  const data = { ...source.draft, relatedMode: "manual", relatedIds: [target.id, other.id, source.id], content: { v: 1, doc: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Meaningful linked editorial content for the publication test", marks: [{ type: "link", attrs: { href: "/blog/incoming-target#section" } }] }] }] } } };
+  await mutateArticle(source.id, source.version, "publish", data, 1);
+  target = await mutateArticle(target.id, target.version, "publish", { ...target.draft, slug: "incoming-renamed" }, 1);
+  assert.equal((await incomingArticleLinks(target.id)).length, 1);
+  assert.deepEqual((await relatedArticles(await articleById(source.id), 4)).map((a) => a.id), [target.id, other.id]);
+  const privateSource = await createArticle(1);
+  await mutateArticle(privateSource.id, privateSource.version, "save", { ...data, slug: "private-incoming" }, 1);
+  assert.equal((await incomingArticleLinks(target.id)).length, 1);
 });
