@@ -101,7 +101,7 @@ export const LIST_SINCE = { 7: "۷ روز اخیر", 30: "۳۰ روز اخیر",
 
 export type PluginListQuery = { q?: string; categoryId?: number; sinceDays?: number; sort?: ListSort; page?: number };
 
-const served30 = sql`(select count(*) from ${downloadEvents} e where e.plugin_id = ${plugins.id} and e.kind = 'served' and e.created_at > now() - interval '30 days')`;
+const served30 = sql`(select count(*) from download_events e where e.plugin_id = "plugins"."id" and e.kind = 'served' and e.created_at > now() - interval '30 days')`;
 
 export const listPublishedPlugins = cached(async ({ q = "", categoryId, sinceDays, sort = "updated", page = 1 }: PluginListQuery) => {
   const where: SQL[] = [published];
@@ -114,7 +114,7 @@ export const listPublishedPlugins = cached(async ({ q = "", categoryId, sinceDay
   }
   if (categoryId) {
     where.push(
-      sql`exists (select 1 from ${pluginCategoryLinks} l where l.plugin_id = ${plugins.id} and l.category_id = ${categoryId})`,
+      sql`exists (select 1 from plugin_category_links l where l.plugin_id = "plugins"."id" and l.category_id = ${categoryId})`,
     );
   }
   if (sinceDays && sinceDays in LIST_SINCE) {

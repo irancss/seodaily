@@ -66,10 +66,9 @@ async function handle(request: Request, params: Promise<{ grant: string }>, head
   } catch (error) {
     return errorResponse(error);
   }
-  const path = objectPath(pipelineConfig().filesDir, a.release.storageKey);
   let fh;
   try {
-    fh = await open(path, "r");
+    fh = await open(objectPath(pipelineConfig().filesDir, a.release.storageKey), "r");
   } catch {
     await markFailed(a, 0, "file missing");
     return new Response("فایل این نسخه روی سرور پیدا نشد. به مدیر سایت اطلاع داده شد.", { status: 503, headers: { ...PRIVATE_HEADERS, "content-type": "text/plain; charset=utf-8" } });
