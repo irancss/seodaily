@@ -10,6 +10,7 @@ import { hostname } from "node:os";
 import { sql } from "drizzle-orm";
 
 import { db, schema } from "@/db";
+import { publishDueArticles } from "@/modules/blog/publication";
 import { checkPlugin } from "@/modules/plugins/pipeline/check";
 import { pipelineConfig } from "@/modules/plugins/pipeline/config";
 import { appendLog, cancelledJob, claimJob, enqueueMaintenance, failJob, finishJob, heartbeat, recoverExpired, type Job } from "@/modules/plugins/pipeline/jobs";
@@ -25,6 +26,7 @@ const version = process.env.APP_VERSION ?? "dev";
 const sandbox = sandboxRunner(cfg.sandboxUrl, cfg.sandboxToken, cfg.sandboxTimeoutMs);
 const running = new Set<Promise<void>>();
 let stopping = false;
+let blogSchedulerAt: string | null = null;
 
 const say = (msg: string) => console.log(`[worker ${new Date().toISOString()}] ${msg}`);
 
@@ -43,7 +45,7 @@ async function invalidate() {
 
 async function beat() {
   const [scanner, runner, free] = await Promise.all([scannerHealth(cfg.clamdHost, cfg.clamdPort, cfg.clamMaxSignatureAgeH), sandbox.health!(), freeBytes(cfg.filesDir).catch(() => -1)]);
-  const health = { scanner, sandbox: runner, freeBytes: free, minFreeBytes: cfg.minFreeBytes, autoUpdate: cfg.autoUpdate, concurrency: cfg.workerConcurrency };
+  const health = { scanner, sandbox: runner, freeBytes: free, minFreeBytes: cfg.minFreeBytes, autoUpdate: cfg.autoUpdate, concurrency: cfg.workerConcurrency, blogSchedulerAt };
   await db
     .insert(schema.workerHeartbeats)
     .values({ workerId, version, health })
@@ -99,8 +101,15 @@ async function loop() {
   let lastBeat = 0;
   let lastSchedule = 0;
   let lastMaintenance = 0;
+  let lastBlog = 0;
   while (!stopping) {
     const now = Date.now();
+    // Editorial publishing is independent of plugin checks, scanners and nightly jobs.
+    if (now - lastBlog >= 15_000) {
+      try { if (await publishDueArticles()) await invalidate(); blogSchedulerAt = new Date().toISOString(); }
+      catch (error) { say(`blog scheduler: ${(error as Error).message}`); }
+      lastBlog = now;
+    }
     try {
       if (now - lastBeat > 30_000) {
         await beat();

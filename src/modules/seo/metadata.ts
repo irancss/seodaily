@@ -101,7 +101,7 @@ export async function organizationJsonLd() {
       name: general.siteName,
       description: general.footerDescription,
       url: base,
-      logo: absoluteUrl(base, "/icon.svg"),
+      logo: absoluteUrl(base, general.headerLogo || "/icon.svg"),
       ...(general.ogImage ? { image: absoluteUrl(base, general.ogImage) } : {}),
       ...(contact.phone ? { telephone: phoneE164(contact.phone) } : {}),
       ...(contact.email ? { email: contact.email } : {}),

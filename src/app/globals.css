@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+.blog-carousel { display: grid; grid-auto-flow: column; grid-auto-columns: 83%; gap: 1.5rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-block: .5rem 1rem; }
+@media (min-width: 640px) { .blog-carousel { grid-auto-columns: calc((100% - 1.5rem) / 2); } }
+@media (min-width: 1024px) { .blog-carousel { grid-auto-columns: calc((100% - 3rem) / 3); } }
+.block-content h2[id], .block-content h3[id], .block-content h4[id] { scroll-margin-top: 7rem; }
+
 /* font-display: swap — Vazir must always end up on screen. (`optional` kept the
    system font for the whole visit whenever a file took longer than ~100 ms,
    which on slower connections — and for the never-preloaded medium weight —

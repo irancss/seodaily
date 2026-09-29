@@ -185,6 +185,10 @@ jobs:
           ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/nightly.sh' --first-time" || echo "::warning::backup or restore check failed (log above)"
           ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/status.sh'" | tee -a "$GITHUB_STEP_SUMMARY" || echo "::warning::server status reports a problem (log above)"
 
+      - name: Blog scheduler heartbeat (read-only)
+        if: steps.gate.outputs.enabled == 'true'
+        run: ssh prod "DEPLOY_PATH='$DEPLOY_PATH' sh '$DEPLOY_PATH/ops/blog-health.sh'"
+
   verify:
     # Checks the live site after a deploy, from outside the server.
     needs: deploy
@@ -217,7 +221,7 @@ jobs:
       - name: Smoke test production pages
         run: |
           fail=0
-          for path in / /robots.txt /sitemap.xml /web-design /seo /services /services/technical-seo /services/seo-audit /pricing /about /contact; do
+          for path in / /robots.txt /sitemap.xml /web-design /seo /services /services/technical-seo /services/seo-audit /pricing /about /contact /blog; do
             body=$(curl -sS -m 30 -w '\n%{http_code} %{time_starttransfer}' "$SITE$path") || { echo "FETCH FAILED $path"; fail=1; continue; }
             code=$(printf '%s' "$body" | tail -n1 | cut -d' ' -f1)
             ttfb=$(printf '%s' "$body" | tail -n1 | cut -d' ' -f2)
@@ -253,6 +257,10 @@ jobs:
           [ "$(code -X POST "$SITE/api/internal/revalidate")" = 404 ] || { echo "internal endpoint answers without its secret"; exit 1; }
           [ "$(code "$SITE/plugins/x/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")" = 403 ] || { echo "file route answers without a session"; exit 1; }
           echo "plugin library routes behave as expected"
+      - name: Blog publication boundaries (read-only)
+        run: |
+          [ "$(curl -s -o /dev/null -w '%{http_code}' -m 20 "$SITE/blog/no-such-article-$GITHUB_RUN_ID")" = 404 ]
+          [ "$(curl -s -o /dev/null -w '%{http_code}' -m 20 "$SITE/blog?page=invalid")" = 404 ]
       - name: SEO crawl report (job summary)
         run: BASE_URL="$SITE" node tests/seo-report.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: SEO tests against production

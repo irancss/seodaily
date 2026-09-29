@@ -7,6 +7,8 @@ import { getPublishedProjects } from "@/modules/projects/queries";
 import { projectHref } from "@/modules/projects/routes";
 import { serviceHref } from "@/modules/services/routes";
 import { getSiteUrl } from "@/modules/seo/metadata";
+import { blogSitemapRows, publicCategories as blogCategories } from "@/modules/blog/queries";
+import { selfCanonical } from "@/modules/blog/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +36,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages = ["/", "/web-design", "/seo", "/services", "/pricing", ...(projects.length > 0 ? ["/portfolio"] : []), "/about", "/contact"];
   const url = (path: string) => (path === "/" ? base : `${base}${path}`);
   const canonicalPlugins = plugins.filter((p) => isPluginSelfCanonical(base, p.slug, p.canonicalUrl));
+  const [blogRows, blogCats] = await Promise.all([blogSitemapRows(), blogCategories()]);
+  const canonicalArticles = blogRows.filter((a) => selfCanonical(base, a.slug, a.canonicalUrl));
 
   return [
+    ...(canonicalArticles.length ? [{ url: url("/blog") }] : []),
+    ...canonicalArticles.map((a) => ({ url: url(`/blog/${a.slug}`), ...(a.modifiedAt ? { lastModified: a.modifiedAt } : {}) })),
+    ...blogCats.filter((c) => c.total > 0 && !c.data.noindex && selfCanonical(base, c.slug, c.data.canonicalUrl)).map((c) => ({ url: url(`/blog/${c.slug}`), lastModified: c.updatedAt })),
     ...pages.map((path) => ({ url: url(path) })),
     ...services.map((s) => ({ url: url(serviceHref(s.slug)), lastModified: new Date(s.updatedAt) })),
     ...projects.map((p) => ({ url: url(projectHref(p.slug)), lastModified: new Date(p.updatedAt) })),

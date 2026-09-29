@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { uploadBlockImage } from "@/modules/blocks/actions";
 import { toast } from "@/lib/toast";
+import { MediaPicker } from "../block-editor/media-picker";
 
 export type UploadedImage = { src: string; width?: number; height?: number };
 
@@ -70,6 +71,7 @@ export function SingleImageField({ name, label, value, onChange, hint }: { name:
       <span className="field-label">{label}</span>
       {hint && <p className="text-xs leading-[1.8] text-muted">{hint}</p>}
       <input type="hidden" name={name} value={value} />
+      <MediaPicker onSelect={(image) => onChange(image.src)} />
       <div className="flex flex-wrap items-center gap-3">
         {value ? (
            

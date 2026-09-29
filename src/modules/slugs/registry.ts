@@ -8,21 +8,21 @@ import { isUniqueViolation } from "@/lib/db-errors";
 import { isReservedSlug, normalizeSlug, type SlugNamespace } from "./normalize";
 
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-export type SlugEntity = "plugin" | "plugin_category";
+export type SlugEntity = "plugin" | "plugin_category" | "article" | "blog_category";
 
 export class SlugError extends Error {}
 
 /** Reserve an editor's address without redirecting the public URL. */
-export async function reservePluginSlug(tx: Tx, raw: string, id: number) {
+export async function reserveEntitySlug(tx: Tx, raw: string, id: number, namespace: SlugNamespace, entityType: SlugEntity) {
   const slug = normalizeSlug(raw);
-  if (!slug || isReservedSlug("plugins", slug)) throw new SlugError("نامک معتبر نیست یا برای مسیر دیگری رزرو شده است.");
+  if (!slug || isReservedSlug(namespace, slug)) throw new SlugError("نامک معتبر نیست یا برای مسیر دیگری رزرو شده است.");
   const t = schema.slugRegistry;
-  const [existing] = await tx.select().from(t).where(and(eq(t.namespace, "plugins"), eq(t.slug, slug))).for("update");
-  if (existing && (existing.entityType !== "plugin" || existing.entityId !== id)) throw new SlugError("این نامک قبلاً استفاده شده است.");
-  await tx.delete(t).where(and(eq(t.namespace, "plugins"), eq(t.entityType, "plugin"), eq(t.entityId, id), eq(t.kind, "reserved")));
+  const [existing] = await tx.select().from(t).where(and(eq(t.namespace, namespace), eq(t.slug, slug))).for("update");
+  if (existing && (existing.entityType !== entityType || existing.entityId !== id)) throw new SlugError("این نامک قبلاً استفاده شده است.");
+  await tx.delete(t).where(and(eq(t.namespace, namespace), eq(t.entityType, entityType), eq(t.entityId, id), eq(t.kind, "reserved")));
   if (!existing || existing.kind === "reserved") {
     try {
-      await tx.insert(t).values({ namespace: "plugins", slug, entityType: "plugin", entityId: id, kind: "reserved" });
+      await tx.insert(t).values({ namespace, slug, entityType, entityId: id, kind: "reserved" });
     } catch (error) {
       if (isUniqueViolation(error)) throw new SlugError("این نامک هم‌زمان توسط صفحه دیگری رزرو شد.");
       throw error;
@@ -30,6 +30,8 @@ export async function reservePluginSlug(tx: Tx, raw: string, id: number) {
   }
   return slug;
 }
+
+export const reservePluginSlug = (tx: Tx, raw: string, id: number) => reserveEntitySlug(tx, raw, id, "plugins", "plugin");
 
 const ENTITY_LABEL: Record<string, string> = { plugin: "افزونه", plugin_category: "دسته", reserved: "مسیر رزروشده سایت" };
 

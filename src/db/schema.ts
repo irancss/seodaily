@@ -202,3 +202,5 @@ export type Category = typeof categories.$inferSelect;
 
 // Plugin library tables (/plugins).
 export * from "./plugins-schema";
+
+export * from "./blog-schema";

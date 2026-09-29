@@ -14,8 +14,8 @@ const BASE = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "
 const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
-const PUBLIC = ["/", "/web-design", "/seo", "/services", "/services/technical-seo", "/pricing", "/portfolio", "/about", "/contact", "/plugins", "/no-such-page"];
-const ADMIN = ["/admin", "/admin/leads", "/admin/services/1", "/admin/pages", "/admin/menus", "/admin/pricing", "/admin/settings", "/admin/faqs", "/admin/account", "/admin/plugins", "/admin/plugins/monitor", "/admin/plugins/users"];
+const PUBLIC = ["/", "/web-design", "/seo", "/services", "/services/technical-seo", "/pricing", "/portfolio", "/blog", "/about", "/contact", "/plugins", "/no-such-page"];
+const ADMIN = ["/admin", "/admin/leads", "/admin/services/1", "/admin/pages", "/admin/menus", "/admin/pricing", "/admin/settings", "/admin/faqs", "/admin/account", "/admin/plugins", "/admin/plugins/monitor", "/admin/plugins/users", "/admin/blog", "/admin/blog/categories", "/admin/blog/settings"];
 
 let browser;
 before(async () => {

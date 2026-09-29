@@ -2,6 +2,7 @@ import { jwtVerify } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { SESSION_COOKIE, sessionKey } from "@/modules/auth/session-key";
+import { blogRoute } from "@/modules/blog/routes";
 
 function isMalformed(pathname: string) {
   try {
@@ -19,6 +20,11 @@ export async function proxy(request: NextRequest) {
   if (isMalformed(pathname)) {
     return new NextResponse("Bad Request", { status: 400, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   }
+  const blogMatch = /^\/blog\/([^/]+)$/.exec(pathname);
+  if (blogMatch && (request.method === "GET" || request.method === "HEAD")) {
+    const route = await blogRoute(decodeURIComponent(blogMatch[1]));
+    if (route?.redirect) { const url = request.nextUrl.clone(); url.pathname = `/blog/${route.slug}`; return NextResponse.redirect(url, 301); }
+  }
   if (!pathname.startsWith("/admin") || pathname === "/admin/login") return NextResponse.next();
 
   // Optimistic check only: admin pages and actions verify the session again
@@ -27,7 +33,10 @@ export async function proxy(request: NextRequest) {
   if (token) {
     try {
       await jwtVerify(token, sessionKey());
-      return NextResponse.next();
+      const response = NextResponse.next();
+      response.headers.set("Cache-Control", "private, no-store");
+      response.headers.set("X-Robots-Tag", "noindex, nofollow");
+      return response;
     } catch {
       // fall through to the redirect
     }

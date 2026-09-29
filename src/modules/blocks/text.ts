@@ -28,14 +28,14 @@ export type OutlineEntry = { blockId: string; level: number; text: string; ancho
  * H2-H4 headings with unique anchors. `prefix` keeps anchors of other
  * documents on the same page (global blocks) from colliding with these.
  */
-export function outline(doc: BlockDocument | null | undefined, prefix = ""): OutlineEntry[] {
+export function outline(doc: BlockDocument | null | undefined, prefix = "", stable = false): OutlineEntry[] {
   const used = new Set<string>();
   const out: OutlineEntry[] = [];
   for (const node of doc?.doc?.content ?? []) {
     if (node.type !== "heading") continue;
     const text = nodeText(node);
     if (!text) continue;
-    const base = `${prefix}${normalizeSlug(text) || "section"}`;
+    const base = `${prefix}${stable && node.attrs?.id ? String(node.attrs.id) : normalizeSlug(text) || "section"}`;
     let anchor = base;
     for (let i = 2; used.has(anchor); i++) anchor = `${base}-${i}`;
     used.add(anchor);

@@ -13,6 +13,7 @@ const SERVICE_LINKS = [
 ];
 
 const QUICK_LINKS = [
+  { href: "/blog", label: "بلاگ" },
   { href: "/portfolio", label: "نمونه‌کارها" },
   { href: "/about", label: "درباره ما" },
   { href: "/contact", label: "تماس و درخواست مشاوره" },
