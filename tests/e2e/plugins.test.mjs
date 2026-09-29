@@ -219,11 +219,16 @@ test("PL-T22/T23/T24/T26: phone check once per browser, 10-minute link, HEAD/Ran
   const cookie = (await page.context().cookies()).find((c) => c.name === "sd_dl");
   assert.ok(cookie.httpOnly && cookie.sameSite === "Lax");
 
-  const req = page.context().request;
-  const head = await req.fetch(`${BASE}${href}`, { method: "HEAD" });
-  assert.equal(head.status(), 200);
-  const part = await req.get(`${BASE}${href}`, { headers: { range: "bytes=0-9" } });
-  assert.equal(part.status(), 206);
+  // From inside the page, so the (Secure, HttpOnly) cookie travels as it does for a real visitor.
+  const probe = await page.evaluate(async (url) => {
+    const head = await fetch(url, { method: "HEAD" });
+    const part = await fetch(url, { headers: { range: "bytes=0-9" } });
+    return { head: head.status, part: part.status, range: part.headers.get("content-range"), bytes: (await part.arrayBuffer()).byteLength };
+  }, href);
+  assert.equal(probe.head, 200);
+  assert.equal(probe.part, 206);
+  assert.equal(probe.bytes, 10);
+  assert.match(probe.range, /^bytes 0-9\/\d+$/);
   let [p] = await sql`select measured_download_count as n from plugins where id = ${pluginId}`;
   assert.equal(p.n, 0, "HEAD and a partial range are not downloads");
 
