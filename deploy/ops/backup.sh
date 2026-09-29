@@ -30,6 +30,12 @@ if [ "$KIND" = daily ]; then
   mv "$up.part" "$up"
   log "uploads: $up ($(du -h "$up" | cut -f1))"
   cp .env "$BACKUP_DIR/env.latest"
+  # Plugin packages (objects only; temp downloads are not worth keeping). ZIPs
+  # are already compressed, so a plain tar; few copies, they can be large.
+  pf="$BACKUP_DIR/plugin-files-$STAMP.tar"
+  docker compose run --rm --no-deps -T --entrypoint sh app -c 'mkdir -p /app/plugin-files/objects && tar cf - -C /app/plugin-files objects' > "$pf.part" || fail "plugin files archive failed"
+  mv "$pf.part" "$pf"
+  log "plugin files: $pf ($(du -h "$pf" | cut -f1))"
 fi
 
 prune() { ls -1t "$BACKUP_DIR"/$1 2>/dev/null | tail -n +$(($2 + 1)) | xargs -r rm -f; }
@@ -37,5 +43,6 @@ prune 'db-daily-*.dump' 14
 prune 'db-pre-deploy-*.dump' 10
 prune 'db-manual-*.dump' 10
 prune 'uploads-*.tar.gz' 7
+prune 'plugin-files-*.tar' 3
 
 date -u +%Y-%m-%dT%H:%M:%SZ > "$BACKUP_DIR/.last-success-$KIND"

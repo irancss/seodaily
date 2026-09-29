@@ -7,6 +7,7 @@ import { DownloadBox } from "@/components/organisms/plugins/download-box";
 import { PluginPageView } from "@/components/organisms/plugins/plugin-page-view";
 import { decodeSlug } from "@/lib/utils";
 import { documentText } from "@/modules/blocks/text";
+import { downloadsAvailable } from "@/modules/downloads/availability";
 import { faNumber } from "@/modules/plugins/labels";
 import {
   entityHrefs,
@@ -53,6 +54,28 @@ function pageNumber(sp: Record<string, string | string[] | undefined>) {
   return Math.max(1, Number.parseInt(v ?? "", 10) || 1);
 }
 
+/** Meta descriptions between ~70 and 160 characters, cut at a word. */
+function fit(text: string) {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= 160) return t;
+  const cut = t.slice(0, 157);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 120))}…`;
+}
+
+/** Fallback description from real data only: name, version and the admin's summary/text. */
+function pluginDescription(p: PublicPlugin) {
+  const current = p.releases.find((r) => r.current) ?? p.releases[0];
+  const lead = `دانلود افزونه وردپرس ${p.name}${current ? ` نسخه ${current.version}` : ""}`;
+  const body = p.excerpt || documentText(p.content, 300);
+  const text = body ? `${lead}: ${body}` : `${lead} با فایل اصلی و دست‌نخورده و توضیح فارسی.`;
+  return fit(text.length < 70 ? `${text} فایل اصلی و دست‌نخورده، همراه با توضیح فارسی و تاریخ به‌روزرسانی.` : text);
+}
+
+function categoryDescription(title: string, text: string) {
+  if (text.length >= 70) return fit(text);
+  return fit(`دانلود افزونه‌های وردپرس دسته ${title} با فایل اصلی و دست‌نخورده، توضیح فارسی و تاریخ به‌روزرسانی.${text ? ` ${text}` : ""}`);
+}
+
 /** Only a site path or an http(s) URL may replace the default canonical. */
 function canonicalPath(plugin: PublicPlugin) {
   const c = plugin.canonicalUrl.trim();
@@ -68,7 +91,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const p = page.plugin;
     const meta = await buildMetadata({
       title: p.seoTitle || `دانلود افزونه ${p.name}`,
-      description: p.seoDescription || p.excerpt || documentText(p.content, 160),
+      description: p.seoDescription || pluginDescription(p),
       path: canonicalPath(p),
       image: p.ogImage || p.iconUrl,
       noindex: p.noindex,
@@ -81,7 +104,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const path = list.page > 1 ? `/plugins/${c.slug}?page=${list.page}` : `/plugins/${c.slug}`;
   const meta = await buildMetadata({
     title: `${c.seoTitle || c.title}${list.page > 1 ? ` – صفحه ${faNumber(list.page)}` : ""}`,
-    description: c.seoDescription || documentText(c.description, 160) || `افزونه‌های وردپرس دسته ${c.title}`,
+    description: c.seoDescription || categoryDescription(c.title, documentText(c.description, 300)),
     path,
     image: c.imageUrl,
   });
@@ -147,7 +170,7 @@ export default async function PluginOrCategoryPage({ params, searchParams }: Pro
 
   return (
     <>
-      <PluginPageView plugin={p} hrefs={hrefs} download={<DownloadBox releases={p.releases} />} />
+      <PluginPageView plugin={p} hrefs={hrefs} download={<DownloadBox releases={p.releases} available={downloadsAvailable()} />} />
       <JsonLd data={softwareLd} />
       <JsonLd
         data={{

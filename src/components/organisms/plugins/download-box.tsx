@@ -9,7 +9,7 @@ import { DownloadButton, DownloadSessionNote } from "./download-flow";
  * phone/code dialog. The file never starts by itself: the visitor clicks
  * the link that appears.
  */
-export function DownloadBox({ releases, preview = false }: { releases: PublicRelease[]; preview?: boolean }) {
+export function DownloadBox({ releases, preview = false, available = true }: { releases: PublicRelease[]; preview?: boolean; available?: boolean }) {
   if (releases.length === 0) {
     return <p className="mt-4 rounded-lg border border-dashed border-line-strong bg-white p-5 text-sm text-muted">فعلاً نسخه‌ای برای دانلود آماده نیست.</p>;
   }
@@ -27,6 +27,8 @@ export function DownloadBox({ releases, preview = false }: { releases: PublicRel
               </div>
               {preview ? (
                 <span className="text-xs text-muted">دکمه دانلود در پیش‌نمایش غیرفعال است</span>
+              ) : !available ? (
+                <span className="text-xs text-muted">دریافت فایل موقتاً فعال نیست</span>
               ) : (
                 <DownloadButton releaseId={r.id} version={r.version} primary={r.current} />
               )}

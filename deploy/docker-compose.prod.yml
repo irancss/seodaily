@@ -4,6 +4,23 @@
 # versions (deploy/RUNBOOK.md).
 
 # Container logs rotate instead of filling the disk (Docker keeps them forever by default).
+# Settings of the plugin library shared by the app and the worker. Secrets
+# come from .env on the server (ops/deploy.sh generates the two internal ones
+# when missing); empty SMS settings keep downloads closed (fail closed).
+x-plugin-env: &plugin-env
+  OTP_HMAC_SECRET: ${OTP_HMAC_SECRET:-}
+  INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-}
+  MELIPAYAMAK_USERNAME: ${MELIPAYAMAK_USERNAME:-}
+  MELIPAYAMAK_PASSWORD: ${MELIPAYAMAK_PASSWORD:-}
+  MELIPAYAMAK_OTP_BODY_ID: ${MELIPAYAMAK_OTP_BODY_ID:-}
+  DOWNLOAD_TEST_PHONES: ${DOWNLOAD_TEST_PHONES:-}
+  PLUGINS_DOWNLOADS_ENABLED: ${PLUGINS_DOWNLOADS_ENABLED:-true}
+  PLUGINS_AUTO_UPDATE_ENABLED: ${PLUGINS_AUTO_UPDATE_ENABLED:-true}
+  CLAMD_HOST: ${CLAMD_HOST:-}
+  CLAMD_PORT: ${CLAMD_PORT:-3310}
+  PLUGIN_SANDBOX_URL: ${PLUGIN_SANDBOX_URL:-}
+  PLUGIN_FILES_DIR: /app/plugin-files
+
 x-logging: &logging
   driver: json-file
   options:
@@ -45,12 +62,38 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       SITE_URL: ${SITE_URL:?Set SITE_URL in .env, e.g. https://seodaily.ir}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      <<: *plugin-env
     # Only reachable from this machine; nginx/Apache proxies the domain to it.
     ports:
       - "127.0.0.1:${APP_PORT:-3000}:3000"
     volumes:
       - uploads:/app/uploads
+      - plugin_files:/app/plugin-files
+
+  # Plugin worker: same image, separate process. Checks sources, verifies
+  # packages and runs the 03:00 Asia/Tehran schedule; never inside a web
+  # request. No published port.
+  worker:
+    image: seodaily:${APP_IMAGE_TAG:-latest}
+    pull_policy: never
+    command: ["worker"]
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-seodaily}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-seodaily}
+      UPLOAD_DIR: /app/uploads
+      APP_INTERNAL_URL: http://app:3000
+      <<: *plugin-env
+    volumes:
+      - uploads:/app/uploads
+      - plugin_files:/app/plugin-files
+    mem_limit: 768m
+    stop_grace_period: 30s
 
 volumes:
   pgdata:
   uploads:
+  plugin_files:

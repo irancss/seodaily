@@ -26,7 +26,8 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
-    UPLOAD_DIR=/app/uploads
+    UPLOAD_DIR=/app/uploads \
+    PLUGIN_FILES_DIR=/app/plugin-files
 
 RUN addgroup -S -g 1001 nodejs && adduser -S -u 1001 -G nodejs nextjs
 
@@ -42,9 +43,12 @@ COPY --from=builder /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 COPY --from=builder /app/node_modules/postgres ./node_modules/postgres
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+# The plugin worker (same image, `entrypoint.sh worker`): one bundled file.
+COPY --from=builder /app/dist/worker.mjs ./worker.mjs
 
-RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
-VOLUME ["/app/uploads"]
+RUN mkdir -p /app/uploads /app/plugin-files && chown nextjs:nodejs /app/uploads /app/plugin-files && chmod 700 /app/plugin-files
+# Plugin packages live in their own private volume: never under public/ or uploads.
+VOLUME ["/app/uploads", "/app/plugin-files"]
 
 USER nextjs
 EXPOSE 3000

@@ -1,31 +1,30 @@
 # وضعیت اجرایی — کتابخانه افزونه‌های وردپرس
 
-> Checkpoint برای ادامه کار. با هر مرحله به‌روز می‌شود.
+> Checkpoint برای ادامه کار.
 >
 > شاخه: `feature/plugins-library` · پایه: `main` در `6f2b406`
 
 ## مرحله جاری
 
-P01 — مدل داده، Migration و Slug registry
+P11/P12 — مستندات، CI، PR، merge، استقرار و راستی‌آزمایی Production.
 
 ## انجام‌شده
 
-| مرحله | فایل‌ها | آزمون | وضعیت |
+| مرحله | فایل‌های اصلی | آزمون | وضعیت |
 | --- | --- | --- | --- |
-| P00 کشف | — | Baseline: همه مجموعه‌های قبلی سبز در `main` (FINAL-RELEASE-AUDIT.md) | ✅ |
-| P01 Schema | `src/db/plugins-schema.ts`، `drizzle/0004_plugins_library.sql` (۱۷ جدول، CHECKها، ۱۵ slug رزرو) | Migration روی DB خالی و اجرای دوم بی‌اثر | ✅ |
-| P01 Slug | `src/modules/slugs/{normalize,registry}.ts` | `tests/unit/slugs.test.mjs`، `tests/integration/slugs.test.mjs` (PL-T01، شامل هم‌زمانی) | ✅ |
+| P00 کشف | — | Baseline سبز (FINAL-RELEASE-AUDIT.md) | ✅ |
+| P01 مدل داده و slug | `src/db/plugins-schema.ts`، `drizzle/0004_plugins_library.sql` (۱۷ جدول)، `src/modules/slugs/*` | PL-T01 | ✅ |
+| ادیتور بلوکی | `src/modules/blocks/*`، `components/organisms/admin/block-editor/*` | unit blocks، smoke | ✅ |
+| P02 کاتالوگ | `src/modules/plugins/{catalog,actions,admin-queries}.ts`، پنل | PL-T02 | ✅ |
+| P03–P06 خط لوله | `src/modules/plugins/pipeline/*`، `src/worker/main.ts`، پنل منابع/پایش | PL-T03…T17 | ✅ (ClamAV و sandbox: BLOCKED) |
+| P07–P08 دانلود | `src/modules/downloads/*`، route فایل، پنل کاربران، CSV | PL-T18…T29 | ✅ (پیامک واقعی: BLOCKED) |
+| P09–P10 صفحات عمومی | `src/app/(site)/plugins/*`، `components/organisms/plugins/*`، sitemap، Home | PL-T30…T33 | ✅ |
+| استقرار | Dockerfile، entrypoint، compose (worker، `plugin_files`)، ops scripts، CI | shellcheck، compose config | ✅ کد؛ روی سرور: پس از merge |
 
-## تصمیم‌ها (خلاصه؛ جزئیات در DECISIONS-AND-BLOCKERS.md)
+## مستندات
 
-- Worker جدا: `src/worker` با esbuild به `worker.mjs` در همان Image، سرویس `worker` در Compose. پردازش فایل در درخواست HTTP نیست.
-- ادیتور: TipTap (MIT) + Renderer سمت سرور اختصاصی.
-- ZIP: Parser داخلی بدون وابستگی (کنترل دقیق سقف‌ها).
-- SMS: `POST https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber` (از SDK رسمی)، موفقیت فقط با `RetStatus = 1` و `Value` عددی.
-- آزمون یکپارچه: `npm run test:integration` با `--conditions=react-server` روی DB یک‌بارمصرف.
+`IMPLEMENTATION-REPORT.md` · `ADMIN-GUIDE.fa.md` · `OPERATIONS-RUNBOOK.md` · `TEST-MATRIX.md` · `DECISIONS-AND-BLOCKERS.md`
 
-## Blockerهای شناخته‌شده
+## Blockerها
 
-- دسترسی شبکه این محیط به سایت‌های منبع نمونه و مستندات ملی‌پیامک مسدود است: Adapterها با Fixture، اتصال واقعی `NOT VERIFIED`.
-- Credential ملی‌پیامک و الگو: از مالک (تنظیمات `.env` سرور).
-- ClamAV و Runner ایزوله وردپرس روی سرور فعلی: بررسی در P04.
+B1 پیامک ملی‌پیامک · B2 ClamAV · B3 Runner ایزوله · B4 اتصال واقعی منابع · B5 مجوز بازنشر · B6 متن حریم خصوصی — جزئیات در DECISIONS-AND-BLOCKERS.md.

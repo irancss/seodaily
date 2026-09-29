@@ -259,3 +259,38 @@ test("PL-T16/T17: the nightly slot is queued once, however many workers tick", a
   assert.ok(n.n >= 1);
   assert.equal(await runScheduleTick(new Date("2026-10-01T10:00:00Z")), null, "later the same Tehran day: nothing new");
 });
+
+test("PL-T03: a value the admin typed is never overwritten by package metadata", async () => {
+  const id = await newPlugin();
+  await sql`update plugins set requires_wp = '5.9', manual_fields = '["requiresWp"]'::jsonb, excerpt = 'متن مدیر', seo_title = 'عنوان مدیر' where id = ${id}`;
+  await addSource(id, { page: "/j/1" });
+  srv.set("/j/1", { body: page("8.0", "/j/p.zip") });
+  serveZip("/j/p.zip", { version: "8.0" });
+  const { ctx: c } = ctx();
+  assert.equal((await checkPlugin(id, c)).status, "updated");
+  const [p] = await sql`select requires_wp, requires_php, excerpt, seo_title from plugins where id = ${id}`;
+  assert.equal(p.requires_wp, "5.9", "manual field kept");
+  assert.equal(p.requires_php, "7.4", "non-manual field filled from the header");
+  assert.equal(p.excerpt, "متن مدیر");
+  assert.equal(p.seo_title, "عنوان مدیر");
+});
+
+test("PL-T15: cleanup keeps files a live link or transfer may need, and SHA-shared files", async () => {
+  const { deletableObjects } = await import("../../src/modules/plugins/pipeline/releases.ts");
+  const id = await newPlugin();
+  const key = (n) => `objects/aa/${String(n).padStart(64, "b")}.zip`;
+  const [a] = await sql`insert into plugin_releases (plugin_id, source_version, sha256, bytes, storage_key, state, retired_at) values (${id}, '1', ${String(1).padStart(64, "b")}, 1, ${key(1)}, 'retired', now() - interval '3 hours') returning id`;
+  const [b] = await sql`insert into plugin_releases (plugin_id, source_version, sha256, bytes, storage_key, state, retired_at) values (${id}, '2', ${String(2).padStart(64, "b")}, 1, ${key(2)}, 'retired', now() - interval '3 hours') returning id`;
+  const [cRow] = await sql`insert into plugin_releases (plugin_id, source_version, sha256, bytes, storage_key, state, retired_at) values (${id}, '3', ${String(3).padStart(64, "b")}, 1, ${key(3)}, 'retired', now() - interval '5 minutes') returning id`;
+  const other = await newPlugin();
+  await sql`insert into plugin_releases (plugin_id, source_version, sha256, bytes, storage_key, state, downloadable, published_at) values (${other}, '9', ${String(2).padStart(64, "b")}, 1, ${key(2)}, 'published', true, now())`;
+  const [u] = await sql`insert into download_users (phone) values ('+989120000777') returning id`;
+  const [s] = await sql`insert into download_sessions (token_digest, user_id, expires_at) values ('t-15', ${u.id}, now() + interval '1 day') returning id`;
+  await sql`insert into download_grants (id, user_id, session_id, release_id, sha256, expires_at) values ('g15-live-grant-0000000000000000', ${u.id}, ${s.id}, ${a.id}, 'x', now() + interval '5 minutes')`;
+  const due = await deletableObjects();
+  const ids = due.map((d) => d.id);
+  assert.ok(!ids.includes(a.id), "a live link keeps the file");
+  assert.ok(!ids.includes(cRow.id), "inside the retirement grace period");
+  const shared = due.find((d) => d.id === b.id);
+  assert.ok(shared && shared.shared, "bytes shared with another plugin's published release are marked shared (row closed, file kept)");
+});
