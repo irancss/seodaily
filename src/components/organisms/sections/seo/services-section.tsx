@@ -11,6 +11,7 @@ type Props = {
 };
 
 export function SeoServicesSection({ services }: Props) {
+  const audit = services.find((service) => service.slug === "seo-audit");
   return (
     <section id="seo-services" className="section">
       <div className="container-site">
@@ -19,6 +20,7 @@ export function SeoServicesSection({ services }: Props) {
           title="بخش‌های مختلف *خدمات سئو*"
           text="هر پروژه بسته به نتیجه بررسی اولیه، ترکیبی از این خدمات را شامل می‌شود؛ لازم نیست همه آن‌ها از روز اول شروع شوند."
         />
+        {audit && <p className="mt-4 max-w-3xl leading-8 text-ink-2">اگر علت افت بازدید یا نقطه شروع کار مشخص نیست، <Link href={serviceHref(audit.slug)} className="font-medium text-brand-hover underline underline-offset-4">بررسی و ممیزی سئو</Link> کمک می‌کند مشکلات سایت و ترتیب رسیدگی به آن‌ها روشن شود.</p>}
         <ul className="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:mt-14 lg:grid-cols-4 lg:gap-5">
           {services.map((s, i) => (
             <li key={s.slug} className="reveal" style={vars({ i: i % 4 })}>

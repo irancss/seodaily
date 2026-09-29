@@ -253,6 +253,11 @@ test("admin is protected and noindex", async () => {
   assert.match(inspect(await login.text()).robots, /noindex/);
 });
 
+test("public search pages remain noindex without disabling their internal links", async () => {
+  const p = await page("/blog?q=seo-audit-nonexistent-query");
+  assert.equal(p.res.status, 200); assert.match(p.robots, /noindex/); assert.doesNotMatch(p.robots, /nofollow/);
+});
+
 test("decorative UI text does not leak into the page text", async () => {
   for (const path of IMPORTANT) {
     const html = (await page(path)).html;

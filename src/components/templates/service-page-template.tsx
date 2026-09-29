@@ -25,13 +25,14 @@ type Props = {
   faqJsonLd: unknown;
   /** Site phone for the closing call-to-action. */
   phone: string;
+  siteUrl: string;
 };
 
 const ORDER = ["overview", "problem", "includes", "article", "process", "forWho", "deliverables", "faq", "related"] as const;
 type Block = (typeof ORDER)[number];
 
 /** SD05 service page: every section of the shared service template, in order. */
-export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd, phone }: Props) {
+export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd, phone, siteUrl }: Props) {
   const present: Record<Block, boolean> = {
     overview: Boolean(service.overview.trim()),
     article: service.sections.length > 0,
@@ -72,7 +73,7 @@ export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd
       <ServiceHeroSection service={service} categoryTitle={categoryTitle} />
 
       {/* 01b · what it is */}
-      {present.overview && <ServiceOverviewSection service={service} contents={contents} tone={tone.overview} />}
+      {present.overview && <ServiceOverviewSection service={service} contents={contents} tone={tone.overview} siteUrl={siteUrl} />}
 
       {/* 02 · problem */}
       {present.problem && <ServiceProblemSection service={service} tone={tone.problem} />}
@@ -81,7 +82,7 @@ export function ServicePageTemplate({ service, categoryTitle, related, faqJsonLd
       {present.includes && <ServiceIncludesSection service={service} tone={tone.includes} />}
 
       {/* 03b · in-depth sections */}
-      {present.article && <ServiceArticleSection sections={service.sections} tone={tone.article} />}
+      {present.article && <ServiceArticleSection sections={service.sections} tone={tone.article} siteUrl={siteUrl} />}
 
       {/* 04 · process */}
       {present.process && <ServiceProcessSection service={service} />}

@@ -7,7 +7,7 @@ import { toneClass, type SectionTone } from "./tone";
 export const articleId = (i: number) => `service-topic-${i + 1}`;
 
 /** The in-depth part of a service page: each section is its own H2 with free text. */
-export function ServiceArticleSection({ sections, tone }: { sections: ContentSection[]; tone?: SectionTone }) {
+export function ServiceArticleSection({ sections, tone, siteUrl }: { sections: ContentSection[]; tone?: SectionTone; siteUrl: string }) {
   return (
     <section className={cx("section", toneClass(tone))}>
       <div className="container-site flex flex-col">
@@ -23,7 +23,7 @@ export function ServiceArticleSection({ sections, tone }: { sections: ContentSec
               </span>
               <h2 className="t-h3 text-balance lg:text-2xl lg:leading-[1.6]">{section.title}</h2>
             </div>
-            <RichText text={section.body} className="max-w-[760px]" />
+            <RichText text={section.body} className="max-w-[760px]" siteUrl={siteUrl} />
           </article>
         ))}
       </div>

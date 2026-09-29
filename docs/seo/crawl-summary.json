@@ -1,0 +1,729 @@
+{
+  "before": {
+    "at": "2026-09-29T20:52:50.525Z",
+    "base": "https://seodaily.ir",
+    "counts": {
+      "pages": 24,
+      "sitemap": 21,
+      "internalLinks": 1559,
+      "contextualLinks": 41,
+      "errors": 0,
+      "notes": 2
+    },
+    "notes": [
+      {
+        "path": "/about",
+        "problem": "No incoming content link"
+      },
+      {
+        "path": "/services",
+        "problem": "No incoming content link"
+      }
+    ]
+  },
+  "after": {
+    "at": "2026-09-29T21:18:10.147Z",
+    "environment": "disposable Linux Docker build",
+    "counts": {
+      "pages": 24,
+      "sitemap": 21,
+      "internalLinks": 1569,
+      "contextualLinks": 51,
+      "errors": 0,
+      "notes": 0
+    },
+    "errors": [],
+    "notes": []
+  },
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "طراحی سایت و سئو برای کسب‌وکارها | سئو دیلی",
+      "description": "طراحی سایت شرکتی، فروشگاهی و خدماتی؛ همراه با بررسی سئو، رفع مشکلات فنی و برنامه‌ریزی محتوا. خدمات، مراحل کار و برآورد هزینه را در سئو دیلی ببینید.",
+      "canonical": "https://seodaily.ir",
+      "robots": "",
+      "h1": [
+        "طراحی سایت و سئو برای رشد اصولی کسب‌وکارها"
+      ],
+      "incomingContentSources": [],
+      "contextualLinks": [
+        {
+          "href": "/services",
+          "text": "فهرست کامل خدمات طراحی سایت و سئو"
+        },
+        {
+          "href": "/about",
+          "text": "درباره سئو دیلی"
+        }
+      ]
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "title": "درباره سئو دیلی",
+      "description": "با روش کار سئو دیلی در طراحی سایت و سئو آشنا شوید؛ از شناخت کسب‌وکار و برنامه‌ریزی تا اجرا، بررسی نتیجه و بهبود سایت.",
+      "canonical": "https://seodaily.ir/about",
+      "robots": "",
+      "h1": [
+        "طراحی سایت و سئو را کنار هم پیش می‌بریم"
+      ],
+      "incomingContentSources": [
+        "/"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/web-design",
+          "text": "طراحی سایت"
+        },
+        {
+          "href": "/seo",
+          "text": "خدمات سئو"
+        }
+      ]
+    },
+    {
+      "path": "/blog",
+      "status": 200,
+      "title": "بلاگ سئو دیلی",
+      "description": "مقاله‌های سئو دیلی درباره طراحی سایت، سئو و خدمات مرتبط.",
+      "canonical": "https://seodaily.ir/blog",
+      "robots": "noindex, follow",
+      "h1": [
+        "بلاگ سئو دیلی"
+      ],
+      "incomingContentSources": [],
+      "contextualLinks": []
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "title": "تماس و درخواست مشاوره طراحی سایت و سئو | سئو دیلی",
+      "description": "فرم درخواست مشاوره طراحی سایت و سئو؛ اطلاعات اولیه پروژه را بفرستید یا تماس بگیرید تا نیاز شما و مسیر مناسب همکاری بررسی شود.",
+      "canonical": "https://seodaily.ir/contact",
+      "robots": "",
+      "h1": [
+        "درباره پروژه‌تان با ما صحبت کنید"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/about",
+        "/portfolio",
+        "/pricing",
+        "/seo",
+        "/services",
+        "/services/competitor-analysis",
+        "/services/content-optimization",
+        "/services/content-strategy",
+        "/services/corporate-website",
+        "/services/keyword-research",
+        "/services/landing-page",
+        "/services/on-page-seo",
+        "/services/online-store",
+        "/services/personal-website",
+        "/services/seo-audit",
+        "/services/seo-monitoring",
+        "/services/service-website",
+        "/services/technical-seo",
+        "/services/website-redesign",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "#contact-direct",
+          "text": "مشاهده راه‌های ارتباطی"
+        }
+      ]
+    },
+    {
+      "path": "/plugins",
+      "status": 200,
+      "title": "افزونه‌های وردپرس | سئو دیلی",
+      "description": "دانلود افزونه‌های وردپرس با فایل اصلی و دست‌نخورده، همراه با توضیح فارسی، نسخه و تاریخ به‌روزرسانی.",
+      "canonical": "https://seodaily.ir/plugins",
+      "robots": "noindex, follow",
+      "h1": [
+        "دانلود افزونه‌های وردپرس"
+      ],
+      "incomingContentSources": [],
+      "contextualLinks": []
+    },
+    {
+      "path": "/portfolio",
+      "status": 200,
+      "title": "نمونه‌کارهای طراحی سایت | سئو دیلی",
+      "description": "نمونه‌کارهای طراحی سایت و پروژه‌های دیجیتال سئو دیلی به تفکیک نوع پروژه، همراه با مسئله، راهکار و نتیجه هر کار.",
+      "canonical": "https://seodaily.ir/portfolio",
+      "robots": "noindex, follow",
+      "h1": [
+        "نمونه‌کارها"
+      ],
+      "incomingContentSources": [
+        "/about",
+        "/web-design"
+      ],
+      "contextualLinks": []
+    },
+    {
+      "path": "/pricing",
+      "status": 200,
+      "title": "تعرفه طراحی سایت، سئو و تولید محتوا | سئو دیلی",
+      "description": "تعرفه طراحی سایت، سئو و تولید محتوا با ماشین‌حساب آنلاین؛ گزینه‌های موردنیاز را انتخاب کنید و برآورد هزینه را همان لحظه ببینید.",
+      "canonical": "https://seodaily.ir/pricing",
+      "robots": "",
+      "h1": [
+        "برآورد هزینه طراحی سایت، سئو و تولید محتوا"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/services",
+        "/services/corporate-website",
+        "/services/on-page-seo",
+        "/services/online-store",
+        "/services/website-redesign"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/web-design",
+          "text": "خدمات طراحی سایت"
+        },
+        {
+          "href": "/seo",
+          "text": "خدمات سئو"
+        }
+      ]
+    },
+    {
+      "path": "/seo",
+      "status": 200,
+      "title": "خدمات سئو؛ ممیزی، سئو تکنیکال و محتوا | سئو دیلی",
+      "description": "خدمات سئو بر اساس داده و وضعیت واقعی سایت: ممیزی سئو، سئو تکنیکال، تحقیق کلمات کلیدی، استراتژی و بهینه‌سازی محتوا، سئو داخلی و پایش منظم.",
+      "canonical": "https://seodaily.ir/seo",
+      "robots": "",
+      "h1": [
+        "خدمات سئو برای بهتر دیده‌شدن سایت در گوگل"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/about",
+        "/pricing",
+        "/services",
+        "/services/corporate-website"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/seo-audit",
+          "text": "بررسی و ممیزی سئو"
+        }
+      ]
+    },
+    {
+      "path": "/services",
+      "status": 200,
+      "title": "همه خدمات طراحی سایت و سئو | سئو دیلی",
+      "description": "فهرست خدمات سئو دیلی: طراحی سایت شرکتی، فروشگاهی، خدماتی و لندینگ، بازطراحی، ممیزی سئو، سئو تکنیکال و محتوا؛ مسیر مناسب کسب‌وکارتان را پیدا کنید.",
+      "canonical": "https://seodaily.ir/services",
+      "robots": "",
+      "h1": [
+        "خدمات طراحی سایت و سئو"
+      ],
+      "incomingContentSources": [
+        "/"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/contact",
+          "text": "فرم درخواست مشاوره"
+        }
+      ]
+    },
+    {
+      "path": "/services/competitor-analysis",
+      "status": 200,
+      "title": "بررسی رقبا در سئو؛ تحلیل رقبای واقعی در گوگل | سئو دیلی",
+      "description": "شناسایی سایت‌هایی که در نتایج گوگل رقیب شما هستند، تحلیل محتوا، ساختار و بک‌لینک آن‌ها و پیداکردن موضوعاتی که هنوز پوشش نداده‌اید.",
+      "canonical": "https://seodaily.ir/services/competitor-analysis",
+      "robots": "",
+      "h1": [
+        "بررسی رقبا"
+      ],
+      "incomingContentSources": [
+        "/seo",
+        "/services",
+        "/services/content-strategy",
+        "/services/keyword-research",
+        "/services/seo-audit"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/content-strategy",
+          "text": "برنامه‌ریزی استراتژی محتوا"
+        },
+        {
+          "href": "/services/keyword-research",
+          "text": "تحقیق کلمات کلیدی"
+        }
+      ]
+    },
+    {
+      "path": "/services/content-optimization",
+      "status": 200,
+      "title": "بهینه‌سازی محتوا؛ به‌روزرسانی و تقویت صفحات موجود | سئو دیلی",
+      "description": "بررسی و به‌روزرسانی محتوای فعلی سایت: شناسایی صفحه‌های افت‌کرده، ادغام مطالب تکراری، هم‌راستایی با نیت جست‌وجو و سنجش نتیجه در سرچ کنسول.",
+      "canonical": "https://seodaily.ir/services/content-optimization",
+      "robots": "",
+      "h1": [
+        "بهینه‌سازی محتوا"
+      ],
+      "incomingContentSources": [
+        "/seo",
+        "/services",
+        "/services/content-strategy",
+        "/services/on-page-seo",
+        "/services/seo-audit",
+        "/services/seo-monitoring"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/seo-monitoring",
+          "text": "پایش و گزارش‌دهی منظم سئو"
+        },
+        {
+          "href": "/services/content-strategy",
+          "text": "نقشه موضوعی و استراتژی محتوا"
+        }
+      ]
+    },
+    {
+      "path": "/services/content-strategy",
+      "status": 200,
+      "title": "استراتژی محتوا برای سئو؛ موضوع، ساختار و تقویم | سئو دیلی",
+      "description": "برنامه‌ریزی محتوا بر اساس نیاز مخاطب و جست‌وجوهای او؛ انتخاب موضوع، ارتباط مقاله‌ها با خدمات، راهنمای نویسنده، تقویم انتشار و سنجش نتیجه.",
+      "canonical": "https://seodaily.ir/services/content-strategy",
+      "robots": "",
+      "h1": [
+        "استراتژی محتوا"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/seo",
+        "/services",
+        "/services/competitor-analysis",
+        "/services/content-optimization",
+        "/services/keyword-research",
+        "/services/personal-website"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/keyword-research",
+          "text": "تحقیق کلمات کلیدی"
+        },
+        {
+          "href": "/services/on-page-seo",
+          "text": "سئو داخلی"
+        },
+        {
+          "href": "/services/content-optimization",
+          "text": "بهینه‌سازی محتوا"
+        },
+        {
+          "href": "/services/seo-monitoring",
+          "text": "پایش و گزارش‌دهی سئو"
+        }
+      ]
+    },
+    {
+      "path": "/services/corporate-website",
+      "status": 200,
+      "title": "طراحی سایت شرکتی با ساختار منظم و قابل اعتماد | سئو دیلی",
+      "description": "طراحی سایت شرکتی از معماری صفحه‌ها و معرفی شرکت تا صفحه خدمات، فرم‌های ارتباط تفکیک‌شده، نسخه دوزبانه و پنل مدیریت برای به‌روزرسانی توسط تیم خودتان.",
+      "canonical": "https://seodaily.ir/services/corporate-website",
+      "robots": "",
+      "h1": [
+        "طراحی سایت شرکتی"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/services",
+        "/services/personal-website",
+        "/services/service-website",
+        "/services/website-redesign",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/seo",
+          "text": "اصول سئو"
+        },
+        {
+          "href": "/pricing",
+          "text": "تعرفه‌های طراحی سایت"
+        },
+        {
+          "href": "/services/website-redesign",
+          "text": "بازطراحی سایت"
+        }
+      ]
+    },
+    {
+      "path": "/services/keyword-research",
+      "status": 200,
+      "title": "تحقیق کلمات کلیدی؛ انتخاب عبارت و صفحه مناسب | سئو دیلی",
+      "description": "شناسایی عبارت‌هایی که مشتریان شما در گوگل جست‌وجو می‌کنند، تحلیل نیت و نتایج هر عبارت، خوشه‌بندی و تعیین صفحه مناسب برای هر گروه از کلمات.",
+      "canonical": "https://seodaily.ir/services/keyword-research",
+      "robots": "",
+      "h1": [
+        "تحقیق کلمات کلیدی"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/seo",
+        "/services",
+        "/services/competitor-analysis",
+        "/services/content-strategy",
+        "/services/on-page-seo",
+        "/services/online-store",
+        "/services/service-website"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/content-strategy",
+          "text": "استراتژی محتوا"
+        },
+        {
+          "href": "/services/on-page-seo",
+          "text": "سئو داخلی"
+        },
+        {
+          "href": "/services/competitor-analysis",
+          "text": "تحلیل رقبای جست‌وجو"
+        }
+      ]
+    },
+    {
+      "path": "/services/landing-page",
+      "status": 200,
+      "title": "طراحی لندینگ پیج برای کمپین و پیشنهاد مشخص | سئو دیلی",
+      "description": "طراحی لندینگ پیج برای تبلیغ، محصول یا رویداد؛ با پیام روشن، فرم ساده، نمایش مناسب در موبایل و امکان سنجش ثبت‌نام، درخواست یا خرید.",
+      "canonical": "https://seodaily.ir/services/landing-page",
+      "robots": "",
+      "h1": [
+        "طراحی Landing Page"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/services",
+        "/services/personal-website",
+        "/services/service-website",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/service-website",
+          "text": "سایت خدماتی"
+        },
+        {
+          "href": "/contact",
+          "text": "صفحه تماس"
+        }
+      ]
+    },
+    {
+      "path": "/services/on-page-seo",
+      "status": 200,
+      "title": "سئو داخلی؛ بهینه‌سازی عنوان، محتوا و ساختار صفحه | سئو دیلی",
+      "description": "بهینه‌سازی صفحه‌به‌صفحه سایت: تگ عنوان، توضیحات متا، هدینگ‌ها، لینک داخلی، تصاویر و داده ساختاریافته، متناسب با نیت جست‌وجوی هر صفحه.",
+      "canonical": "https://seodaily.ir/services/on-page-seo",
+      "robots": "",
+      "h1": [
+        "سئو داخلی"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/seo",
+        "/services",
+        "/services/content-optimization",
+        "/services/content-strategy",
+        "/services/corporate-website",
+        "/services/keyword-research",
+        "/services/landing-page",
+        "/services/personal-website",
+        "/services/service-website",
+        "/services/technical-seo"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/keyword-research",
+          "text": "تحقیق کلمات کلیدی و انتخاب صفحه مناسب"
+        },
+        {
+          "href": "/services/technical-seo",
+          "text": "سئو تکنیکال و رفع موانع فنی سایت"
+        },
+        {
+          "href": "/pricing",
+          "text": "روش قیمت‌گذاری خدمات سئو"
+        }
+      ]
+    },
+    {
+      "path": "/services/online-store",
+      "status": 200,
+      "title": "طراحی فروشگاه اینترنتی؛ از دسته‌بندی تا پرداخت | سئو دیلی",
+      "description": "طراحی فروشگاه اینترنتی با دسته‌بندی قابل‌فهم، صفحه محصول کامل، فیلترهای سازگار با سئو، اتصال درگاه پرداخت، تنظیم ارسال و پنل مدیریت سفارش و موجودی.",
+      "canonical": "https://seodaily.ir/services/online-store",
+      "robots": "",
+      "h1": [
+        "طراحی فروشگاه اینترنتی"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/services",
+        "/services/website-redesign",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/web-design",
+          "text": "خدمات طراحی سایت"
+        },
+        {
+          "href": "/services/keyword-research",
+          "text": "تحقیق کلمات کلیدی"
+        },
+        {
+          "href": "/services/technical-seo",
+          "text": "سئو تکنیکال"
+        },
+        {
+          "href": "/pricing",
+          "text": "تعرفه‌ها"
+        }
+      ]
+    },
+    {
+      "path": "/services/personal-website",
+      "status": 200,
+      "title": "طراحی سایت شخصی برای معرفی تخصص و نمونه‌کار | سئو دیلی",
+      "description": "طراحی سایت شخصی برای متخصصان و فریلنسرها: دامنه به نام خودتان، صفحه درباره من، نمایش نمونه‌کار همراه توضیح، رزومه آنلاین و یک راه تماس ساده.",
+      "canonical": "https://seodaily.ir/services/personal-website",
+      "robots": "",
+      "h1": [
+        "طراحی سایت شخصی"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/services",
+        "/services/landing-page",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/corporate-website",
+          "text": "طراحی سایت شرکتی"
+        },
+        {
+          "href": "/services/content-strategy",
+          "text": "استراتژی محتوا"
+        },
+        {
+          "href": "/services/landing-page",
+          "text": "لندینگ پیج"
+        }
+      ]
+    },
+    {
+      "path": "/services/seo-audit",
+      "status": 200,
+      "title": "ممیزی سئو سایت؛ بررسی فنی، محتوایی و ایندکس | سئو دیلی",
+      "description": "بررسی سئو سایت از نظر فنی، محتوا، ایندکس و لینک‌های داخلی، همراه با فهرست اولویت‌بندی‌شده مشکلات، راهنمای رفع هر مورد و نقشه راه اجرایی.",
+      "canonical": "https://seodaily.ir/services/seo-audit",
+      "robots": "",
+      "h1": [
+        "بررسی و ممیزی سئو"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/seo",
+        "/services",
+        "/services/competitor-analysis",
+        "/services/seo-monitoring",
+        "/services/technical-seo",
+        "/services/website-redesign"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/technical-seo",
+          "text": "سئو تکنیکال"
+        },
+        {
+          "href": "/services/seo-monitoring",
+          "text": "پایش و گزارش‌دهی منظم"
+        },
+        {
+          "href": "/contact",
+          "text": "صفحه تماس با ما"
+        }
+      ]
+    },
+    {
+      "path": "/services/seo-monitoring",
+      "status": 200,
+      "title": "پایش و گزارش سئو؛ پیگیری شاخص‌ها و خطاهای فنی | سئو دیلی",
+      "description": "بررسی منظم کلیک‌های گوگل، صفحات ثبت‌شده، درخواست‌ها و خطاهای فنی سایت؛ همراه با گزارش روشن از تغییرات، دلیل احتمالی و کارهای بعدی.",
+      "canonical": "https://seodaily.ir/services/seo-monitoring",
+      "robots": "",
+      "h1": [
+        "پایش و گزارش‌دهی"
+      ],
+      "incomingContentSources": [
+        "/seo",
+        "/services",
+        "/services/content-optimization",
+        "/services/content-strategy",
+        "/services/seo-audit",
+        "/services/technical-seo",
+        "/services/website-redesign"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/technical-seo",
+          "text": "سئو تکنیکال"
+        },
+        {
+          "href": "/services/seo-audit",
+          "text": "ممیزی کامل سئو"
+        }
+      ]
+    },
+    {
+      "path": "/services/service-website",
+      "status": 200,
+      "title": "طراحی سایت خدماتی برای جذب تماس و درخواست | سئو دیلی",
+      "description": "طراحی سایت خدماتی با صفحه جدا برای هر خدمت، مسیر روشن تا تماس، فرم یا رزرو نوبت، محتوای اعتمادساز و اندازه‌گیری درخواست‌هایی که از سایت می‌رسد.",
+      "canonical": "https://seodaily.ir/services/service-website",
+      "robots": "",
+      "h1": [
+        "طراحی سایت خدماتی"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/services",
+        "/services/corporate-website",
+        "/services/landing-page",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/keyword-research",
+          "text": "تحقیق کلمات کلیدی"
+        },
+        {
+          "href": "/services/landing-page",
+          "text": "صفحه فرود اختصاصی"
+        },
+        {
+          "href": "/services/on-page-seo",
+          "text": "سئو داخلی"
+        }
+      ]
+    },
+    {
+      "path": "/services/technical-seo",
+      "status": 200,
+      "title": "سئو تکنیکال؛ رفع مشکلات خزش، ایندکس و سرعت سایت | سئو دیلی",
+      "description": "بررسی و رفع مشکلات فنی سئو؛ از سرعت و دسترسی گوگل به صفحات تا آدرس‌های تکراری، نقشه سایت و انتقال درست صفحه‌ها.",
+      "canonical": "https://seodaily.ir/services/technical-seo",
+      "robots": "",
+      "h1": [
+        "سئو تکنیکال"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/seo",
+        "/services",
+        "/services/on-page-seo",
+        "/services/online-store",
+        "/services/seo-audit",
+        "/services/seo-monitoring",
+        "/services/website-redesign"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/seo-audit",
+          "text": "ممیزی سئو"
+        },
+        {
+          "href": "/services/website-redesign",
+          "text": "بازطراحی و انتقال سایت"
+        },
+        {
+          "href": "/services/on-page-seo",
+          "text": "سئو داخلی صفحه‌ها"
+        }
+      ]
+    },
+    {
+      "path": "/services/website-redesign",
+      "status": 200,
+      "title": "بازطراحی سایت با برنامه حفظ محتوا و سئو | سئو دیلی",
+      "description": "بازطراحی ظاهر و ساختار سایت با بررسی محتوای فعلی، انتقال درست آدرس‌ها و کنترل سئو پس از انتشار؛ برای کاهش خطر افت بازدید هنگام تغییر سایت.",
+      "canonical": "https://seodaily.ir/services/website-redesign",
+      "robots": "",
+      "h1": [
+        "بازطراحی سایت"
+      ],
+      "incomingContentSources": [
+        "/services",
+        "/services/corporate-website",
+        "/services/online-store",
+        "/services/seo-audit",
+        "/services/technical-seo",
+        "/web-design"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/services/seo-audit",
+          "text": "ممیزی سئو"
+        },
+        {
+          "href": "/services/technical-seo",
+          "text": "سئو تکنیکال"
+        },
+        {
+          "href": "/services/seo-monitoring",
+          "text": "پایش و گزارش‌دهی سئو"
+        },
+        {
+          "href": "/pricing",
+          "text": "تعرفه‌ها"
+        }
+      ]
+    },
+    {
+      "path": "/web-design",
+      "status": 200,
+      "title": "طراحی سایت حرفه‌ای شرکتی، فروشگاهی و خدماتی | سئو دیلی",
+      "description": "طراحی سایت شرکتی، فروشگاه اینترنتی، سایت خدماتی، شخصی و لندینگ پیج؛ سریع، ریسپانسیو، قابل مدیریت و با ساختاری که از ابتدا برای سئو آماده است.",
+      "canonical": "https://seodaily.ir/web-design",
+      "robots": "",
+      "h1": [
+        "طراحی سایت متناسب با کسب‌وکار شما"
+      ],
+      "incomingContentSources": [
+        "/",
+        "/about",
+        "/pricing",
+        "/services",
+        "/services/keyword-research",
+        "/services/online-store"
+      ],
+      "contextualLinks": [
+        {
+          "href": "/contact",
+          "text": "درخواست مشاوره"
+        }
+      ]
+    }
+  ]
+}

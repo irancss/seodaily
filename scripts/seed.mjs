@@ -1,12 +1,14 @@
 // Idempotent seed, run on every container start: creates the admin account from
 // ADMIN_EMAIL / ADMIN_PASSWORD when no user exists, fills empty content tables
-// with the initial texts and, once per content version, refreshes service pages
-// that were never edited in the admin. Rows edited by the owner are never touched.
+// with the initial texts and, once per content version, refreshes shipped copy.
+// Untouched rows are upgraded in full; edited rows keep all custom field values.
 import bcrypt from "bcryptjs";
 import postgres from "postgres";
+import { isDeepStrictEqual } from "node:util";
 
 import { categories, faqs, services } from "./seed-data.mjs";
-import { contentColumns, SERVICE_CONTENT_VERSION, serviceContent } from "./service-content/index.mjs";
+import { contentColumns, SERVICE_CONTENT_VERSION, serviceContent, previousServiceContent } from "./service-content/index.mjs";
+import { pageCopy } from "./editorial-copy.mjs";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -79,9 +81,8 @@ if (await isEmpty("services")) {
   console.log(`seeded ${services.length} services`);
 }
 
-// Upgrade existing installs to the current service page content, once. Only
-// rows that were never saved from the admin panel (updated_at still equals
-// created_at) are replaced, so the owner's edits are always kept.
+// Upgrade existing installs once. Replace untouched rows in full; for previously
+// saved rows, upgrade only fields that still exactly match the shipped v2 copy.
 const [done] = await sql`select value from settings where key = ${CONTENT_KEY}`;
 if (!seededServices && (!done || Number(done.value) < SERVICE_CONTENT_VERSION)) {
   const updated = [];
@@ -91,7 +92,17 @@ if (!seededServices && (!done || Number(done.value) < SERVICE_CONTENT_VERSION)) 
       const result = await tx`
         update services set ${tx(asSqlValues(contentColumns(content)))}, updated_at = now()
         where slug = ${slug} and updated_at = created_at`;
-      (result.count > 0 ? updated : kept).push(slug);
+      if (result.count > 0) { updated.push(slug); continue; }
+      // Earlier automatic upgrades also changed updated_at. Compare the actual
+      // shipped v2 value per field; a timestamp cannot distinguish those from
+      // the owner's later edits. Never overwrite a field with different text.
+      const [row] = await tx`select * from services where slug = ${slug} for update`;
+      const before = contentColumns(previousServiceContent[slug]);
+      const patch = Object.fromEntries(Object.entries(contentColumns(content)).filter(([key, value]) => row && !isDeepStrictEqual(before[key], value) && isDeepStrictEqual(row[key], before[key])));
+      if (Object.keys(patch).length) {
+        await tx`update services set ${tx(asSqlValues(patch))}, updated_at = now() where id = ${row.id}`;
+        updated.push(slug);
+      } else kept.push(slug);
     }
     await tx`
       insert into settings (key, value) values (${CONTENT_KEY}, ${tx.json(SERVICE_CONTENT_VERSION)})
@@ -99,6 +110,24 @@ if (!seededServices && (!done || Number(done.value) < SERVICE_CONTENT_VERSION)) 
   });
   console.log(`service content v${SERVICE_CONTENT_VERSION}: updated ${updated.length}` + (kept.length ? `, kept (edited or missing): ${kept.join(", ")}` : ""));
 }
+
+// Saved page settings can still contain the original defaults. Replace only
+// exact old wording, preserving all custom fields, logos and unrelated settings.
+await sql.begin(async (tx) => {
+  const key = "seed:editorial-copy-v3";
+  if ((await tx`select key from settings where key = ${key}`).length) return;
+  const [row] = await tx`select value from settings where key = 'pages' for update`;
+  let changed = 0;
+  if (row?.value && typeof row.value === "object" && !Array.isArray(row.value)) {
+    const value = structuredClone(row.value);
+    for (const [page, fields] of Object.entries(pageCopy)) for (const [field, [before, after]] of Object.entries(fields)) {
+      if (value[page]?.[field] === before) { value[page][field] = after; changed++; }
+    }
+    if (changed) await tx`update settings set value = ${tx.json(value)}, updated_at = now() where key = 'pages'`;
+  }
+  await tx`insert into settings(key,value) values (${key},'true'::jsonb) on conflict(key) do nothing`;
+  console.log(`editorial copy v3: updated ${changed} saved page fields`);
+});
 
 if (await isEmpty("faqs")) {
   await sql.begin(async (tx) => {

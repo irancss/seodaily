@@ -1,15 +1,15 @@
-// Service page content (version 2): the text of every section of each
-// /services/<slug> page. New installs are seeded with it; existing installs
-// get it through the upgrade step in seed.mjs, which only touches services
-// that were never edited in the admin panel.
+// Versioned copy for /services/<slug>. Keep the previous shipped values so seed
+// can update default fields without replacing the owner's custom wording.
 import { content as seo1 } from "./seo-1.mjs";
 import { content as seo2 } from "./seo-2.mjs";
 import { content as webDesign } from "./web-design.mjs";
+import { editorialRevision } from "./editorial-v3.mjs";
 
-export const SERVICE_CONTENT_VERSION = 2;
+export const SERVICE_CONTENT_VERSION = 3;
 
 /** slug → page content (the `mapping` key is documentation only and never stored). */
-export const serviceContent = { ...webDesign, ...seo1, ...seo2 };
+export const previousServiceContent = { ...webDesign, ...seo1, ...seo2 };
+export const serviceContent = editorialRevision(previousServiceContent);
 
 /** The columns of the services table that the content fills. */
 export function contentColumns(c) {

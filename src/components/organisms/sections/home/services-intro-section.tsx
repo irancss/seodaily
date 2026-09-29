@@ -104,11 +104,10 @@ export function HomeServicesIntroSection({ categories, services }: Props) {
             <div className="flex max-w-[620px] flex-col items-start gap-3">
               <span className="eyebrow">تعرفه‌ها و ماشین‌حساب</span>
               <h3 className="t-h2">
-                هزینه پروژه‌ات را <span className="text-gradient">همین حالا</span> حساب کن
+                هزینه پروژه‌تان را <span className="text-gradient">همین حالا</span> برآورد کنید
               </h3>
               <p className="body-lg">
-                تعرفه طراحی سایت، سئو و تولید محتوا را ببین، گزینه‌های موردنیازت را انتخاب کن و جمع هزینه را همان لحظه
-                ببین.
+                گزینه‌های موردنیاز برای طراحی سایت، سئو یا تولید محتوا را انتخاب کنید و برآورد هزینه را همان لحظه ببینید.
               </p>
               <ButtonLink href="/pricing" variant="white" size="lg" arrow className="mt-3 w-full sm:w-auto">
                 ورود به ماشین‌حساب هزینه
@@ -117,6 +116,9 @@ export function HomeServicesIntroSection({ categories, services }: Props) {
             <CalculatorMock />
           </article>
         </div>
+        <p className="mt-6 leading-8 text-ink-2">
+          برای مقایسهٔ گزینه‌ها و انتخاب نقطه شروع، <Link href="/services" className="font-medium text-brand-hover underline underline-offset-4">فهرست کامل خدمات طراحی سایت و سئو</Link> را ببینید.
+        </p>
       </div>
     </section>
   );

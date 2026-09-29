@@ -93,11 +93,20 @@ jobs:
           # The plugin worker, as in production: a separate process.
           node dist/worker.mjs > /tmp/worker.log 2>&1 &
           BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)
+          BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir AUDIT_STRICT=true node scripts/seo-audit.mjs /tmp/seo-audit.json
           BASE_URL=http://127.0.0.1:3000 node tests/seo-report.mjs >> "$GITHUB_STEP_SUMMARY"
           BASE_URL=http://127.0.0.1:3000 npm run test:security || (tail -50 /tmp/server.log; exit 1)
           BASE_URL=http://127.0.0.1:3000 npm run test:e2e || (tail -50 /tmp/server.log; tail -50 /tmp/worker.log; exit 1)
           # Migration/seed safety on throwaway databases next to the CI one.
           npm run test:db
+
+      - name: Public page and internal link inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-audit-built-app
+          path: /tmp/seo-audit.json
+          if-no-files-found: ignore
 
   deploy:
     # Every push to main goes live once the checks pass.
@@ -274,6 +283,15 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Browser for the layout checks
         run: npm ci --no-audit --no-fund && npx playwright-core install --with-deps chromium
+      - name: All public pages and internal links (read-only)
+        run: BASE_URL="$SITE" SITE_ORIGIN="$SITE" AUDIT_STRICT=true node scripts/seo-audit.mjs /tmp/seo-audit.json
+      - name: Production page and internal link inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-audit-production
+          path: /tmp/seo-audit.json
+          if-no-files-found: ignore
       - name: Responsive layout on production (8 widths, read-only)
         run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/layout.test.mjs
       - name: Accessibility on production (axe WCAG 2.2 AA + keyboard, read-only)

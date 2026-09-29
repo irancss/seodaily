@@ -1,6 +1,7 @@
 // Design defaults; a stored setting is merged over these field by field.
 
 import type { ContactSettings, GeneralSettings, PageKey, PageText } from "./types";
+import { revisePageDefaults } from "../../../scripts/editorial-copy.mjs";
 
 export const DEFAULT_GENERAL: GeneralSettings = {
   siteName: "سئو دیلی",
@@ -36,7 +37,7 @@ export const DEFAULT_CONTACT: ContactSettings = {
   socials: [],
 };
 
-export const DEFAULT_PAGES: Record<PageKey, PageText> = {
+const ORIGINAL_PAGES: Record<PageKey, PageText> = {
   home: {
     badge: "طراحی سایت و سئو",
     title: "طراحی سایت و سئو برای *رشد اصولی* کسب‌وکارها",
@@ -129,3 +130,5 @@ export const DEFAULT_PAGES: Record<PageKey, PageText> = {
     metaDescription: "فرم درخواست مشاوره طراحی سایت و سئو؛ اطلاعات اولیه پروژه را بفرستید یا تماس بگیرید تا نیاز شما و مسیر مناسب همکاری بررسی شود.",
   },
 };
+
+export const DEFAULT_PAGES: Record<PageKey, PageText> = revisePageDefaults(ORIGINAL_PAGES);
