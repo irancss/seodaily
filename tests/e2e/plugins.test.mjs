@@ -223,14 +223,17 @@ test("PL-T22/T23/T24/T26: phone check once per browser, 10-minute link, HEAD/Ran
   const probe = await page.evaluate(async (url) => {
     const head = await fetch(url, { method: "HEAD" });
     const part = await fetch(url, { headers: { range: "bytes=0-9" } });
-    return { head: head.status, part: part.status, range: part.headers.get("content-range"), bytes: (await part.arrayBuffer()).byteLength };
+    const bytes = (await part.arrayBuffer()).byteLength;
+    const suffix = await fetch(url, { headers: { range: "bytes=-1" } });
+    return { head: head.status, part: part.status, range: part.headers.get("content-range"), bytes, suffixBytes: (await suffix.arrayBuffer()).byteLength };
   }, href);
   assert.equal(probe.head, 200);
   assert.equal(probe.part, 206);
   assert.equal(probe.bytes, 10);
+  assert.equal(probe.suffixBytes, 1);
   assert.match(probe.range, /^bytes 0-9\/\d+$/);
   let [p] = await sql`select measured_download_count as n from plugins where id = ${pluginId}`;
-  assert.equal(p.n, 0, "HEAD and a partial range are not downloads");
+  assert.equal(p.n, 0, "HEAD, a partial prefix and the final byte do not constitute a full download");
 
   const other = await browser.newContext();
   assert.equal((await other.request.get(`${BASE}${href}`)).status(), 403, "the link needs this browser's session");

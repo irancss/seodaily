@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 
 import { db, schema } from "@/db";
+import { editorialSnapshot } from "./draft";
 
 const P = schema.plugins;
 const R = schema.pluginReleases;
@@ -69,7 +70,7 @@ export async function getPluginAdmin(id: number) {
     db.select().from(R).where(eq(R.pluginId, id)).orderBy(desc(R.createdAt)).limit(30),
     db.select().from(schema.pluginJobs).where(eq(schema.pluginJobs.pluginId, id)).orderBy(desc(schema.pluginJobs.createdAt)).limit(10),
   ]);
-  return { plugin, categoryIds: links.map((l) => l.categoryId), sources, releases, jobs };
+  return { plugin: editorialSnapshot(plugin), categoryIds: plugin.draftData?.categoryIds ?? links.map((l) => l.categoryId), sources, releases, jobs };
 }
 
 export type AdminPlugin = NonNullable<Awaited<ReturnType<typeof getPluginAdmin>>>;

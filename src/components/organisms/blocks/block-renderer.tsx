@@ -1,3 +1,4 @@
+import { FaqList } from "@/components/organisms/faq-list";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -148,14 +149,7 @@ function block(n: BlockNode, ctx: Ctx, key: number): ReactNode {
       );
     case "faq":
       return (
-        <div key={key} className="block-faq">
-          {(n.content ?? []).map((item, j) => (
-            <details key={j}>
-              <summary>{String(item.attrs?.question ?? "")}</summary>
-              <div>{blocks(item.content, ctx)}</div>
-            </details>
-          ))}
-        </div>
+        <FaqList key={key} items={(n.content ?? []).map((item) => ({ question: String(item.attrs?.question ?? ""), answer: blocks(item.content, ctx) }))} />
       );
     case "cta": {
       const href = resolveHref(String(a.href ?? ""), ctx.hrefs);

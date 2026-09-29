@@ -79,3 +79,9 @@ if ! ssh prod 'docker image inspect postgres:16-alpine >/dev/null 2>&1'; then
   docker pull -q postgres:16-alpine >/dev/null
   docker save postgres:16-alpine | gzip | ssh prod 'gunzip | docker load'
 fi
+
+# The scanner image is shipped too; production does not need Docker Hub access.
+if ! ssh prod 'docker image inspect clamav/clamav:1.4 >/dev/null 2>&1'; then
+  docker pull -q clamav/clamav:1.4 >/dev/null
+  docker save clamav/clamav:1.4 | gzip | ssh prod 'gunzip | docker load'
+fi

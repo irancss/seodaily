@@ -83,7 +83,7 @@ fi
 # The plugin worker follows the app to the same image (it finishes or hands
 # back its running jobs on SIGTERM; interrupted jobs are retried).
 log "plugin worker"
-docker compose up -d --no-deps worker || log "WARNING: the plugin worker did not start (the site is live; see docker compose logs worker)"
+docker compose up -d --no-deps clamav worker || log "WARNING: the plugin worker did not start (the site is live; see docker compose logs worker)"
 
 printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TAG" >> "$DEPLOY_PATH/deploys.log"
 log "live: $TAG"

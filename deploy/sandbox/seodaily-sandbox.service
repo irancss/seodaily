@@ -1,0 +1,23 @@
+[Unit]
+Description=SEOdaily isolated WordPress test orchestrator
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+User=seodaily-sandbox
+SupplementaryGroups=docker
+WorkingDirectory=/opt/seodaily-sandbox
+EnvironmentFile=/etc/seodaily-sandbox.env
+ExecStart=/usr/bin/node /opt/seodaily-sandbox/runner.mjs
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+# Docker must see the same artifact path as the orchestrator.
+PrivateTmp=false
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/tmp
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

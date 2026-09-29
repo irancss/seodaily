@@ -5,6 +5,7 @@ import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 
 import { downloadConfig } from "./config";
+import { mergeRanges } from "./ranges";
 
 // Download links: a grant is a random id bound to a user, a session, one
 // release and its SHA-256, valid for 10 minutes. The file URL alone is not
@@ -41,6 +42,7 @@ async function downloadableRelease(releaseId: number) {
 
 export async function issueGrant(input: { sessionId: number; userId: number; releaseId: number; ipHash: string; now?: Date }) {
   const cfg = downloadConfig();
+  if (!cfg.enabled) throw new GrantError("دانلود موقتاً غیرفعال است؛ کمی بعد دوباره تلاش کنید.", 503, 60);
   const now = input.now ?? new Date();
   const found = await downloadableRelease(input.releaseId);
   if (!found) throw new GrantError("این نسخه دیگر برای دانلود در دسترس نیست.", 404);
@@ -83,6 +85,7 @@ export type Authorized = {
  */
 export async function authorizeFile(input: { grantId: string; sessionId: number; ipHash: string; start: boolean; now?: Date }): Promise<Authorized> {
   const cfg = downloadConfig();
+  if (!cfg.enabled) throw new GrantError("دانلود موقتاً غیرفعال است؛ کمی بعد دوباره تلاش کنید.", 503, 60);
   const now = input.now ?? new Date();
   if (!/^[A-Za-z0-9_-]{30,40}$/.test(input.grantId)) throw new GrantError("لینک دانلود نامعتبر است.", 404);
   const [grant] = await db.select().from(downloadGrants).where(eq(downloadGrants.id, input.grantId)).limit(1);
@@ -136,8 +139,15 @@ export async function authorizeFile(input: { grantId: string; sessionId: number;
  * visitor's computer. Counted once per grant; tests and bots are recorded
  * but never counted publicly.
  */
-export async function markServed(a: Authorized, bytes: number, opts: { notCounted?: string } = {}) {
+export async function markServed(a: Authorized, bytes: number, opts: { notCounted?: string; start?: number } = {}) {
+  if (bytes <= 0) return;
+  const start = opts.start ?? 0;
   await db.transaction(async (tx) => {
+    const [grant] = await tx.select().from(downloadGrants).where(eq(downloadGrants.id, a.grantId)).for("update");
+    if (!grant || grant.servedAt) return;
+    const ranges = mergeRanges(grant.servedRanges, start, start + bytes - 1, a.release.bytes);
+    await tx.update(downloadGrants).set({ servedRanges: ranges }).where(eq(downloadGrants.id, a.grantId));
+    if (ranges.length !== 1 || ranges[0][0] !== 0 || ranges[0][1] !== a.release.bytes - 1) return;
     const [row] = await tx
       .insert(downloadEvents)
       .values({
@@ -147,7 +157,7 @@ export async function markServed(a: Authorized, bytes: number, opts: { notCounte
         releaseId: a.release.id,
         userId: a.userId,
         dedupeKey: `served:${a.grantId}`,
-        bytes,
+        bytes: a.release.bytes,
         detail: opts.notCounted ?? "",
       })
       .onConflictDoNothing()

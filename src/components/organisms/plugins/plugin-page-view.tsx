@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Icon } from "@/components/atoms";
-import { Breadcrumb } from "@/components/molecules";
+import { PageHero } from "@/components/organisms/page-hero";
 import { BlockRenderer, hasContent, type HrefMap } from "@/components/organisms/blocks/block-renderer";
 import { outline } from "@/modules/blocks/text";
 import { faDate, faNumber, formatBytes } from "@/modules/plugins/labels";
@@ -55,49 +55,44 @@ export function PluginPageView({ plugin, hrefs, download }: { plugin: PublicPlug
 
   return (
     <>
-      <section className="border-b border-line bg-page pt-8 pb-10 lg:pt-12 lg:pb-14">
-        <div className="container-site">
-          <Breadcrumb items={breadcrumb} />
-          <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-start">
-            <PluginIcon src={plugin.iconUrl} name={plugin.name} size={88} priority />
-            <div className="min-w-0">
-              <h1 className="t-h1 text-[1.75rem] leading-[1.6] lg:text-[2.25rem]">{title}</h1>
-              {plugin.originalName && plugin.originalName !== plugin.name && (
-                <p className="mt-1 text-base text-muted" dir="ltr" lang="en">
-                  {plugin.originalName}
-                </p>
-              )}
-              {plugin.excerpt && <p className="body-lg mt-3 max-w-[760px]">{plugin.excerpt}</p>}
-              <ul className="mt-5 flex flex-wrap gap-2 text-sm">
-                {current && (
-                  <li className="chip bg-white">
-                    نسخه <span dir="ltr">{current.version}</span>
-                  </li>
-                )}
-                {plugin.packageUpdatedAt && (
-                  <li className="chip bg-white">
-                    به‌روزرسانی <time dateTime={plugin.packageUpdatedAt}>{faDate(plugin.packageUpdatedAt)}</time>
-                  </li>
-                )}
-                {plugin.downloads > 0 && <li className="chip bg-white">{faNumber(plugin.downloads)} دانلود</li>}
-                {plugin.categories.map((c) => (
-                  <li key={c.id}>
-                    <Link href={`/plugins/${c.slug}`} className="chip bg-white no-underline hover:border-brand">
-                      {c.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              {current && (
-                <a href="#download" className="btn btn-primary mt-6 h-12 gap-2 px-6">
-                  <Icon name="download" size={18} />
-                  دانلود افزونه
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        breadcrumb={breadcrumb}
+        title={
+          <span className="flex items-center gap-4">
+            <PluginIcon src={plugin.iconUrl} name={plugin.name} size={64} priority />
+            <span>{title}</span>
+          </span>
+        }
+        subtitle={plugin.excerpt}
+        actions={current && (
+          <a href="#download" className="btn btn-primary h-12 gap-2 px-6">
+            <Icon name="download" size={18} />
+            دانلود افزونه
+          </a>
+        )}
+      >
+        {plugin.originalName && plugin.originalName !== plugin.name && <p className="text-sm text-white/70" dir="ltr" lang="en">{plugin.originalName}</p>}
+        <ul className="mt-5 flex flex-wrap gap-2 text-sm">
+          {current && (
+            <li className="chip border-white/20 bg-white/10 text-white">
+              نسخه <span dir="ltr">{current.version}</span>
+            </li>
+          )}
+          {plugin.packageUpdatedAt && (
+            <li className="chip border-white/20 bg-white/10 text-white">
+              به‌روزرسانی <time dateTime={plugin.packageUpdatedAt}>{faDate(plugin.packageUpdatedAt)}</time>
+            </li>
+          )}
+          {plugin.downloads > 0 && <li className="chip border-white/20 bg-white/10 text-white">{faNumber(plugin.downloads)} دانلود</li>}
+          {plugin.categories.map((c) => (
+            <li key={c.id}>
+              <Link href={`/plugins/${c.slug}`} className="chip border-white/20 bg-white/10 text-white no-underline hover:border-white/50">
+                {c.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </PageHero>
 
       <div className="container-site grid gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12 lg:py-14">
         <div className="min-w-0">
@@ -150,7 +145,7 @@ export function PluginPageView({ plugin, hrefs, download }: { plugin: PublicPlug
           <GlobalBlocks blocks={byPosition("before_download")} hrefs={hrefs} />
 
           <section id="download" aria-labelledby="download-title" className="mt-10 scroll-mt-24">
-            <h2 id="download-title" className="t-h2 text-2xl">
+            <h2 id="download-title" className="t-h2">
               دانلود {plugin.name}
             </h2>
             {download}
@@ -236,7 +231,7 @@ export function PluginPageView({ plugin, hrefs, download }: { plugin: PublicPlug
           <div className="container-site">
             {plugin.related.length > 0 && (
               <section aria-labelledby="related-title">
-                <h2 id="related-title" className="t-h2 text-2xl">
+                <h2 id="related-title" className="t-h2">
                   افزونه‌های مرتبط
                 </h2>
                 <PluginGrid plugins={plugin.related} className="mt-6" />

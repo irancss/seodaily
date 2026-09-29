@@ -21,10 +21,10 @@ export function PluginIcon({ src, name, size = 56, priority = false, className }
   return (
     <span
       aria-hidden="true"
-      className={cx("flex shrink-0 items-center justify-center rounded-xl bg-soft font-bold text-brand-hover", className)}
+      data-letter={letter.toUpperCase()}
+      className={cx("flex shrink-0 items-center justify-center rounded-xl bg-soft font-bold text-brand-hover before:content-[attr(data-letter)]", className)}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }}
     >
-      {letter.toUpperCase()}
     </span>
   );
 }

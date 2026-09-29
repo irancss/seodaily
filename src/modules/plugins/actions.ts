@@ -129,9 +129,9 @@ export async function publishPluginAction(form: FormData) {
   const user = await requireAdmin();
   const id = int(form, "id");
   try {
-    await publishPlugin(id, user.id);
+    await publishPlugin(id, user.id, int(form, "revision"));
   } catch (error) {
-    if (error instanceof CatalogError) failed(`/admin/plugins/${id}`, error.message);
+    if (error instanceof CatalogError || error instanceof SlugError) failed(`/admin/plugins/${id}`, error.message);
     throw error;
   }
   saved(`/admin/plugins/${id}`, "افزونه در سایت منتشر شد.");
@@ -186,6 +186,8 @@ export async function saveCategoryAction(_prev: FormState, form: FormData): Prom
       description: json(form, "description"),
       seoTitle: str(form, "seoTitle", 120),
       seoDescription: str(form, "seoDescription", 300),
+      canonicalUrl: str(form, "canonicalUrl", 300),
+      noindex: bool(form, "noindex"),
       imageUrl: image(form, "imageUrl"),
       sortOrder: int(form, "sortOrder"),
       published: bool(form, "published"),

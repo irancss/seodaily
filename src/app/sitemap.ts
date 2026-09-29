@@ -32,6 +32,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const pages = ["/", "/web-design", "/seo", "/services", "/pricing", ...(projects.length > 0 ? ["/portfolio"] : []), "/about", "/contact"];
   const url = (path: string) => (path === "/" ? base : `${base}${path}`);
+  const ownCanonical = (canonical: string, slug: string) => {
+    try { return !canonical || new URL(canonical, base).href === url(`/plugins/${slug}`); }
+    catch { return false; }
+  };
 
   return [
     ...pages.map((path) => ({ url: url(path) })),
@@ -39,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...projects.map((p) => ({ url: url(projectHref(p.slug)), lastModified: new Date(p.updatedAt) })),
     // The plugin library is listed once it has published plugins; categories only with published plugins.
     ...(plugins.length > 0 ? [{ url: url("/plugins"), ...lastmod(plugins.map((p) => p.updatedAt)) }] : []),
-    ...categories.map((c) => ({ url: url(`/plugins/${c.slug}`), ...lastmod([c.updatedAt]) })),
+    ...categories.filter((c) => !c.noindex && ownCanonical(c.canonicalUrl, c.slug)).map((c) => ({ url: url(`/plugins/${c.slug}`), ...lastmod([c.updatedAt]) })),
     ...plugins.map((p) => ({ url: url(`/plugins/${p.slug}`), ...lastmod([p.updatedAt]) })),
   ];
 }

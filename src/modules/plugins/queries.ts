@@ -10,6 +10,7 @@ import { entityLinks } from "@/modules/blocks/text";
 import { resolveSlug } from "@/modules/slugs/registry";
 
 import { autoRelated } from "./catalog";
+import { editorialSnapshot } from "./draft";
 import { publicDownloadCount } from "./labels";
 
 // Public reads of the plugin library. Only published plugins, published
@@ -161,7 +162,7 @@ export const popularPlugins = cached(async (limit: number = HOME_PLUGIN_COUNT) =
   return rows.map(toCard);
 }, "plugins:popular");
 
-export type PublicCategory = { id: number; slug: string; title: string; count: number; updatedAt: string | null };
+export type PublicCategory = { id: number; slug: string; title: string; count: number; updatedAt: string | null; noindex: boolean; canonicalUrl: string };
 
 /** Published categories that hold at least one published plugin. */
 export const publishedCategories = cached(async (): Promise<PublicCategory[]> => {
@@ -171,6 +172,8 @@ export const publishedCategories = cached(async (): Promise<PublicCategory[]> =>
       slug: pluginCategories.slug,
       title: pluginCategories.title,
       count: count(plugins.id),
+      noindex: pluginCategories.noindex,
+      canonicalUrl: pluginCategories.canonicalUrl,
       updatedAt: sql<string | null>`max(coalesce(${plugins.packageUpdatedAt}, ${plugins.contentUpdatedAt}, ${plugins.publishedAt}))`,
     })
     .from(pluginCategories)
@@ -192,6 +195,8 @@ export const getPublishedCategory = cached(async (id: number) => {
       description: pluginCategories.description,
       seoTitle: pluginCategories.seoTitle,
       seoDescription: pluginCategories.seoDescription,
+      canonicalUrl: pluginCategories.canonicalUrl,
+      noindex: pluginCategories.noindex,
       imageUrl: pluginCategories.imageUrl,
     })
     .from(pluginCategories)
@@ -221,19 +226,19 @@ export type PublicBlock = { id: number; title: string; content: BlockDocument | 
  * draft of any plugin instead (admin preview only — never cached).
  */
 async function loadPlugin(id: number, preview: boolean) {
-  const [p] = await db
+  const [row] = await db
     .select()
     .from(plugins)
     .where(preview ? eq(plugins.id, id) : and(eq(plugins.id, id), published))
     .limit(1);
-  if (!p) return null;
+  if (!row) return null;
+  const p = preview ? editorialSnapshot(row) : row;
 
   const [categoryRows, releases, blocks] = await Promise.all([
     db
       .select({ id: pluginCategories.id, slug: pluginCategories.slug, title: pluginCategories.title })
-      .from(pluginCategoryLinks)
-      .innerJoin(pluginCategories, eq(pluginCategories.id, pluginCategoryLinks.categoryId))
-      .where(and(eq(pluginCategoryLinks.pluginId, id), eq(pluginCategories.published, true)))
+      .from(pluginCategories)
+      .where(and(inArray(pluginCategories.id, preview && row.draftData ? row.draftData.categoryIds : db.select({ id: pluginCategoryLinks.categoryId }).from(pluginCategoryLinks).where(eq(pluginCategoryLinks.pluginId, id))), eq(pluginCategories.published, true)))
       .orderBy(asc(pluginCategories.sortOrder), asc(pluginCategories.title)),
     db
       .select()

@@ -35,7 +35,7 @@ export async function jobsFor(pluginId: number, limit = 10) {
 
 export type Health = {
   scanner?: { available: boolean; engine: string; signatures: string; ageHours: number | null; error: string };
-  sandbox?: { available: boolean };
+  sandbox?: { available: boolean; detail?: string; profile?: string };
   freeBytes?: number;
   minFreeBytes?: number;
   autoUpdate?: boolean;
@@ -85,12 +85,12 @@ export async function monitorData() {
       where p.status <> 'archived'
       order by p.name`),
   ]);
-  const alive = workers.find((w) => now.getTime() - w.seenAt.getTime() < 120_000);
+  const alive = workers.find((w) => now.getTime() >= w.seenAt.getTime() && now.getTime() - w.seenAt.getTime() < 120_000);
   return {
     now,
     workers,
     alive: Boolean(alive),
-    health: (alive ?? workers[0])?.health as Health | undefined,
+    health: alive?.health as Health | undefined,
     lastRun: run,
     nextRun: nextSlot(now),
     queued: queue.find((q) => q.state === "queued")?.n ?? 0,

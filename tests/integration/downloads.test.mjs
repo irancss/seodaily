@@ -180,3 +180,25 @@ test("PL-T26/T27/T28: served is counted once per grant, concurrently; tests/bots
   const [{ reconciled }] = await sql`select (select count(*) from download_events e where e.plugin_id = p.id and e.kind = 'served')::int = p.measured_download_count as reconciled from plugins p where p.id = ${rel.pluginId}`;
   assert.equal(reconciled, true, "the counter matches the ledger");
 });
+
+test("suffix ranges cannot inflate counts; overlapping resumes count once only after complete coverage", async () => {
+  const s = await session("ip-range"), rel = await publishedRelease(990);
+  const g = await grants.issueGrant({ sessionId: s.sessionId, userId: s.userId, releaseId: rel.releaseId, ipHash: "ip-range" });
+  const a = await grants.authorizeFile({ grantId: g.grantId, sessionId: s.sessionId, ipHash: "ip-range", start: true });
+  await grants.markServed(a, 1, { start: 9 });
+  await grants.markServed(a, 4, { start: 0 });
+  assert.equal((await sql`select measured_download_count from plugins where id=${rel.pluginId}`)[0].measured_download_count, 0);
+  await Promise.all([grants.markServed(a, 6, { start: 3 }), grants.markServed(a, 6, { start: 3 })]);
+  assert.equal((await sql`select measured_download_count from plugins where id=${rel.pluginId}`)[0].measured_download_count, 1);
+  assert.equal((await sql`select bytes from download_events where grant_id=${g.grantId} and kind='served'`)[0].bytes, "10");
+});
+
+test("the download kill switch invalidates existing grants for HEAD and GET", async () => {
+  const s = await session("ip-switch"), rel = await publishedRelease(991);
+  const g = await grants.issueGrant({ sessionId: s.sessionId, userId: s.userId, releaseId: rel.releaseId, ipHash: "ip-switch" });
+  process.env.PLUGINS_DOWNLOADS_ENABLED = "false";
+  try {
+    for (const start of [true, false]) await assert.rejects(grants.authorizeFile({ grantId: g.grantId, sessionId: s.sessionId, ipHash: "ip-switch", start }), (e) => e.status === 503);
+    await assert.rejects(grants.issueGrant({ sessionId: s.sessionId, userId: s.userId, releaseId: rel.releaseId, ipHash: "ip-switch" }), (e) => e.status === 503);
+  } finally { delete process.env.PLUGINS_DOWNLOADS_ENABLED; }
+});

@@ -37,6 +37,7 @@ export default async function PluginMonitor() {
             <Stat label="ناموفق در ۲۴ ساعت" value={m.failed24.toLocaleString("fa-IR")} tone={m.failed24 ? "text-error" : ""} />
           </dl>
           <ul className="mt-4 flex flex-col gap-1.5 text-sm leading-[1.9]">
+            {!m.alive && <li className="text-error">گزارش تازه‌ای از پردازشگر نداریم؛ وضعیت کنترل‌ها تا دریافت علامت حیات جدید نامعلوم است.</li>}
             <li>آخرین علامت حیات: {when(m.workers[0]?.seenAt)}{m.workers[0]?.version ? ` · نسخه ${m.workers[0].version}` : ""}</li>
             <li>
               اسکنر بدافزار:{" "}
@@ -50,7 +51,7 @@ export default async function PluginMonitor() {
             </li>
             <li>
               آزمون ایزوله وردپرس:{" "}
-              {h?.sandbox?.available ? <span className="text-success">در دسترس</span> : <span className="text-error">در دسترس نیست — انتشار خودکار بسته است و نسخه‌ها منتظر بررسی شما می‌مانند.</span>}
+              {h?.sandbox?.available ? <span className="text-success">در دسترس · {h.sandbox.profile}</span> : <span className="text-error">{h?.sandbox?.detail || "وضعیت نامعلوم"} — انتشار خودکار بسته است.</span>}
             </li>
             <li className={lowDisk ? "text-error" : undefined}>
               فضای آزاد فایل‌ها: {h?.freeBytes !== undefined && h.freeBytes >= 0 ? formatBytes(h.freeBytes) : "—"}

@@ -77,7 +77,7 @@ function categoryDescription(title: string, text: string) {
 }
 
 /** Only a site path or an http(s) URL may replace the default canonical. */
-function canonicalPath(plugin: PublicPlugin) {
+function canonicalPath(plugin: { canonicalUrl: string; slug: string }) {
   const c = plugin.canonicalUrl.trim();
   if (c.startsWith("/") && !c.startsWith("//")) return c;
   if (/^https?:\/\/[^\s]+$/i.test(c)) return c;
@@ -101,7 +101,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const c = page.category;
   const n = pageNumber(await searchParams);
   const list = await listPublishedPlugins({ categoryId: c.id, page: n });
-  const path = list.page > 1 ? `/plugins/${c.slug}?page=${list.page}` : `/plugins/${c.slug}`;
+  const path = c.canonicalUrl ? canonicalPath(c) : list.page > 1 ? `/plugins/${c.slug}?page=${list.page}` : `/plugins/${c.slug}`;
   const meta = await buildMetadata({
     title: `${c.seoTitle || c.title}${list.page > 1 ? ` – صفحه ${faNumber(list.page)}` : ""}`,
     description: c.seoDescription || categoryDescription(c.title, documentText(c.description, 300)),
@@ -109,7 +109,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     image: c.imageUrl,
   });
   // A category without published plugins is reachable but not indexed.
-  return list.total === 0 ? { ...meta, robots: { index: false, follow: true } } : meta;
+  return c.noindex || list.total === 0 ? { ...meta, robots: { index: false, follow: true } } : meta;
 }
 
 export default async function PluginOrCategoryPage({ params, searchParams }: Props) {

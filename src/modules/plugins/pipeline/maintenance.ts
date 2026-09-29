@@ -17,6 +17,13 @@ export async function runMaintenance(cfg: PipelineConfig, log: (line: string) =>
   const temp = await cleanTemp(cfg.filesDir, cfg.tmpTtlMs);
   if (temp) log(`${temp} فایل موقت منقضی حذف شد.`);
 
+  // Expire old review artifacts, retaining their row and checks for audit.
+  // The conditional update serializes with publication's release row lock.
+  await db.execute(sql`update plugin_releases r set state = 'rejected',
+    warnings = warnings || ${JSON.stringify(["review-expired", "مهلت بررسی این فایل پایان یافت؛ برای دریافت دوباره نسخه، منبع را بررسی کنید."])}::jsonb
+    where state = 'review' and review_expires_at < now()
+    and not exists (select 1 from plugin_jobs j where j.plugin_id = r.plugin_id and j.state in ('queued', 'running'))`);
+
   const due = await deletableObjects();
   for (const r of due) {
     if (!r.shared) await removeObject(cfg.filesDir, r.key);

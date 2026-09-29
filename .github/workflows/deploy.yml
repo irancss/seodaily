@@ -42,7 +42,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - name: Deploy and ops scripts (POSIX sh, shellcheck)
-        run: shellcheck -s sh -S warning deploy/ship.sh deploy/ops/*.sh
+        run: shellcheck -s sh -S warning deploy/ship.sh deploy/ops/*.sh deploy/sandbox/prepare.sh
       - run: npm run typecheck
       - name: Unit tests (pricing, validation, text rules, plugin pipeline)
         run: npm run test:unit
@@ -272,4 +272,3 @@ jobs:
         run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/a11y.test.mjs
       - name: Analytics events on production (clicks only, read-only)
         run: BASE_URL="$SITE" node --test --test-concurrency=1 tests/e2e/analytics.test.mjs
-
