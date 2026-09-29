@@ -199,3 +199,6 @@ export type Lead = typeof leads.$inferSelect;
 export type Faq = typeof faqs.$inferSelect;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type Category = typeof categories.$inferSelect;
+
+// Plugin library tables (/plugins).
+export * from "./plugins-schema";

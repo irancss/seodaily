@@ -34,14 +34,39 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       SITE_URL: ${SITE_URL:-http://localhost:3000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      OTP_HMAC_SECRET: ${OTP_HMAC_SECRET:-}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-}
+      MELIPAYAMAK_USERNAME: ${MELIPAYAMAK_USERNAME:-}
+      MELIPAYAMAK_PASSWORD: ${MELIPAYAMAK_PASSWORD:-}
+      MELIPAYAMAK_OTP_BODY_ID: ${MELIPAYAMAK_OTP_BODY_ID:-}
+      CLAMD_HOST: ${CLAMD_HOST:-}
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - uploads:/app/uploads
+      - plugin_files:/app/plugin-files
+
+  # Plugin worker (source checks, package checks, nightly schedule).
+  worker:
+    image: seodaily:latest
+    command: ["worker"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-seodaily}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-seodaily}
+      APP_INTERNAL_URL: http://app:3000
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-}
+      CLAMD_HOST: ${CLAMD_HOST:-}
+    volumes:
+      - uploads:/app/uploads
+      - plugin_files:/app/plugin-files
 
 volumes:
   pgdata:
   uploads:
+  plugin_files:
 
 # Own address range instead of Docker's default pools, which run out on
 # machines with many compose projects ("all predefined address pools have

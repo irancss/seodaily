@@ -73,7 +73,4 @@ export function failed(path: string, message: string): never {
   redirect(`${path}${path.includes("?") ? "&" : "?"}error=${encodeURIComponent(message)}`);
 }
 
-export function isUniqueViolation(error: unknown) {
-  const e = error as { code?: string; cause?: { code?: string } };
-  return e?.code === "23505" || e?.cause?.code === "23505";
-}
+export { isUniqueViolation } from "./db-errors";

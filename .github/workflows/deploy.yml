@@ -44,8 +44,12 @@ jobs:
       - name: Deploy and ops scripts (POSIX sh, shellcheck)
         run: shellcheck -s sh -S warning deploy/ship.sh deploy/ops/*.sh
       - run: npm run typecheck
-      - name: Unit tests (pricing, validation, text rules)
+      - name: Unit tests (pricing, validation, text rules, plugin pipeline)
         run: npm run test:unit
+      - name: Integration tests (slugs, plugin pipeline, downloads) on throwaway databases
+        env:
+          DATABASE_URL: postgres://seodaily:seodaily@localhost:5432/seodaily
+        run: npm run test:integration
       # Next.js reuses compiled output for unchanged files.
       - uses: actions/cache@v4
         with:
@@ -71,6 +75,14 @@ jobs:
           # Disposable admin of the CI database only.
           ADMIN_EMAIL: ci-admin@example.com
           ADMIN_PASSWORD: ci-admin-password-123
+          # Plugin library, CI only: private fixture source on 127.0.0.1, codes
+          # written to a file instead of SMS (refused outside CI in production).
+          OTP_HMAC_SECRET: ci-only-otp-secret-ci-only-otp-secret-0000
+          INTERNAL_API_SECRET: ci-only-internal-secret-ci-only-internal-0000
+          APP_INTERNAL_URL: http://127.0.0.1:3000
+          PLUGIN_FILES_DIR: /tmp/plugin-files
+          SMS_TEST_OUTBOX: /tmp/sms-outbox.jsonl
+          PLUGIN_FETCH_ALLOW_PRIVATE_FOR_TESTS: 127.0.0.1/32
         run: |
           node scripts/migrate.mjs
           node scripts/seed.mjs
@@ -78,10 +90,12 @@ jobs:
           cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
           node .next/standalone/server.js > /tmp/server.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/api/health && break; sleep 1; done
+          # The plugin worker, as in production: a separate process.
+          node dist/worker.mjs > /tmp/worker.log 2>&1 &
           BASE_URL=http://127.0.0.1:3000 SITE_ORIGIN=https://seodaily.ir npm run test:seo || (tail -50 /tmp/server.log; exit 1)
           BASE_URL=http://127.0.0.1:3000 node tests/seo-report.mjs >> "$GITHUB_STEP_SUMMARY"
           BASE_URL=http://127.0.0.1:3000 npm run test:security || (tail -50 /tmp/server.log; exit 1)
-          BASE_URL=http://127.0.0.1:3000 npm run test:e2e || (tail -50 /tmp/server.log; exit 1)
+          BASE_URL=http://127.0.0.1:3000 npm run test:e2e || (tail -50 /tmp/server.log; tail -50 /tmp/worker.log; exit 1)
           # Migration/seed safety on throwaway databases next to the CI one.
           npm run test:db
 
@@ -231,6 +245,14 @@ jobs:
           done
           [ "$(curl -sS -o /dev/null -m 30 -w '%{http_code}' "$SITE/seo")" = 200 ] || fail=1
           exit $fail
+      - name: Plugin library (read-only; no login, no SMS, no downloads)
+        run: |
+          code() { curl -s -o /dev/null -w '%{http_code}' -m 20 "$@"; }
+          [ "$(code "$SITE/plugins")" = 200 ] || { echo "/plugins is not 200"; exit 1; }
+          [ "$(code "$SITE/plugins/no-such-plugin-$GITHUB_RUN_ID")" = 404 ] || { echo "unknown plugin is not 404"; exit 1; }
+          [ "$(code -X POST "$SITE/api/internal/revalidate")" = 404 ] || { echo "internal endpoint answers without its secret"; exit 1; }
+          [ "$(code "$SITE/plugins/x/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")" = 403 ] || { echo "file route answers without a session"; exit 1; }
+          echo "plugin library routes behave as expected"
       - name: SEO crawl report (job summary)
         run: BASE_URL="$SITE" node tests/seo-report.mjs | tee -a "$GITHUB_STEP_SUMMARY"
       - name: SEO tests against production

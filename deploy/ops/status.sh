@@ -15,6 +15,12 @@ if [ -n "$app" ] && healthy "$app"; then
 else
   bad "app is not healthy"
 fi
+worker=$(docker compose ps -q worker 2>/dev/null | head -n 1)
+if [ -n "$worker" ] && [ "$(docker inspect -f '{{.State.Running}}' "$worker")" = true ]; then
+  ok "plugin worker running (restarts: $(docker inspect -f '{{.RestartCount}}' "$worker")); heartbeat and scanner state: panel → افزونه‌ها → پایش"
+else
+  bad "plugin worker is not running (docker compose up -d worker)"
+fi
 [ -n "$app" ] && note "app restarts since start: $(docker inspect -f '{{.RestartCount}}' "$app"), up since $(docker inspect -f '{{.State.StartedAt}}' "$app" | cut -c1-19)"
 if docker compose exec -T db sh -c 'pg_isready -q -U "$POSTGRES_USER" -d "$POSTGRES_DB"'; then ok "database accepts connections"; else bad "database is not ready"; fi
 

@@ -19,6 +19,18 @@ if command -v flock >/dev/null 2>&1; then
   flock -n 9 || die "another deploy is running"
 fi
 
+# Internal secrets of the plugin library (OTP digests, worker→app cache call):
+# generated once on this server when missing, never printed, never in Git.
+ensure_secret() {
+  if ! grep -q "^$1=." .env; then
+    umask 077
+    printf '%s=%s\n' "$1" "$(head -c 48 /dev/urandom | base64 | tr -d '\n/+=' | cut -c1-56)" >> .env
+    log "generated $1 in .env"
+  fi
+}
+ensure_secret OTP_HMAC_SECRET
+ensure_secret INTERNAL_API_SECRET
+
 log "database"
 docker compose up -d --no-recreate --wait db
 
@@ -61,12 +73,17 @@ if ! wait_live; then
   if [ -n "$current" ]; then
     log "new version unhealthy: back to the previous image"
     docker tag seodaily:previous seodaily:latest
-    docker compose up -d --no-deps app
+    docker compose up -d --no-deps app worker
     wait_live || die "the previous version is not healthy either"
     die "deploy of $TAG failed; the previous version is live again"
   fi
   die "deploy of $TAG failed"
 fi
+
+# The plugin worker follows the app to the same image (it finishes or hands
+# back its running jobs on SIGTERM; interrupted jobs are retried).
+log "plugin worker"
+docker compose up -d --no-deps worker || log "WARNING: the plugin worker did not start (the site is live; see docker compose logs worker)"
 
 printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TAG" >> "$DEPLOY_PATH/deploys.log"
 log "live: $TAG"

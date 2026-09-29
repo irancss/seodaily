@@ -4,12 +4,14 @@ import {
   HomeHeroSection,
   HomeIndustriesSection,
   HomeMarqueeSection,
+  HomePluginsSection,
   HomePortfolioSection,
   HomeProcessSection,
   HomeServicesIntroSection,
   HomeWhyUsSection,
 } from "@/components/organisms/sections/home";
 import { getFaqs } from "@/modules/faqs/queries";
+import { latestPlugins } from "@/modules/plugins/queries";
 import { getPublishedProjects } from "@/modules/projects/queries";
 import { faqJsonLd, pageMetadata } from "@/modules/seo/metadata";
 import { COLLAB_PROCESS } from "@/modules/services/content";
@@ -21,7 +23,7 @@ export function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const [text, general, contact, categories, webServices, seoServices, projects, faqs] = await Promise.all([
+  const [text, general, contact, categories, webServices, seoServices, projects, faqs, plugins] = await Promise.all([
     getPageText("home"),
     getGeneral(),
     getContact(),
@@ -30,6 +32,7 @@ export default async function HomePage() {
     getServicesByCategory("seo"),
     getPublishedProjects(),
     getFaqs("home"),
+    latestPlugins(),
   ]);
   const services = {
     "web-design": webServices.slice(0, 5),
@@ -58,6 +61,7 @@ export default async function HomePage() {
       <HomeServicesIntroSection categories={categories} services={services} />
       <HomeWhyUsSection stats={stats} />
       {featured.length > 0 && <HomePortfolioSection projects={featured} />}
+      {plugins.length > 0 && <HomePluginsSection plugins={plugins} />}
       <HomeProcessSection />
       {general.industries.length > 0 && <HomeIndustriesSection industries={general.industries} />}
       {faqs.length > 0 && <HomeFaqSection faqs={faqs} jsonLd={faqJsonLd(faqs)} phone={contact.phone} />}
