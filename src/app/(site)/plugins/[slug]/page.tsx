@@ -150,6 +150,17 @@ export default async function PluginOrCategoryPage({ params, searchParams }: Pro
       <PluginPageView plugin={p} hrefs={hrefs} download={<DownloadBox releases={p.releases} />} />
       <JsonLd data={softwareLd} />
       <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: p.seoTitle || p.name,
+          url,
+          inLanguage: "fa-IR",
+          ...(modified ? { dateModified: modified } : {}),
+          publisher: { "@id": `${base}/#organization` },
+        }}
+      />
+      <JsonLd
         data={await breadcrumbJsonLd([
           { name: "صفحه اصلی", path: "/" },
           { name: "افزونه‌های وردپرس", path: "/plugins" },

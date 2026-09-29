@@ -202,7 +202,16 @@ export function PluginPageView({ plugin, hrefs, download }: { plugin: PublicPlug
                 </Fact>
               )}
               {plugin.downloads > 0 && <Fact label="دانلود">{faNumber(plugin.downloads)}</Fact>}
+              {plugin.lastCheckedAt && <Fact label="آخرین بررسی منابع">{faDate(plugin.lastCheckedAt)}</Fact>}
             </dl>
+            {current && (
+              <div className="mt-3 text-xs leading-[1.8]">
+                <p className="text-muted">SHA-256 فایل نسخه جاری:</p>
+                <code dir="ltr" className="mt-1 block break-all rounded bg-page px-2 py-1 font-mono text-[11px] text-ink-2">
+                  {current.sha256}
+                </code>
+              </div>
+            )}
             {plugin.officialUrl && (
               <a href={plugin.officialUrl} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 inline-flex items-center gap-1 text-sm">
                 صفحه رسمی افزونه

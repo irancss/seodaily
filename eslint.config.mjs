@@ -11,5 +11,5 @@ export default defineConfig([
       "@next/next/no-img-element": "off",
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "drizzle/**"]),
+  globalIgnores([".next/**", "out/**", "build/**", "dist/**", "next-env.d.ts", "drizzle/**"]),
 ]);

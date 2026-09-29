@@ -95,9 +95,15 @@ function likePattern(q: string) {
   return `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 }
 
-export type PluginListQuery = { q?: string; categoryId?: number; page?: number };
+export const LIST_SORTS = { updated: "تازه‌ترین به‌روزرسانی", popular: "پردانلودترین (۳۰ روز)", name: "نام" } as const;
+export type ListSort = keyof typeof LIST_SORTS;
+export const LIST_SINCE = { 7: "۷ روز اخیر", 30: "۳۰ روز اخیر", 365: "یک سال اخیر" } as const;
 
-export const listPublishedPlugins = cached(async ({ q = "", categoryId, page = 1 }: PluginListQuery) => {
+export type PluginListQuery = { q?: string; categoryId?: number; sinceDays?: number; sort?: ListSort; page?: number };
+
+const served30 = sql`(select count(*) from ${downloadEvents} e where e.plugin_id = ${plugins.id} and e.kind = 'served' and e.created_at > now() - interval '30 days')`;
+
+export const listPublishedPlugins = cached(async ({ q = "", categoryId, sinceDays, sort = "updated", page = 1 }: PluginListQuery) => {
   const where: SQL[] = [published];
   const term = q.trim().slice(0, 80);
   if (term) {
@@ -111,13 +117,17 @@ export const listPublishedPlugins = cached(async ({ q = "", categoryId, page = 1
       sql`exists (select 1 from ${pluginCategoryLinks} l where l.plugin_id = ${plugins.id} and l.category_id = ${categoryId})`,
     );
   }
+  if (sinceDays && sinceDays in LIST_SINCE) {
+    where.push(sql`${plugins.packageUpdatedAt} > now() - make_interval(days => ${sinceDays})`);
+  }
   const condition = and(...where);
+  const order = sort === "name" ? [asc(plugins.name), asc(plugins.id)] : sort === "popular" ? [sql`${served30} desc`, ...recentOrder] : recentOrder;
   const [{ total }] = await db.select({ total: count() }).from(plugins).where(condition);
   const pages = Math.max(1, Math.ceil(total / PUBLIC_PAGE_SIZE));
   const current = Math.min(Math.max(1, Math.floor(page) || 1), pages);
   const rows = await cardQuery()
     .where(condition)
-    .orderBy(...recentOrder)
+    .orderBy(...order)
     .limit(PUBLIC_PAGE_SIZE)
     .offset((current - 1) * PUBLIC_PAGE_SIZE);
   return { items: rows.map(toCard), total, page: current, pages };
@@ -285,6 +295,7 @@ async function loadPlugin(id: number, preview: boolean) {
     publishedAt: iso(p.publishedAt),
     contentUpdatedAt: iso(p.contentUpdatedAt),
     packageUpdatedAt: iso(p.packageUpdatedAt),
+    lastCheckedAt: iso(p.lastCheckedAt),
     primaryCategory: primary,
     categories: categoryRows,
     releases: releases.map(

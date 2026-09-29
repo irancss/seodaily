@@ -7,9 +7,10 @@ import { SectionHeading } from "@/components/molecules";
 import { PageHero } from "@/components/organisms/page-hero";
 import { Pagination } from "@/components/organisms/plugins/pagination";
 import { PluginGrid } from "@/components/organisms/plugins/plugin-card";
+import { PluginFilters } from "@/components/organisms/plugins/plugin-filters";
 import { PluginSearch } from "@/components/organisms/plugins/plugin-search";
 import { faNumber } from "@/modules/plugins/labels";
-import { latestPlugins, listPublishedPlugins, popularPlugins, publishedCategories } from "@/modules/plugins/queries";
+import { LIST_SINCE, LIST_SORTS, latestPlugins, listPublishedPlugins, popularPlugins, publishedCategories, type ListSort } from "@/modules/plugins/queries";
 import { breadcrumbJsonLd, buildMetadata, getSiteUrl } from "@/modules/seo/metadata";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
@@ -21,40 +22,58 @@ function readParams(sp: Record<string, string | string[] | undefined>) {
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const q = one(sp.q).trim().slice(0, 80);
   const page = Math.max(1, Number.parseInt(one(sp.page), 10) || 1);
-  return { q, page };
+  const category = one(sp.category).slice(0, 80);
+  const since = one(sp.since) in LIST_SINCE ? one(sp.since) : "";
+  const sort = (one(sp.sort) in LIST_SORTS ? one(sp.sort) : "updated") as ListSort;
+  return { q, page, category, since, sort };
 }
 
-const pageHref = (q: string) => (page: number) => {
+type Filters = ReturnType<typeof readParams>;
+
+const pageHref = (f: Partial<Filters>) => (page: number) => {
   const params = new URLSearchParams();
-  if (q) params.set("q", q);
+  if (f.q) params.set("q", f.q);
+  if (f.category) params.set("category", f.category);
+  if (f.since) params.set("since", f.since);
+  if (f.sort && f.sort !== "updated") params.set("sort", f.sort);
   if (page > 1) params.set("page", String(page));
   const s = params.toString();
   return s ? `/plugins?${s}` : "/plugins";
 };
 
+/** Search, filters and sort make a result page (noindex); plain pagination does not. */
+const isFiltered = (f: Filters) => Boolean(f.q || f.category || f.since || f.sort !== "updated");
+
+async function query(f: Filters) {
+  const categories = await publishedCategories();
+  const categoryId = f.category ? (categories.find((c) => c.slug === f.category)?.id ?? -1) : undefined;
+  const list = await listPublishedPlugins({ q: f.q, categoryId, sinceDays: f.since ? Number(f.since) : undefined, sort: f.sort, page: f.page });
+  return { categories, list };
+}
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q, page } = readParams(await searchParams);
-  const list = await listPublishedPlugins({ page });
+  const f = readParams(await searchParams);
+  const { list } = await query(f);
   const meta = await buildMetadata({
-    title: page > 1 ? `${TITLE} – صفحه ${faNumber(page)}` : TITLE,
+    title: list.page > 1 ? `${TITLE} – صفحه ${faNumber(list.page)}` : TITLE,
     description: DESCRIPTION,
-    path: pageHref("")(list.page),
+    path: pageHref(isFiltered(f) ? f : {})(list.page),
   });
-  // Search results and an empty library stay out of the index.
-  return q || list.total === 0 ? { ...meta, robots: { index: false, follow: true } } : meta;
+  // Search, filtered results and an empty library stay out of the index.
+  return isFiltered(f) || list.total === 0 ? { ...meta, robots: { index: false, follow: true } } : meta;
 }
 
 export default async function PluginsPage({ searchParams }: Props) {
-  const { q, page } = readParams(await searchParams);
-  const [list, categories, latest, popular, base] = await Promise.all([
-    listPublishedPlugins({ q, page }),
-    publishedCategories(),
+  const f = readParams(await searchParams);
+  const { q, page } = f;
+  const [{ list, categories }, latest, popular, base] = await Promise.all([
+    query(f),
     latestPlugins(),
     popularPlugins(),
     getSiteUrl(),
   ]);
   if (page > list.pages) notFound();
-  const firstPage = !q && list.page === 1;
+  const firstPage = !isFiltered(f) && list.page === 1;
 
   return (
     <>
@@ -102,27 +121,28 @@ export default async function PluginsPage({ searchParams }: Props) {
           <h2 id="all-plugins" className="t-h2">
             {q ? `نتیجه جست‌وجوی «${q}»` : "همه افزونه‌ها"}
           </h2>
-          {list.total > 0 && <p className="mt-2 text-sm text-muted">{faNumber(list.total)} افزونه</p>}
+          <PluginFilters q={q} category={f.category} since={f.since} sort={f.sort} categories={categories} />
+          {list.total > 0 && <p className="mt-4 text-sm text-muted">{faNumber(list.total)} افزونه</p>}
           {list.items.length > 0 ? (
             <PluginGrid plugins={list.items} className="mt-8" />
           ) : (
             <div className="mt-8">
               <EmptyState>
-                {q ? "افزونه‌ای با این نام پیدا نشد. نام دیگری را امتحان کنید." : "هنوز افزونه‌ای منتشر نشده است."}
+                {isFiltered(f) ? "افزونه‌ای با این مشخصات پیدا نشد. جست‌وجو یا فیلتر دیگری را امتحان کنید." : "هنوز افزونه‌ای منتشر نشده است."}
               </EmptyState>
             </div>
           )}
-          <Pagination page={list.page} pages={list.pages} href={pageHref(q)} />
+          <Pagination page={list.page} pages={list.pages} href={pageHref(f)} />
         </div>
       </section>
 
-      {list.items.length > 0 && !q && (
+      {list.items.length > 0 && !isFiltered(f) && (
         <JsonLd
           data={{
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             name: TITLE,
-            url: `${base}${pageHref("")(list.page)}`,
+            url: `${base}${pageHref({})(list.page)}`,
             mainEntity: {
               "@type": "ItemList",
               itemListElement: list.items.map((p, i) => ({

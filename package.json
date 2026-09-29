@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run build:worker",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -16,7 +16,8 @@
     "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./tests/support/register.mjs --test tests/unit/*.test.mjs",
     "test:e2e": "node --test --test-concurrency=1 tests/e2e/*.test.mjs",
     "test:db": "node --test --test-concurrency=1 tests/db/*.test.mjs",
-    "test:integration": "node --conditions=react-server --import ./tests/support/register.mjs --test --test-concurrency=1 tests/integration/*.test.mjs"
+    "test:integration": "node --conditions=react-server --import ./tests/support/register.mjs --test --test-concurrency=1 tests/integration/*.test.mjs",
+    "build:worker": "esbuild src/worker/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/worker.mjs --alias:server-only=./src/worker/empty.ts --banner:js=\"import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);\" --log-level=warning"
   },
   "dependencies": {
     "@tiptap/core": "^3.31.3",
@@ -45,6 +46,7 @@
     "@types/react-dom": "^19.3.0",
     "axe-core": "4.13.0",
     "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.25.12",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.6",
     "playwright-core": "1.63.0",

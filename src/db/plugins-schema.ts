@@ -42,6 +42,8 @@ export type PluginHeader = Partial<{
   requiresPlugins: string;
   mainFile: string;
   folder: string;
+  fileCount: number;
+  unpackedBytes: number;
 }>;
 
 /**

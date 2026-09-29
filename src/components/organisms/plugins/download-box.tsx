@@ -16,6 +16,14 @@ export function DownloadBox({ releases }: { releases: PublicRelease[] }) {
           <p className="mt-1 text-sm text-muted">
             {[r.publishedAt ? faDate(r.publishedAt) : "", formatBytes(r.bytes)].filter(Boolean).join(" · ")}
           </p>
+          {r.changelog && (
+            <details className="mt-2 text-sm">
+              <summary className="cursor-pointer text-brand-hover">تغییرات این نسخه</summary>
+              <p className="mt-2 whitespace-pre-line leading-[1.9] text-ink-2" dir="auto">
+                {r.changelog}
+              </p>
+            </details>
+          )}
         </li>
       ))}
     </ul>
