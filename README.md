@@ -79,17 +79,17 @@
 
 ```powershell
 git clone --config core.autocrlf=false https://github.com/irancss/seodaily.git C:\cloude\seodaily
-powershell -ExecutionPolicy Bypass -File C:\cloude\seodaily\scripts\windows\setup.ps1 -AutoUpdate
+powershell -ExecutionPolicy Bypass -File C:\cloude\seodaily\scripts\windows\setup.ps1
 ```
 
 اسکریپت `scripts/windows/setup.ps1`:
 
-- کد را در `C:\cloude\seodaily` می‌گیرد یا به آخرین نسخه به‌روز می‌کند؛
+- از کد موجود در `C:\cloude\seodaily` استفاده می‌کند و از GitHub به‌صورت خودکار دریافت نمی‌کند؛
 - بار اول `.env` را با رمزهای تصادفی می‌سازد و **ایمیل و رمز مدیر را نمایش می‌دهد**؛
 - سایت را با Docker بالا می‌آورد، تا سالم شدن صبر می‌کند و مرورگر را باز می‌کند؛
-- با `-AutoUpdate` یک Scheduled Task می‌سازد که هر ۱۵ دقیقه تغییرات جدید را می‌گیرد و فقط در صورت تغییر دوباره build می‌کند.
+- هر بار که آن را دستی اجرا کنید، برنامه را از سورس همین فولدر build می‌کند.
 
-هر وقت خواستید دستی به‌روز کنید، همان دستور دوم را دوباره اجرا کنید. اگر Docker Hub در دسترس نیست (مثلاً از ایران)، ‏`-Mirror docker.arvancloud.ir` را اضافه کنید. اگر پورت ۳۰۰۰ اشغال است، ‏`-Port 3001`.
+این فولدر منبع اصلی کار است: تغییرات را همین‌جا انجام دهید، با Git ثبت کنید و با `git push origin main` به GitHub بفرستید. `setup.ps1` دیگر سورس را از GitHub همگام نمی‌کند و تسک زمان‌بندی‌شده نمی‌سازد. برای اجرای دوبارهٔ نسخهٔ محلی، همان دستور بالا را دستی اجرا کنید. اگر Docker Hub در دسترس نیست (مثلاً از ایران)، ‏`-Mirror docker.arvancloud.ir` را اضافه کنید. اگر پورت ۳۰۰۰ اشغال است، ‏`-Port 3001`.
 
 ### روش دستی
 

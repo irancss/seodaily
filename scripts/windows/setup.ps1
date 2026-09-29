@@ -1,13 +1,11 @@
 <#
 .SYNOPSIS
-  Installs or updates SEO Daily in C:\cloude\seodaily and runs it with Docker.
+  Runs the local SEO Daily checkout in C:\cloude\seodaily with Docker.
 
 .DESCRIPTION
-  - Clones the repository (first run) or pulls the latest commit.
+  - Uses the local checkout as the source; never fetches or merges from GitHub.
   - Creates .env with random secrets on the first run and prints the admin login.
   - Builds and starts the containers, waits until the site is healthy and opens it.
-  - With -AutoUpdate, registers a scheduled task that repeats this every 15 minutes
-    (it only rebuilds when a new commit arrived).
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File C:\cloude\seodaily\scripts\windows\setup.ps1
@@ -19,24 +17,18 @@
 [CmdletBinding()]
 param(
     [string]$Path = "C:\cloude\seodaily",
-    [string]$Repo = "https://github.com/irancss/seodaily.git",
-    [string]$Branch = "main",
     [int]$Port = 3000,
     # Registry host that mirrors Docker Hub, e.g. docker.arvancloud.ir
-    [string]$Mirror = "",
-    # Register a scheduled task that keeps the local copy up to date.
-    [switch]$AutoUpdate,
-    # Used by the scheduled task: stay quiet and skip the rebuild when nothing changed.
-    [switch]$Quiet
+    [string]$Mirror = ""
 )
 
-# Native tools (git, docker) report failures through $LASTEXITCODE, which is
-# checked after each call. "Stop" would turn their stderr progress output into
+# Docker reports failures through $LASTEXITCODE, which is checked after each
+# call. "Stop" would turn its stderr progress output into
 # terminating errors on Windows PowerShell 5.1.
 $ErrorActionPreference = "Continue"
 
 function Say([string]$Text, [string]$Color = "Gray") {
-    if (-not $Quiet) { Write-Host $Text -ForegroundColor $Color }
+    Write-Host $Text -ForegroundColor $Color
 }
 
 function Require([string]$Command, [string]$Hint) {
@@ -98,31 +90,16 @@ function Test-PortFree([int]$Number) {
     }
 }
 
-Require git "Install Git for Windows: https://git-scm.com/download/win"
 Require docker "Install Docker Desktop: https://www.docker.com/products/docker-desktop/"
 
 docker info *> $null
 if ($LASTEXITCODE -ne 0) {
-    if ($Quiet) { exit 0 }  # scheduled run while Docker Desktop is closed
     throw "Docker Desktop is not running. Start it and run this script again."
 }
 
 # ---------------------------------------------------------------- source code
-$changed = $true
-if (Test-Path (Join-Path $Path ".git")) {
-    Say "Updating $Path ..." Cyan
-    $before = (git -C $Path rev-parse HEAD).Trim()
-    git -C $Path fetch --quiet origin $Branch
-    if ($LASTEXITCODE -ne 0) { throw "git fetch failed" }
-    git -C $Path merge --ff-only --quiet "origin/$Branch"
-    if ($LASTEXITCODE -ne 0) { throw "git pull failed (local changes in $Path?)" }
-    $after = (git -C $Path rev-parse HEAD).Trim()
-    $changed = $before -ne $after
-} else {
-    Say "Cloning into $Path ..." Cyan
-    New-Item -ItemType Directory -Force -Path (Split-Path $Path -Parent) -ErrorAction Stop | Out-Null
-    git clone --config core.autocrlf=false --branch $Branch $Repo $Path
-    if ($LASTEXITCODE -ne 0) { throw "git clone failed" }
+if (-not (Test-Path (Join-Path $Path ".git"))) {
+    throw "No Git checkout at $Path. Clone the repository once before running setup.ps1."
 }
 Set-Location $Path
 
@@ -163,14 +140,12 @@ if ($Mirror) {
     Set-EnvValue $envFile "NODE_IMAGE" "$m/node:22-alpine"
     Set-EnvValue $envFile "POSTGRES_IMAGE" "$m/postgres:16-alpine"
     Say "Using base images from $m (saved in .env)." Green
-    $changed = $true
 }
 
 # ---------------------------------------------------------------- port
 $running = (docker compose ps --status running --services 2>$null) -join ","
 if ($PSBoundParameters.ContainsKey("Port")) {
     Set-EnvValue $envFile "APP_PORT" "$Port"
-    $changed = $true
 }
 $appPort = [int]((Get-EnvValue $envFile "APP_PORT") -replace "^.*:", "")
 if (-not $appPort) { $appPort = 3000 }
@@ -191,18 +166,13 @@ if ($running -notmatch "app" -and -not (Test-PortFree $appPort)) {
         Set-EnvValue $envFile "SITE_URL" "http://localhost:$appPort"
     }
     Say "Port $old is in use; using free port $appPort (saved in .env)." Yellow
-    $changed = $true
 }
 
 # ---------------------------------------------------------------- containers
-if ($changed -or $running -notmatch "app") {
-    Say "Building and starting containers (the first build takes a few minutes) ..." Cyan
-    docker compose up -d --build
-    if ($LASTEXITCODE -ne 0) {
-        throw "docker compose failed (see the output above). If images could not be downloaded, run again with -Mirror docker.arvancloud.ir; if the port is busy, pass -Port with a free port; if a network or subnet clashes, set DOCKER_SUBNET in .env."
-    }
-} else {
-    Say "Already up to date and running." Green
+Say "Building and starting containers from the local checkout ..." Cyan
+docker compose up -d --build
+if ($LASTEXITCODE -ne 0) {
+    throw "docker compose failed (see the output above). If images could not be downloaded, run again with -Mirror docker.arvancloud.ir; if the port is busy, pass -Port with a free port; if a network or subnet clashes, set DOCKER_SUBNET in .env."
 }
 
 $url = "http://localhost:$appPort"
@@ -219,20 +189,6 @@ if (-not $healthy) {
     docker compose logs --tail 60 app
     throw "The site did not become healthy. See the logs above."
 }
-
-# ---------------------------------------------------------------- auto update
-if ($AutoUpdate) {
-    $taskName = "SEO Daily auto update"
-    $script = Join-Path $Path "scripts\windows\setup.ps1"
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-        -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$script`" -Path `"$Path`" -Quiet"
-    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) `
-        -RepetitionInterval (New-TimeSpan -Minutes 15)
-    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Force -ErrorAction Stop | Out-Null
-    Say "Scheduled task '$taskName' checks for updates every 15 minutes." Green
-}
-
-if ($Quiet) { exit 0 }
 
 Write-Host ""
 Write-Host "SEO Daily is running:" -ForegroundColor Green
