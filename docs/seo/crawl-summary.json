@@ -2,6 +2,7 @@
   "before": {
     "at": "2026-09-29T20:52:50.525Z",
     "base": "https://seodaily.ir",
+    "appVersion": "77a1d0310619",
     "counts": {
       "pages": 24,
       "sitemap": 21,
@@ -22,8 +23,10 @@
     ]
   },
   "after": {
-    "at": "2026-09-29T21:18:10.147Z",
-    "environment": "disposable Linux Docker build",
+    "at": "2026-09-29T21:41:13.103Z",
+    "base": "https://seodaily.ir",
+    "environment": "production",
+    "appVersion": "40847cd0c1da",
     "counts": {
       "pages": 24,
       "sitemap": 21,
@@ -34,6 +37,101 @@
     },
     "errors": [],
     "notes": []
+  },
+  "copyVerification": {
+    "health": {
+      "status": "ok",
+      "version": "40847cd0c1da"
+    },
+    "checkedAt": "2026-09-29T21:41:13.126Z",
+    "serviceIntroductions": [
+      {
+        "path": "/services/corporate-website",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/online-store",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/service-website",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/personal-website",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/landing-page",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/website-redesign",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/seo-audit",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/technical-seo",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/keyword-research",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/content-strategy",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/on-page-seo",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/competitor-analysis",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/content-optimization",
+        "revisedIntroductionVisible": true
+      },
+      {
+        "path": "/services/seo-monitoring",
+        "revisedIntroductionVisible": true
+      }
+    ],
+    "pageSubtitles": [
+      {
+        "path": "/",
+        "revisedSubtitleVisible": true
+      },
+      {
+        "path": "/services",
+        "revisedSubtitleVisible": true
+      },
+      {
+        "path": "/web-design",
+        "revisedSubtitleVisible": true
+      },
+      {
+        "path": "/seo",
+        "revisedSubtitleVisible": true
+      },
+      {
+        "path": "/pricing",
+        "revisedSubtitleVisible": true
+      },
+      {
+        "path": "/about",
+        "revisedSubtitleVisible": true
+      },
+      {
+        "path": "/contact",
+        "revisedSubtitleVisible": true
+      }
+    ]
   },
   "pages": [
     {
