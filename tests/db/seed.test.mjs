@@ -117,14 +117,15 @@ test("editorial upgrade repairs an earlier automatic seed, preserves custom fiel
   const jsonColumns = new Set(["sections", "problems", "includes", "process", "situations", "business_types", "deliverables", "faqs", "related_slugs"]);
   const values = Object.fromEntries(Object.entries(old).map(([key, value]) => [key, jsonColumns.has(key) ? db.sql.json(value) : value]));
   await db.sql`update services set ${db.sql(values)}, updated_at=created_at+interval '1 minute' where slug='keyword-research'`;
-  await db.sql`update services set summary='Owner custom summary', published=false where slug='keyword-research'`;
+  await db.sql`update services set summary='Owner custom summary', meta_title='Owner custom service SEO title', published=false where slug='keyword-research'`;
   await db.sql`update settings set value='2'::jsonb where key='seed:service-content-version'`;
   await db.sql`delete from settings where key='seed:editorial-copy-v3'`;
   await db.sql`insert into settings(key,value) values ('pages',${db.sql.json({ home: { subtitle: pageCopy.home.subtitle[0], metaTitle: "Owner custom title" }, contact: { subtitle: "Owner contact text" } })}) on conflict(key) do update set value=excluded.value`;
   await db.sql`insert into settings(key,value) values ('general',${db.sql.json({headerLogo:"/uploads/owner-logo.png"})}) on conflict(key) do update set value=excluded.value`;
   assert.ok(run("seed", db.url).ok);
-  const [service] = await db.sql`select summary,hero_description,overview,published from services where slug='keyword-research'`;
+  const [service] = await db.sql`select summary,meta_title,hero_description,overview,published from services where slug='keyword-research'`;
   assert.equal(service.summary, "Owner custom summary"); assert.equal(service.published, false);
+  assert.equal(service.meta_title, "Owner custom service SEO title", "a field targeted by this revision still keeps the owner's custom value");
   assert.equal(service.hero_description, serviceContent["keyword-research"].heroDescription);
   assert.equal(service.overview, serviceContent["keyword-research"].overview);
   const [pages] = await db.sql`select value from settings where key='pages'`;
