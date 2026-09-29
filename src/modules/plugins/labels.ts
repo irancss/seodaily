@@ -62,3 +62,46 @@ export function faDate(value: Date | string | null | undefined) {
 export function faNumber(n: number) {
   return n.toLocaleString("fa-IR");
 }
+
+export const CHECK_STATUS_LABEL: Record<string, string> = {
+  PASS: "موفق",
+  FAIL: "ناموفق",
+  WARNING: "هشدار",
+  UNAVAILABLE: "در دسترس نیست",
+  NOT_APPLICABLE: "نامربوط",
+  PENDING: "در انتظار",
+};
+export const CHECK_STATUS_TONE: Record<string, string> = {
+  PASS: "bg-success-bg text-success",
+  FAIL: "bg-error-bg text-error",
+  WARNING: "bg-warning-bg text-warning",
+  UNAVAILABLE: "bg-page text-ink-2 border border-line-strong",
+  NOT_APPLICABLE: "bg-page text-muted",
+  PENDING: "bg-page text-muted",
+};
+export const SOURCE_STATUS_LABEL: Record<string, string> = {
+  ok: "خوانده شد",
+  unchanged: "بدون تغییر",
+  not_modified: "بدون تغییر (۳۰۴)",
+  manual_setup_required: "نیازمند تنظیم دستی",
+  error: "خطا",
+  never: "هنوز بررسی نشده",
+};
+export const ADAPTER_LABEL: Record<string, string> = {
+  auto: "تشخیص خودکار",
+  wordpress_org: "WordPress.org (API رسمی)",
+  github: "GitHub Releases",
+  html: "صفحه وب (selector/نشانه‌ها)",
+  direct: "لینک مستقیم فایل",
+};
+export const JOB_STATE_LABEL: Record<string, string> = { queued: "در صف", running: "در حال اجرا", done: "انجام شد", failed: "ناموفق", cancelled: "لغو شد" };
+export const OUTCOME_LABEL: Record<string, string> = {
+  updated: "به‌روز شد",
+  up_to_date: "به‌روز است",
+  review: "نسخه منتظر بررسی",
+  partial: "بررسی ناقص (خطای بخشی از منابع)",
+  failed: "ناموفق",
+  manual_setup_required: "نیازمند تنظیم منبع",
+  no_sources: "بدون منبع فعال",
+  cancelled: "لغو شد",
+};

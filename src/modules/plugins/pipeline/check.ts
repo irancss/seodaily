@@ -85,7 +85,8 @@ async function identityCheck(pluginId: number, originalName: string, header: Plu
     .where(and(eq(pluginReleases.pluginId, pluginId), sql`${pluginReleases.state} in ('published', 'retired')`))
     .orderBy(sql`${pluginReleases.publishedAt} desc nulls last`)
     .limit(1);
-  if (prev) {
+  // A previous release without a recorded package header is no identity reference.
+  if (prev?.header.folder) {
     const diffs: string[] = [];
     if (prev.header.folder && header.folder !== prev.header.folder) diffs.push(`پوشه «${header.folder}» به‌جای «${prev.header.folder}»`);
     if (prev.header.textDomain && header.textDomain && header.textDomain !== prev.header.textDomain) diffs.push(`Text Domain «${header.textDomain}» به‌جای «${prev.header.textDomain}»`);
