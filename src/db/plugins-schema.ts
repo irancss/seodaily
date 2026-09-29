@@ -17,6 +17,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { users } from "./schema";
+import type { PluginDraft } from "@/modules/plugins/draft";
 
 const ts = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -26,7 +27,7 @@ export type GalleryImage = { url: string; alt: string; width?: number; height?: 
 /** Where a metadata value came from, e.g. { requiresWp: "header", testedUpTo: "readme" }. */
 export type Provenance = Record<string, string>;
 export type CheckStatus = "PASS" | "FAIL" | "WARNING" | "UNAVAILABLE" | "NOT_APPLICABLE" | "PENDING";
-export type ReleaseCheck = { status: CheckStatus; detail: string; at?: string };
+export type ReleaseCheck = { status: CheckStatus; detail: string; at?: string; required?: boolean };
 export type ReleaseChecks = Partial<Record<"validation" | "identity" | "scan" | "sandbox" | "checksum" | "version", ReleaseCheck>>;
 export type PluginHeader = Partial<{
   pluginName: string;
@@ -82,6 +83,8 @@ export const pluginCategories = pgTable(
   description: jsonb("description").$type<BlockDoc | null>(),
   seoTitle: text("seo_title").notNull().default(""),
   seoDescription: text("seo_description").notNull().default(""),
+  canonicalUrl: text("canonical_url").notNull().default(""),
+  noindex: boolean("noindex").notNull().default(false),
   imageUrl: text("image_url").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   published: boolean("published").notNull().default(true),
@@ -101,6 +104,7 @@ export const plugins = pgTable(
     excerpt: text("excerpt").notNull().default(""),
     /** Working revision edited in the panel; the public page reads contentPublished. */
     contentDraft: jsonb("content_draft").$type<BlockDoc | null>(),
+    draftData: jsonb("draft_data").$type<PluginDraft | null>(),
     contentPublished: jsonb("content_published").$type<BlockDoc | null>(),
     /** Optimistic lock for the editor: every save must send the version it started from. */
     revision: integer("revision").notNull().default(1),
@@ -245,6 +249,7 @@ export const pluginReleases = pgTable(
     publishedAt: ts("published_at"),
     retiredAt: ts("retired_at"),
     fileDeletedAt: ts("file_deleted_at"),
+    reviewExpiresAt: ts("review_expires_at").notNull().default(sql`now() + interval '30 days'`),
     /** Admin who published without a passing scan/sandbox, and why (audited override). */
     overrideBy: integer("override_by").references(() => users.id, { onDelete: "set null" }),
     overrideReason: text("override_reason").notNull().default(""),
@@ -409,6 +414,7 @@ export const downloadGrants = pgTable(
     /** First file request: the logical download that counts towards the hourly caps. */
     startedAt: ts("started_at"),
     servedAt: ts("served_at"),
+    servedRanges: jsonb("served_ranges").$type<[number, number][]>().notNull().default([]),
   },
   (t) => [index("download_grants_user_started_idx").on(t.userId, t.startedAt), index("download_grants_ip_started_idx").on(t.ipHash, t.startedAt)],
 );

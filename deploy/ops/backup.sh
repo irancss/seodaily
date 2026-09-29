@@ -14,6 +14,17 @@ umask 077
 mkdir -p "$BACKUP_DIR"
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 
+# Freeze package cleanup while taking the matching DB/files snapshot. The
+# site stays online. Resume only a worker that this backup actually stopped.
+worker_stopped=false
+resume_worker() { if [ "$worker_stopped" = true ]; then docker compose start worker >/dev/null || true; fi; }
+trap resume_worker EXIT
+trap 'exit 1' HUP INT TERM
+if [ "$KIND" = daily ] && [ -n "$(docker compose ps -q --status running worker)" ]; then
+  docker compose stop worker
+  worker_stopped=true
+fi
+
 fail() { date -u +%Y-%m-%dT%H:%M:%SZ > "$BACKUP_DIR/.last-failure"; rm -f "$BACKUP_DIR"/*.part; die "backup: $*"; }
 
 db="$BACKUP_DIR/db-$KIND-$STAMP.dump"

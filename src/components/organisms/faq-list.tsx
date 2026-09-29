@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
+
 import { Icon } from "@/components/atoms";
 
 import { cx, stepNo, vars } from "@/lib/utils";
 
-type Item = { question: string; answer: string };
+type Item = { question: string; answer: ReactNode };
 
 /**
  * Native <details> accordion: separate cards that open smoothly (see
@@ -34,14 +36,14 @@ export function FaqList({
               <Icon name="plus" size={18} />
             </span>
           </summary>
-          <p
+          <div
             className={cx(
               "px-4 pb-5 text-base leading-[1.9] whitespace-pre-line text-ink-2 lg:px-6 lg:pb-6",
               numbered ? "lg:ps-[76px] lg:pe-[88px]" : "lg:pe-[88px]",
             )}
           >
             {item.answer}
-          </p>
+          </div>
         </details>
       ))}
     </div>

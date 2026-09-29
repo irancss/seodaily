@@ -12,6 +12,25 @@ export type SlugEntity = "plugin" | "plugin_category";
 
 export class SlugError extends Error {}
 
+/** Reserve an editor's address without redirecting the public URL. */
+export async function reservePluginSlug(tx: Tx, raw: string, id: number) {
+  const slug = normalizeSlug(raw);
+  if (!slug || isReservedSlug("plugins", slug)) throw new SlugError("نامک معتبر نیست یا برای مسیر دیگری رزرو شده است.");
+  const t = schema.slugRegistry;
+  const [existing] = await tx.select().from(t).where(and(eq(t.namespace, "plugins"), eq(t.slug, slug))).for("update");
+  if (existing && (existing.entityType !== "plugin" || existing.entityId !== id)) throw new SlugError("این نامک قبلاً استفاده شده است.");
+  await tx.delete(t).where(and(eq(t.namespace, "plugins"), eq(t.entityType, "plugin"), eq(t.entityId, id), eq(t.kind, "reserved")));
+  if (!existing || existing.kind === "reserved") {
+    try {
+      await tx.insert(t).values({ namespace: "plugins", slug, entityType: "plugin", entityId: id, kind: "reserved" });
+    } catch (error) {
+      if (isUniqueViolation(error)) throw new SlugError("این نامک هم‌زمان توسط صفحه دیگری رزرو شد.");
+      throw error;
+    }
+  }
+  return slug;
+}
+
 const ENTITY_LABEL: Record<string, string> = { plugin: "افزونه", plugin_category: "دسته", reserved: "مسیر رزروشده سایت" };
 
 /**

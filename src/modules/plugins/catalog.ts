@@ -7,9 +7,10 @@ import type { GalleryImage } from "@/db/plugins-schema";
 import type { BlockDocument } from "@/modules/blocks/schema";
 import { documentText } from "@/modules/blocks/text";
 import { validateBlockDocument } from "@/modules/blocks/validate";
-import { claimSlug, releaseSlugs, SlugError, type Tx } from "@/modules/slugs/registry";
+import { claimSlug, releaseSlugs, reservePluginSlug, SlugError, type Tx } from "@/modules/slugs/registry";
 
 import { audit } from "./audit";
+import { editorialSnapshot } from "./draft";
 import { META_FIELDS, type MetaField } from "./labels";
 
 const P = schema.plugins;
@@ -77,17 +78,20 @@ export async function updatePlugin(id: number, expectedRevision: number, input: 
     const name = input.name.trim().slice(0, 150);
     if (!name) throw new CatalogError("نام افزونه را وارد کنید.");
 
-    const slug = await claimSlug(tx, "plugins", input.slug || name, "plugin", id, current.publishedAt !== null);
+    const slug = current.publishedAt
+      ? await reservePluginSlug(tx, input.slug || name, id)
+      : await claimSlug(tx, "plugins", input.slug || name, "plugin", id, false);
     const categoryIds = await checkCategories(tx, [...new Set(input.categoryIds)].slice(0, 20));
     let primary: number | null = input.primaryCategoryId && categoryIds.includes(input.primaryCategoryId) ? input.primaryCategoryId : (categoryIds[0] ?? null);
     if (!categoryIds.length) primary = null;
 
     // A field typed by the admin stays theirs; clearing it hands it back to the sources.
-    const manual = new Set(current.manualFields);
-    const meta: Partial<Record<MetaField, string>> = {};
+    const working = editorialSnapshot(current);
+    const manual = new Set(working.manualFields);
+    const meta = {} as Record<MetaField, string>;
     for (const field of META_FIELDS) {
       const value = (input.meta[field] ?? "").trim().slice(0, 300);
-      const before = String(current[field] ?? "");
+      const before = String(working[field] ?? "");
       if (!value) manual.delete(field);
       else if (value !== before) manual.add(field);
       meta[field] = value;
@@ -95,53 +99,58 @@ export async function updatePlugin(id: number, expectedRevision: number, input: 
 
     const related = [...new Set(input.relatedIds)].filter((r) => r !== id).slice(0, 12);
     const revision = current.revision + 1;
-    await tx
-      .update(P)
-      .set({
-        name,
-        slug,
-        excerpt: input.excerpt.trim().slice(0, 400),
-        contentDraft: document,
-        primaryCategoryId: primary,
-        iconUrl: input.iconUrl,
-        iconSource: input.iconUrl && input.iconUrl !== current.iconUrl ? "manual" : current.iconSource,
-        gallery: input.gallery.slice(0, 20),
-        ...meta,
-        manualFields: [...manual],
-        seoTitle: input.seoTitle.trim().slice(0, 120),
-        seoDescription: input.seoDescription.trim().slice(0, 300),
-        seoH1: input.seoH1.trim().slice(0, 150),
-        canonicalUrl: input.canonicalUrl.trim().slice(0, 300),
-        noindex: input.noindex,
-        ogImage: input.ogImage,
-        autoUpdate: input.autoUpdate,
-        allowPrerelease: input.allowPrerelease,
-        discontinued: input.discontinued,
-        discontinuedNote: input.discontinuedNote.trim().slice(0, 500),
-        relatedIds: related,
-        revision,
-        updatedAt: new Date(),
-      })
+    const draftData = {
+      name,
+      slug,
+      excerpt: input.excerpt.trim().slice(0, 400),
+      categoryIds,
+      primaryCategoryId: primary,
+      iconUrl: input.iconUrl,
+      iconSource: input.iconUrl && input.iconUrl !== working.iconUrl ? "manual" : working.iconSource,
+      gallery: input.gallery.slice(0, 20),
+      ...meta,
+      manualFields: [...manual],
+      seoTitle: input.seoTitle.trim().slice(0, 120),
+      seoDescription: input.seoDescription.trim().slice(0, 300),
+      seoH1: input.seoH1.trim().slice(0, 150),
+      canonicalUrl: input.canonicalUrl.trim().slice(0, 300),
+      noindex: input.noindex,
+      ogImage: input.ogImage,
+      autoUpdate: input.autoUpdate,
+      allowPrerelease: input.allowPrerelease,
+      discontinued: input.discontinued,
+      discontinuedNote: input.discontinuedNote.trim().slice(0, 500),
+      relatedIds: related,
+    };
+    await tx.update(P).set({
+      // First drafts have no public snapshot; metadata remains available to the pipeline.
+      ...(!current.publishedAt ? draftData : {}),
+      draftData, contentDraft: document, revision, updatedAt: new Date(),
+      autoUpdate: input.autoUpdate, allowPrerelease: input.allowPrerelease,
+    })
       .where(and(eq(P.id, id), eq(P.revision, expectedRevision)));
 
-    await tx.delete(schema.pluginCategoryLinks).where(eq(schema.pluginCategoryLinks.pluginId, id));
-    if (categoryIds.length) await tx.insert(schema.pluginCategoryLinks).values(categoryIds.map((categoryId) => ({ pluginId: id, categoryId })));
+    if (!current.publishedAt) {
+      await tx.delete(schema.pluginCategoryLinks).where(eq(schema.pluginCategoryLinks.pluginId, id));
+      if (categoryIds.length) await tx.insert(schema.pluginCategoryLinks).values(categoryIds.map((categoryId) => ({ pluginId: id, categoryId })));
+    }
     if (current.discontinued !== input.discontinued) await audit(userId, input.discontinued ? "plugin.discontinued" : "plugin.continued", { type: "plugin", id }, {}, tx);
     return { id, revision, slug, problems };
   });
 }
 
 /** What still stops a plugin from going public (empty list = ready). */
-export async function publishBlockers(id: number): Promise<string[]> {
-  const plugin = await db.query.plugins.findFirst({ where: eq(P.id, id) });
-  if (!plugin) return ["افزونه پیدا نشد."];
+export async function publishBlockers(id: number, tx: Tx | typeof db = db): Promise<string[]> {
+  const [row] = await tx.select().from(P).where(eq(P.id, id));
+  if (!row) return ["افزونه پیدا نشد."];
+  const plugin = editorialSnapshot(row);
   const blockers: string[] = [];
   if (!plugin.name.trim()) blockers.push("نام افزونه خالی است.");
   if (!plugin.primaryCategoryId) blockers.push("حداقل یک دسته (و دسته اصلی) انتخاب کنید.");
   if (documentText(plugin.contentDraft as BlockDocument | null).length < 100) blockers.push("متن معرفی کامل نیست (کمتر از ۱۰۰ نویسه).");
   if (!plugin.excerpt.trim()) blockers.push("خلاصه کوتاه (excerpt) خالی است.");
   const [release] = plugin.currentReleaseId
-    ? await db
+    ? await tx
         .select({ state: schema.pluginReleases.state, downloadable: schema.pluginReleases.downloadable })
         .from(schema.pluginReleases)
         .where(eq(schema.pluginReleases.id, plugin.currentReleaseId))
@@ -152,19 +161,34 @@ export async function publishBlockers(id: number): Promise<string[]> {
 
 /**
  * Makes the working revision public. The first publication needs complete
- * content and an approved file; later publications only copy the text.
+ * content and an approved file; later publications commit all editorial fields.
  */
-export async function publishPlugin(id: number, userId: number | null) {
-  const blockers = await publishBlockers(id);
-  if (blockers.length) throw new CatalogError(blockers.join(" "));
+export async function publishPlugin(id: number, userId: number | null, expectedRevision?: number) {
   await db.transaction(async (tx) => {
     const [current] = await tx.select().from(P).where(eq(P.id, id)).for("update");
     if (!current) throw new CatalogError("افزونه پیدا نشد.");
+    if (expectedRevision !== undefined && current.revision !== expectedRevision) throw new CatalogError("پیش‌نویس تغییر کرده است؛ صفحه را تازه کنید و نسخهٔ جدید را پیش از انتشار بررسی کنید.");
+    const blockers = await publishBlockers(id, tx);
+    if (blockers.length) throw new CatalogError(blockers.join(" "));
+    const draft = current.draftData;
+    if (draft) {
+      await claimSlug(tx, "plugins", draft.slug, "plugin", id, current.publishedAt !== null);
+      const ids = await checkCategories(tx, draft.categoryIds);
+      if (ids.length !== draft.categoryIds.length) throw new CatalogError("یکی از دسته‌های پیش‌نویس حذف شده است؛ دسته‌ها را دوباره انتخاب کنید.");
+      await tx.delete(schema.pluginCategoryLinks).where(eq(schema.pluginCategoryLinks.pluginId, id));
+      if (ids.length) await tx.insert(schema.pluginCategoryLinks).values(ids.map((categoryId) => ({ pluginId: id, categoryId })));
+    }
     const now = new Date();
-    const textChanged = JSON.stringify(current.contentPublished) !== JSON.stringify(current.contentDraft);
+    const textChanged = Boolean(draft) || JSON.stringify(current.contentPublished) !== JSON.stringify(current.contentDraft);
     await tx
       .update(P)
       .set({
+        ...draft,
+        // Preserve metadata discovered since editing unless the editor owns the field.
+        ...Object.fromEntries(META_FIELDS.filter((k) => draft && !draft.manualFields.includes(k)).map((k) => [k, current[k]])),
+        ...(!draft?.iconUrl && current.iconSource === "auto" ? { iconUrl: current.iconUrl, iconSource: current.iconSource } : {}),
+        draftData: null,
+        revision: current.revision + 1,
         status: "published",
         contentPublished: current.contentDraft,
         publishedAt: current.publishedAt ?? now,
@@ -218,6 +242,8 @@ export type CategoryInput = {
   description: unknown;
   seoTitle: string;
   seoDescription: string;
+  canonicalUrl?: string;
+  noindex?: boolean;
   imageUrl: string;
   sortOrder: number;
   published: boolean;
@@ -234,6 +260,8 @@ export async function saveCategory(id: number | null, input: CategoryInput) {
     description: document,
     seoTitle: input.seoTitle.trim().slice(0, 120),
     seoDescription: input.seoDescription.trim().slice(0, 300),
+    canonicalUrl: (input.canonicalUrl ?? "").trim().slice(0, 300),
+    noindex: input.noindex ?? false,
     imageUrl: input.imageUrl,
     sortOrder: Math.max(-1000, Math.min(1000, Math.trunc(input.sortOrder) || 0)),
     published: input.published,

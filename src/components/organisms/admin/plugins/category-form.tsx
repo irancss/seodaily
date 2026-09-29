@@ -20,6 +20,8 @@ export type CategoryFormData = {
   description: BlockDocument | null;
   seoTitle: string;
   seoDescription: string;
+  canonicalUrl?: string;
+  noindex?: boolean;
   imageUrl: string;
   sortOrder: number;
   published: boolean;
@@ -63,7 +65,12 @@ export function CategoryForm({ category }: { category: CategoryFormData }) {
           <Field label="عنوان سئو" name="seoTitle" defaultValue={category.seoTitle} maxLength={120} counter={60} />
           <Field label="توضیحات متا" name="seoDescription" defaultValue={category.seoDescription} multiline rows={3} maxLength={300} counter={160} />
           <SingleImageField name="imageUrl" label="تصویر دسته (اختیاری)" value={image} onChange={setImage} />
+          <Field label="نشانی canonical (اختیاری)" name="canonicalUrl" defaultValue={category.canonicalUrl ?? ""} dir="ltr" maxLength={300} />
         </div>
+        <label className="mt-5 inline-flex items-center gap-3 text-sm font-medium">
+          <input type="checkbox" name="noindex" defaultChecked={category.noindex} className="size-[18px] accent-brand" />
+          جلوگیری از ایندکس این دسته در موتورهای جستجو
+        </label>
       </Card>
       <div>
         <SubmitButton>ذخیره دسته</SubmitButton>

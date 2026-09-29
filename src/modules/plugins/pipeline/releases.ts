@@ -33,6 +33,7 @@ export function gateBlockers(checks: ReleaseChecks, opts: { newerThanCurrent: bo
     if (!c || c.status !== "PASS") out.push(`${k}: ${c ? c.status : "انجام نشده"}${c?.detail ? ` — ${c.detail}` : ""}`);
   }
   if (checks.checksum?.status === "FAIL") out.push(`checksum: FAIL — ${checks.checksum.detail}`);
+  if (checks.checksum?.required && checks.checksum.status !== "PASS" && checks.checksum.status !== "FAIL") out.push(`checksum: ${checks.checksum.status} — ${checks.checksum.detail}`);
   if (checks.version?.status === "FAIL") out.push(`version: FAIL — ${checks.version.detail}`);
   if (!opts.newerThanCurrent) out.push("نسخه از نسخه جاری جدیدتر نیست (به‌روزرسانی خودکار فقط رو به جلو است).");
   if (opts.sameVersionOtherFile) out.push("همین نسخه قبلاً با فایل دیگری ثبت شده است؛ بررسی مدیر لازم است.");
@@ -42,7 +43,7 @@ export function gateBlockers(checks: ReleaseChecks, opts: { newerThanCurrent: bo
 
 /** A check that proves something is wrong (not merely unavailable). */
 export function hardFailure(checks: ReleaseChecks): string | null {
-  for (const k of ["validation", "identity", "scan", "checksum"] as const) {
+  for (const k of ["validation", "identity", "scan", "checksum", "sandbox"] as const) {
     if (checks[k]?.status === "FAIL") return `${k}: ${checks[k]!.detail}`;
   }
   return null;
@@ -102,8 +103,19 @@ export async function publishRelease(releaseId: number, by: { userId: number | n
     if (rel.state !== "candidate" && rel.state !== "review") throw new ReleaseError("فقط نسخه در انتظار بررسی قابل انتشار است.");
     const fail = hardFailure(rel.checks);
     if (fail) throw new ReleaseError(`این نسخه کنترل ناموفق دارد و منتشر نمی‌شود (${fail}).`);
+    if (by.source === "auto") {
+      const [current] = plugin.currentReleaseId ? await tx.select().from(pluginReleases).where(eq(pluginReleases.id, plugin.currentReleaseId)) : [];
+      const [same] = await tx.select({ id: pluginReleases.id }).from(pluginReleases).where(and(eq(pluginReleases.pluginId, plugin.id), eq(pluginReleases.sourceVersion, rel.sourceVersion), ne(pluginReleases.id, rel.id))).limit(1);
+      const blockers = gateBlockers(rel.checks, {
+        newerThanCurrent: !current?.downloadable || isNewer(rel.sourceVersion, current.sourceVersion),
+        sameVersionOtherFile: Boolean(same),
+        autoUpdate: plugin.autoUpdate && pipelineConfig().autoUpdate,
+      });
+      if (blockers.length) throw new ReleaseError(blockers.join("؛ "));
+    }
     if (by.source === "admin" && !by.override?.trim()) {
-      const missing = REQUIRED_CHECKS.filter((k) => rel.checks[k]?.status !== "PASS");
+      const missing: string[] = REQUIRED_CHECKS.filter((k) => rel.checks[k]?.status !== "PASS");
+      if (rel.checks.checksum?.required && rel.checks.checksum.status !== "PASS") missing.push("checksum");
       if (missing.length) throw new ReleaseError(`کنترل‌های ${missing.join("، ")} PASS نیستند؛ برای انتشار دستی دلیل بنویسید.`);
     }
 

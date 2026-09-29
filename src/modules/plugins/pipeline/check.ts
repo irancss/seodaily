@@ -1,8 +1,9 @@
-import { and, asc, eq, sql } from "drizzle-orm";
-import { rm, stat } from "node:fs/promises";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
+import { readFile, rm, stat } from "node:fs/promises";
 
 import { db, schema } from "@/db";
 import type { PluginHeader, ReleaseCheck, ReleaseChecks } from "@/db/plugins-schema";
+import { deleteImage, MAX_UPLOAD_BYTES, saveImage } from "@/modules/uploads/storage";
 
 import { observeSource, type AdapterEnv, type Observation, type SourceConfig } from "./adapters";
 import type { PipelineConfig } from "./config";
@@ -45,14 +46,14 @@ export type CheckOutcome = {
 
 type Candidate = { source: typeof pluginSources.$inferSelect; obs: Observation };
 
-async function officialChecksums(url: string, report: PackageReport, ctx: CheckContext, fetchText: typeof realFetchText): Promise<ReleaseCheck> {
+export async function officialChecksums(url: string, report: PackageReport, ctx: CheckContext, fetchText: typeof realFetchText): Promise<ReleaseCheck> {
   const at = new Date().toISOString();
   if (!url) return { status: "UNAVAILABLE", detail: "برای این بسته مرجع checksum رسمی وجود ندارد (این «تأیید اصالت» نیست).", at };
   try {
     const res = await fetchText(url, { timeoutMs: ctx.cfg.fetchTimeoutMs, maxBytes: 8 * 1024 * 1024, userAgent: ctx.cfg.userAgent, accept: "application/json" });
     const files = (JSON.parse(res.text)?.files ?? {}) as Record<string, { sha256?: string | string[] }>;
     const names = Object.keys(files);
-    if (names.length === 0) return { status: "UNAVAILABLE", detail: "فایل checksum رسمی خالی بود.", at };
+    if (names.length === 0) return { required: true, status: "UNAVAILABLE", detail: "فایل checksum رسمی خالی بود.", at };
     const mismatched: string[] = [];
     const missing: string[] = [];
     for (const name of names) {
@@ -60,16 +61,16 @@ async function officialChecksums(url: string, report: PackageReport, ctx: CheckC
       const list = Array.isArray(expected) ? expected : expected ? [expected] : [];
       const actual = report.fileHashes[name];
       if (!actual) missing.push(name);
-      else if (list.length && !list.includes(actual)) mismatched.push(name);
+      else if (!list.length || !list.includes(actual)) mismatched.push(name);
     }
     const extra = Object.keys(report.fileHashes).filter((n) => !files[n]);
-    if (mismatched.length || missing.length) {
-      return { status: "FAIL", detail: `با checksum رسمی WordPress.org نمی‌خواند: ${[...mismatched, ...missing].slice(0, 8).join("، ")}`, at };
+    if (mismatched.length || missing.length || extra.length) {
+      return { status: "FAIL", detail: `با checksum رسمی WordPress.org نمی‌خواند: ${[...mismatched, ...missing, ...extra].slice(0, 8).join("، ")}`, at };
     }
     return { status: "PASS", detail: `${names.length} فایل با checksum رسمی WordPress.org برابر است${extra.length ? `؛ ${extra.length} فایل اضافه بیرون از مرجع` : ""}.`, at };
   } catch (error) {
     if (error instanceof FetchError && error.status === 404) return { status: "UNAVAILABLE", detail: "مرجع checksum برای این نسخه منتشر نشده است.", at };
-    return { status: "UNAVAILABLE", detail: `دریافت checksum رسمی ممکن نشد: ${(error as Error).message}`, at };
+    return { required: true, status: "UNAVAILABLE", detail: `دریافت checksum رسمی ممکن نشد: ${(error as Error).message}`, at };
   }
 }
 
@@ -106,16 +107,16 @@ async function identityCheck(pluginId: number, originalName: string, header: Plu
 
 /**
  * Candidates newest first; equal versions by source priority (lower number =
- * more trusted). After them: the current version as announced by *other*
+ * more trusted). After them: the current version as announced by all
  * sources (to notice a different file under the same version — never
  * published automatically), then direct links whose version is only known
  * after download.
  */
-export function rankCandidates(list: Candidate[], currentVersion: string, allowPrerelease: boolean, currentSourceId: number | null = null) {
+export function rankCandidates(list: Candidate[], currentVersion: string, allowPrerelease: boolean) {
   const versioned = list.filter((c) => c.obs.version && parseVersion(c.obs.version) && (allowPrerelease || !isPrerelease(c.obs.version)));
   const newer = currentVersion ? versioned.filter((c) => isNewer(c.obs.version, currentVersion)) : versioned;
   newer.sort((a, b) => (compareVersions(b.obs.version, a.obs.version) ?? 0) || a.source.priority - b.source.priority || a.source.id - b.source.id);
-  const equal = currentVersion ? versioned.filter((c) => compareVersions(c.obs.version, currentVersion) === 0 && c.source.id !== currentSourceId) : [];
+  const equal = currentVersion ? versioned.filter((c) => compareVersions(c.obs.version, currentVersion) === 0) : [];
   const direct = list.filter((c) => !c.obs.version && c.obs.result === "ok").sort((a, b) => a.source.priority - b.source.priority);
   return [...newer, ...equal, ...direct];
 }
@@ -158,15 +159,10 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
     const wait = (lastHit.get(host) ?? 0) + (ctx.hostDelayMs ?? 1500) - Date.now();
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     lastHit.set(host, Date.now());
-    // Conditional requests only while the last reading is not newer than what we serve,
-    // so a 304 can never hide a version that still has to be fetched.
-    const conditional = Boolean(currentVersion && source.lastVersion && !isNewer(source.lastVersion, currentVersion));
-    const cfg: SourceConfig = { ...source, allowPrerelease: plugin.allowPrerelease, etag: conditional ? source.etag : "", lastModified: conditional ? source.lastModified : "" };
-    let obs = await observeSource(cfg, env);
-    if (obs.result === "not_modified") {
-      // The page did not change: its last known reading still holds.
-      obs = { ...obs, result: source.lastVersion ? "ok" : "not_modified", version: source.lastVersion, downloadUrl: "" };
-    }
+    // The HTML can stay identical while the ZIP changes. Always obtain the link
+    // again; identity is established by bytes, never the announced version.
+    const cfg: SourceConfig = { ...source, allowPrerelease: plugin.allowPrerelease, etag: "", lastModified: "" };
+    const obs = await observeSource(cfg, env);
     ctx.log(`منبع #${source.id} (${redactUrl(source.url)}): ${obs.result}${obs.version ? ` نسخه ${obs.version}` : ""}${obs.error ? ` — ${obs.error}` : ""}`);
     const failed = obs.result === "error" || obs.result === "manual_setup_required";
     await db.insert(pluginSourceObservations).values({
@@ -195,10 +191,22 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
 
   // Icon from an official source, only when the admin has not set one.
   const withIcon = candidates.find((c) => c.obs.iconUrl);
-  if (withIcon && !plugin.iconUrl) outcome.notes.push(`آیکون رسمی پیدا شد: ${redactUrl(withIcon.obs.iconUrl)}`);
+  if (withIcon && !plugin.iconUrl && !plugin.draftData?.iconUrl) {
+    const temp = await tempPath(ctx.cfg.filesDir);
+    try {
+      await fetchToFile(withIcon.obs.iconUrl, temp, { timeoutMs: ctx.cfg.fetchTimeoutMs, maxBytes: MAX_UPLOAD_BYTES, userAgent: ctx.cfg.userAgent });
+      const icon = await saveImage(new File([new Uint8Array(await readFile(temp))], "icon"));
+      if (icon) {
+        const rows = await db.update(plugins).set({ iconUrl: icon, iconSource: "auto" }).where(and(eq(plugins.id, pluginId), eq(plugins.iconUrl, ""), sql`coalesce(${plugins.draftData}->>'iconUrl', '') = ''`)).returning({ id: plugins.id });
+        if (!rows.length) await deleteImage(icon);
+        else await ctx.invalidate();
+      }
+    } catch { outcome.notes.push("دریافت یا اعتبارسنجی آیکون رسمی موفق نبود؛ آیکون دستی حفظ شد."); }
+    finally { await rm(temp, { force: true }); }
+  }
 
   // 2. Try the newest candidates in order until one is published or queued for review.
-  let ranked = rankCandidates(candidates, currentVersion, plugin.allowPrerelease, current?.sourceId ?? null);
+  let ranked = rankCandidates(candidates, currentVersion, plugin.allowPrerelease);
   // A candidate with a page reading but no fresh link (304) needs the page again next time: skip it now.
   ranked = ranked.filter((c) => c.obs.downloadUrl);
   let settled = false;
@@ -209,27 +217,6 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
       return outcome;
     }
     const announced = cleanVersion(cand.obs.version);
-    if (announced) {
-      const [known] = await db
-        .select({ id: pluginReleases.id, state: pluginReleases.state })
-        .from(pluginReleases)
-        .where(and(eq(pluginReleases.pluginId, pluginId), eq(pluginReleases.sourceVersion, announced), eq(pluginReleases.sourceId, cand.source.id)))
-        .limit(1);
-      if (known) {
-        outcome.notes.push(`نسخه ${announced} از منبع #${cand.source.id} قبلاً دریافت شده است (وضعیت: ${known.state}).`);
-        if (known.state === "review" || known.state === "candidate") settled = true;
-        continue;
-      }
-      // The current version from another source is compared once: same bytes are remembered, not re-downloaded.
-      if (currentVersion && compareVersions(announced, currentVersion) === 0) {
-        const [seen] = await db
-          .select({ id: pluginSourceObservations.id })
-          .from(pluginSourceObservations)
-          .where(and(eq(pluginSourceObservations.sourceId, cand.source.id), eq(pluginSourceObservations.sourceVersion, announced), sql`${pluginSourceObservations.evidence} @> ${JSON.stringify([SAME_FILE])}::jsonb`))
-          .limit(1);
-        if (seen) continue;
-      }
-    }
     if ((await freeBytes(ctx.cfg.filesDir)) < ctx.cfg.minFreeBytes) {
       outcome.notes.push("فضای خالی دیسک کمتر از حد امن است؛ دریافت فایل جدید متوقف شد.");
       outcome.status = "failed";
@@ -248,17 +235,17 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
       continue;
     }
     const [dupe] = await db
-      .select({ id: pluginReleases.id, state: pluginReleases.state, version: pluginReleases.sourceVersion })
+      .select({ id: pluginReleases.id, state: pluginReleases.state, version: pluginReleases.sourceVersion, warnings: pluginReleases.warnings, reviewExpiresAt: pluginReleases.reviewExpiresAt })
       .from(pluginReleases)
       .where(and(eq(pluginReleases.pluginId, pluginId), eq(pluginReleases.sha256, file.sha256)))
       .limit(1);
-    if (dupe) {
+    if (dupe && dupe.state !== "review" && dupe.state !== "candidate" && !dupe.warnings.includes("review-expired")) {
       await rm(temp, { force: true });
       if (announced) {
         await db.insert(pluginSourceObservations).values({ sourceId: cand.source.id, sourceVersion: announced, result: "ok", evidence: [SAME_FILE, file.sha256] });
       }
       outcome.notes.push(`فایل (${file.sha256.slice(0, 12)}…) همان نسخه ${dupe.version} ثبت‌شده است.`);
-      if (dupe.state === "review") settled = true;
+
       continue;
     }
 
@@ -299,13 +286,15 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
       }
       if (!hardFailure(checks)) {
         checks.scan = await ctx.scan(objectPath(ctx.cfg.filesDir, storageKey), file.sha256);
-        checks.sandbox = checks.scan.status === "FAIL" ? { status: "NOT_APPLICABLE", detail: "به دلیل یافته اسکنر اجرا نشد." } : await ctx.sandbox.run({ artifactPath: objectPath(ctx.cfg.filesDir, storageKey), sha256: file.sha256, mainFile: header.mainFile ?? "", wpVersion: "", phpVersion: "" });
+        checks.sandbox = checks.scan.status !== "PASS" || checks.validation.status !== "PASS"
+          ? { status: "NOT_APPLICABLE", detail: "تا تأیید کامل ساختار فایل و اسکن بدافزار، PHP اجرا نمی‌شود." }
+          : await ctx.sandbox.run({ artifactPath: objectPath(ctx.cfg.filesDir, storageKey), sha256: file.sha256, mainFile: header.mainFile ?? "", wpVersion: "", phpVersion: "", requiresPlugins: header.requiresPlugins });
       }
     }
     const sameVersion = await db
       .select({ id: pluginReleases.id })
       .from(pluginReleases)
-      .where(and(eq(pluginReleases.pluginId, pluginId), eq(pluginReleases.sourceVersion, sourceVersion)))
+      .where(and(eq(pluginReleases.pluginId, pluginId), eq(pluginReleases.sourceVersion, sourceVersion), ...(dupe ? [ne(pluginReleases.id, dupe.id)] : [])))
       .limit(1);
     if (sameVersion.length) warnings.push(`نسخه ${sourceVersion} قبلاً با فایل دیگری ثبت شده است؛ فایل جدید جایگزین خودکار نمی‌شود.`);
 
@@ -313,6 +302,7 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
     const newer = !currentVersion || isNewer(sourceVersion, currentVersion);
     const blockers = gateBlockers(checks, { newerThanCurrent: newer, sameVersionOtherFile: sameVersion.length > 0, autoUpdate: plugin.autoUpdate && ctx.cfg.autoUpdate });
     const changelog = (report?.readme?.changelog[sourceVersion] ?? "") || cand.obs.changelog;
+    const reviewExpiresAt = dupe && !dupe.warnings.includes("review-expired") ? dupe.reviewExpiresAt : new Date(Date.now() + ctx.cfg.reviewTtlMs);
     const [row] = await db
       .insert(pluginReleases)
       .values({
@@ -329,8 +319,13 @@ export async function checkPlugin(pluginId: number, ctx: CheckContext): Promise<
         warnings: warnings.map((w) => w.slice(0, 300)).slice(0, 20),
         changelog: changelog.slice(0, 3000),
         state: fail ? "rejected" : "review",
+        reviewExpiresAt,
       })
-      .onConflictDoNothing()
+      .onConflictDoUpdate({
+        target: [pluginReleases.pluginId, pluginReleases.sha256],
+        set: { checks, warnings: warnings.slice(0, 20), state: fail ? "rejected" : "review", fileDeletedAt: null, reviewExpiresAt },
+        setWhere: sql`${pluginReleases.state} in ('review', 'candidate') or (${pluginReleases.state} = 'rejected' and ${pluginReleases.warnings} @> '["review-expired"]'::jsonb)`,
+      })
       .returning({ id: pluginReleases.id });
     if (!row) {
       outcome.notes.push("این فایل هم‌زمان توسط اجرای دیگری ثبت شد.");

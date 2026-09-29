@@ -110,9 +110,9 @@ async function handle(request: Request, params: Promise<{ grant: string }>, head
         const length = Math.min(chunk, end - position + 1);
         if (length <= 0) {
           await fh.close();
+          // A suffix alone is not a full download. Merge only completed responses.
+          await markServed(a, sent, { notCounted, start });
           controller.close();
-          // The last byte of the file left the server with this response.
-          if (end === size - 1) await markServed(a, sent, { notCounted });
           return;
         }
         const buf = Buffer.alloc(length);

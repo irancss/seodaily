@@ -4,7 +4,7 @@
 // the queue (SKIP LOCKED + leases + fencing) and the per-day schedule row
 // keep every job and nightly run single.
 import { randomBytes } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { mkdir, rename, writeFile } from "node:fs/promises";
 import { hostname } from "node:os";
 
 import { sql } from "drizzle-orm";
@@ -22,7 +22,7 @@ import { freeBytes } from "@/modules/plugins/pipeline/storage";
 const cfg = pipelineConfig();
 const workerId = `${hostname()}-${process.pid}-${randomBytes(3).toString("hex")}`;
 const version = process.env.APP_VERSION ?? "dev";
-const sandbox = sandboxRunner(cfg.sandboxUrl);
+const sandbox = sandboxRunner(cfg.sandboxUrl, cfg.sandboxToken, cfg.sandboxTimeoutMs);
 const running = new Set<Promise<void>>();
 let stopping = false;
 
@@ -42,12 +42,14 @@ async function invalidate() {
 }
 
 async function beat() {
-  const [scanner, free] = await Promise.all([scannerHealth(cfg.clamdHost, cfg.clamdPort, cfg.clamMaxSignatureAgeH), freeBytes(cfg.filesDir).catch(() => -1)]);
-  const health = { scanner, sandbox: { available: sandbox.available }, freeBytes: free, minFreeBytes: cfg.minFreeBytes, autoUpdate: cfg.autoUpdate, concurrency: cfg.workerConcurrency };
+  const [scanner, runner, free] = await Promise.all([scannerHealth(cfg.clamdHost, cfg.clamdPort, cfg.clamMaxSignatureAgeH), sandbox.health!(), freeBytes(cfg.filesDir).catch(() => -1)]);
+  const health = { scanner, sandbox: runner, freeBytes: free, minFreeBytes: cfg.minFreeBytes, autoUpdate: cfg.autoUpdate, concurrency: cfg.workerConcurrency };
   await db
     .insert(schema.workerHeartbeats)
     .values({ workerId, version, health })
     .onConflictDoUpdate({ target: schema.workerHeartbeats.workerId, set: { seenAt: new Date(), health, version } });
+  await writeFile("/tmp/seodaily-worker-heartbeat.json.tmp", JSON.stringify({ pid: process.pid, at: Date.now() }), { mode: 0o600 });
+  await rename("/tmp/seodaily-worker-heartbeat.json.tmp", "/tmp/seodaily-worker-heartbeat.json");
 }
 
 async function runJob(job: Job) {
@@ -140,7 +142,7 @@ async function main() {
       await new Promise((r) => setTimeout(r, 5000));
     }
   }
-  say(`started ${workerId} (version ${version}, concurrency ${cfg.workerConcurrency}, scanner ${cfg.clamdHost ? "configured" : "not configured"}, sandbox ${sandbox.available ? "available" : "unavailable"})`);
+  say(`started ${workerId} (version ${version}, concurrency ${cfg.workerConcurrency}, scanner ${cfg.clamdHost ? "configured" : "not configured"}, sandbox ${sandbox.available ? "configured" : "not configured"})`);
   const shutdown = async (signal: string) => {
     if (stopping) return;
     stopping = true;

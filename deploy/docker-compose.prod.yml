@@ -16,9 +16,12 @@ x-plugin-env: &plugin-env
   DOWNLOAD_TEST_PHONES: ${DOWNLOAD_TEST_PHONES:-}
   PLUGINS_DOWNLOADS_ENABLED: ${PLUGINS_DOWNLOADS_ENABLED:-true}
   PLUGINS_AUTO_UPDATE_ENABLED: ${PLUGINS_AUTO_UPDATE_ENABLED:-true}
-  CLAMD_HOST: ${CLAMD_HOST:-}
+  CLAMD_HOST: ${CLAMD_HOST:-clamav}
   CLAMD_PORT: ${CLAMD_PORT:-3310}
   PLUGIN_SANDBOX_URL: ${PLUGIN_SANDBOX_URL:-}
+  PLUGIN_SANDBOX_TOKEN: ${PLUGIN_SANDBOX_TOKEN:-}
+  PLUGIN_SANDBOX_TIMEOUT_S: ${PLUGIN_SANDBOX_TIMEOUT_S:-240}
+  PLUGIN_REVIEW_TTL_D: ${PLUGIN_REVIEW_TTL_D:-30}
   PLUGIN_FILES_DIR: /app/plugin-files
 
 x-logging: &logging
@@ -77,6 +80,12 @@ services:
     image: seodaily:${APP_IMAGE_TAG:-latest}
     pull_policy: never
     command: ["worker"]
+    healthcheck:
+      test: ["CMD", "node", "scripts/worker-health.mjs"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
     restart: unless-stopped
     logging: *logging
     depends_on:
@@ -93,7 +102,30 @@ services:
     mem_limit: 768m
     stop_grace_period: 30s
 
+  # No public port or site volumes. FreshClam updates persistent definitions.
+  clamav:
+    image: clamav/clamav:1.4
+    pull_policy: never
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      CLAMD_CONF_StreamMaxLength: 110M
+      CLAMD_CONF_MaxFileSize: 100M
+      CLAMD_CONF_MaxScanSize: 400M
+      CLAMD_CONF_AlertExceedsMax: "yes"
+      FRESHCLAM_CHECKS: "12"
+    volumes:
+      - clamav_db:/var/lib/clamav
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 300s
+      retries: 3
+
 volumes:
+  clamav_db:
   pgdata:
   uploads:
   plugin_files:

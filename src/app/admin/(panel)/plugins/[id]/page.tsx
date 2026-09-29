@@ -92,6 +92,7 @@ export default async function EditPlugin({ params }: Props) {
           <div className="mt-4 flex flex-wrap gap-2">
             {plugin.status !== "archived" && (blockers.length === 0 || plugin.status === "published") && (
               <form action={publishPluginAction} method="post">
+                <input type="hidden" name="revision" value={plugin.revision} />
                 <input type="hidden" name="id" value={id} />
                 <SubmitButton>{plugin.status === "published" ? "انتشار تغییرات پیش‌نویس" : "انتشار در سایت"}</SubmitButton>
               </form>

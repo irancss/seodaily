@@ -199,6 +199,32 @@ test("PL-T30/T31/T32: public pages, global block, category, sitemap, home, SEO d
   await page.context().close();
 });
 
+test("PL-T32: external canonicals and noindex categories stay out of the actual sitemap", async () => {
+  const invalidate = async () => {
+    const res = await fetch(`${BASE}/api/internal/revalidate`, { method: "POST", headers: { "x-internal-secret": process.env.INTERNAL_API_SECRET } });
+    assert.equal(res.status, 200);
+  };
+  const has = (xml, slug) => xml.includes(`/plugins/${slug}</loc>`);
+  try {
+    await sql`update plugins set canonical_url=${`https://other.example/plugins/${SLUG}`} where id=${pluginId}`;
+    await sql`update plugin_categories set canonical_url=${`https://other.example/plugins/${CAT}`} where slug=${CAT}`;
+    await invalidate();
+    let sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    assert.equal(has(sitemap, SLUG), false, "same path on another origin is not self-canonical");
+    assert.equal(has(sitemap, CAT), false, "category canonical excludes it too");
+    await sql`update plugins set canonical_url=${`https://seodaily.ir/plugins/${SLUG}`} where id=${pluginId}`;
+    await sql`update plugin_categories set canonical_url='', noindex=true where slug=${CAT}`;
+    await invalidate();
+    sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    assert.equal(has(sitemap, SLUG), true, "explicit self-canonical remains listed");
+    assert.equal(has(sitemap, CAT), false, "noindex category remains excluded");
+  } finally {
+    await sql`update plugins set canonical_url='' where id=${pluginId}`;
+    await sql`update plugin_categories set canonical_url='', noindex=false where slug=${CAT}`;
+    await invalidate();
+  }
+});
+
 test("PL-T22/T23/T24/T26: phone check once per browser, 10-minute link, HEAD/Range not counted, full download counted once", async () => {
   const page = await newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`${BASE}/plugins/${SLUG}`);
@@ -223,14 +249,17 @@ test("PL-T22/T23/T24/T26: phone check once per browser, 10-minute link, HEAD/Ran
   const probe = await page.evaluate(async (url) => {
     const head = await fetch(url, { method: "HEAD" });
     const part = await fetch(url, { headers: { range: "bytes=0-9" } });
-    return { head: head.status, part: part.status, range: part.headers.get("content-range"), bytes: (await part.arrayBuffer()).byteLength };
+    const bytes = (await part.arrayBuffer()).byteLength;
+    const suffix = await fetch(url, { headers: { range: "bytes=-1" } });
+    return { head: head.status, part: part.status, range: part.headers.get("content-range"), bytes, suffixBytes: (await suffix.arrayBuffer()).byteLength };
   }, href);
   assert.equal(probe.head, 200);
   assert.equal(probe.part, 206);
   assert.equal(probe.bytes, 10);
+  assert.equal(probe.suffixBytes, 1);
   assert.match(probe.range, /^bytes 0-9\/\d+$/);
   let [p] = await sql`select measured_download_count as n from plugins where id = ${pluginId}`;
-  assert.equal(p.n, 0, "HEAD and a partial range are not downloads");
+  assert.equal(p.n, 0, "HEAD, a partial prefix and the final byte do not constitute a full download");
 
   const other = await browser.newContext();
   assert.equal((await other.request.get(`${BASE}${href}`)).status(), 403, "the link needs this browser's session");

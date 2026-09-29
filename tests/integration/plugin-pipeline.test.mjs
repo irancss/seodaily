@@ -12,15 +12,18 @@ import { fixtureServer } from "../support/fixture-server.mjs";
 import { pluginZip } from "../support/zip-builder.mjs";
 
 process.env.PLUGIN_FILES_DIR = mkdtempSync(path.join(tmpdir(), "plfiles-"));
+process.env.UPLOAD_DIR = mkdtempSync(path.join(tmpdir(), "plicons-"));
 process.env.PLUGIN_FETCH_ALLOW_PRIVATE_FOR_TESTS = "127.0.0.1/32";
 process.env.PLUGIN_DISK_MIN_FREE_MB = "100";
 const sql = await freshDatabase("it_pipeline");
-const { checkPlugin } = await import("../../src/modules/plugins/pipeline/check.ts");
+const { checkPlugin, officialChecksums } = await import("../../src/modules/plugins/pipeline/check.ts");
 const { pipelineConfig } = await import("../../src/modules/plugins/pipeline/config.ts");
 const { publishRelease, ReleaseError } = await import("../../src/modules/plugins/pipeline/releases.ts");
 const { objectPath } = await import("../../src/modules/plugins/pipeline/storage.ts");
 const jobs = await import("../../src/modules/plugins/pipeline/jobs.ts");
 const { runScheduleTick } = await import("../../src/modules/plugins/pipeline/schedule.ts");
+const { gateBlockers } = await import("../../src/modules/plugins/pipeline/releases.ts");
+const { FetchError } = await import("../../src/modules/plugins/pipeline/safe-fetch.ts");
 
 const srv = await fixtureServer();
 after(() => srv.close());
@@ -183,7 +186,7 @@ test("PL-T05/T07: a failing source falls back; same version with another file is
   assert.ok(out2.review[0].reasons.some((r) => /فایل دیگری/.test(r)));
   const [plugin] = await sql`select current_release_id from plugins where id = ${id}`;
   assert.equal(plugin.current_release_id, rows.find((r) => r.state === "published").id, "no silent overwrite of the current file");
-  // The same bytes from another source are verified once and then remembered.
+  // The same version is fetched again: a page/version is not a byte identity.
   const id2 = await newPlugin();
   await addSource(id2, { page: "/f/3", priority: 1 });
   await addSource(id2, { page: "/f/4", priority: 2 });
@@ -194,7 +197,91 @@ test("PL-T05/T07: a failing source falls back; same version with another file is
   const before = srv.hits.filter((h) => h === "/f/e.zip").length;
   await checkPlugin(id2, c);
   await checkPlugin(id2, c);
-  assert.equal(srv.hits.filter((h) => h === "/f/e.zip").length, before + 1, "one comparison download, then remembered");
+  assert.equal(srv.hits.filter((h) => h === "/f/e.zip").length, before + 4, "both sources are compared again without duplicating releases");
+  assert.equal((await releases(id2)).length, 1);
+});
+
+test("review releases rerun unavailable checks and publish the same artifact after recovery", async () => {
+  const id = await newPlugin();
+  await addSource(id, { page: "/recheck" });
+  srv.set("/recheck", { body: page("1.0", "/recheck.zip") });
+  serveZip("/recheck.zip", { version: "1.0" });
+  let executions = 0;
+  const unavailable = ctx({ scan: async () => ({ status: "UNAVAILABLE", detail: "offline" }), sandbox: { available: true, run: async () => { executions++; return PASS(); } } }).ctx;
+  assert.equal((await checkPlugin(id, unavailable)).status, "review");
+  const first = (await releases(id))[0];
+  assert.equal(executions, 0, "PHP cannot execute before a complete scan");
+  assert.equal((await checkPlugin(id, unavailable)).status, "review", "pending is not up to date");
+  assert.equal((await checkPlugin(id, ctx().ctx)).status, "updated");
+  const rows = await releases(id);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, first.id);
+  assert.equal(rows[0].state, "published");
+});
+
+test("a source replacing its own ZIP without a version bump is reviewed, never silently published", async () => {
+  const id = await newPlugin();
+  await addSource(id, { page: "/same-source" });
+  srv.set("/same-source", { body: page("1.0", "/same-source.zip") });
+  serveZip("/same-source.zip", { version: "1.0" });
+  await checkPlugin(id, ctx().ctx);
+  const original = (await releases(id))[0];
+  serveZip("/same-source.zip", { version: "1.0", extra: [{ name: "hello-test/new.txt", data: "changed" }] });
+  assert.equal((await checkPlugin(id, ctx().ctx)).status, "review");
+  assert.equal((await sql`select current_release_id from plugins where id=${id}`)[0].current_release_id, original.id);
+});
+
+test("absent checksums are informational; unavailable existing references and unlisted files cannot pass", async () => {
+  const c = ctx().ctx, report = { fileHashes: { "plugin.php": "a".repeat(64) } };
+  const checks = { validation: PASS(), identity: PASS(), scan: PASS(), sandbox: PASS() };
+  const opts = { newerThanCurrent: true, sameVersionOtherFile: false, autoUpdate: true };
+  const absent = await officialChecksums("", report, c, async () => { throw new Error("must not fetch"); });
+  assert.deepEqual(gateBlockers({ ...checks, checksum: absent }, opts), []);
+  const missing = await officialChecksums("https://example.org/checksums", report, c, async () => { throw new FetchError("not found", "http", 404); });
+  assert.deepEqual(gateBlockers({ ...checks, checksum: missing }, opts), []);
+  for (const fetcher of [async () => { throw new Error("timeout"); }, async () => ({ text: "{}" }), async () => ({ text: "not JSON" })]) {
+    const checksum = await officialChecksums("https://example.org/checksums", report, c, fetcher);
+    assert.equal(checksum.required, true);
+    assert.ok(gateBlockers({ ...checks, checksum }, opts).some((b) => b.startsWith("checksum:")));
+  }
+  const checksum = await officialChecksums("https://example.org/checksums", { fileHashes: { ...report.fileHashes, "extra.php": "b".repeat(64) } }, c, async () => ({ text: JSON.stringify({ files: { "plugin.php": { sha256: "a".repeat(64) } } }) }));
+  assert.equal(checksum.status, "FAIL");
+});
+
+test("official icons use validated local storage and never replace an admin's image", async () => {
+  const id = await newPlugin();
+  await sql`insert into plugin_sources (plugin_id,url,adapter) values (${id},'https://wordpress.org/plugins/hello-test/','wordpress_org')`;
+  srv.set("/icon.png", { type: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X4dQAAAAASUVORK5CYII=", "base64") });
+  serveZip("/icon-plugin.zip", { version: "1.0" });
+  const fetchText = async (url) => {
+    if (url.includes("plugin-checksums")) throw new FetchError("absent", "http", 404);
+    return { text: JSON.stringify({ version: "1.0", download_link: srv.base + "/icon-plugin.zip", icons: { "1x": srv.base + "/icon.png" } }) };
+  };
+  await checkPlugin(id, ctx({ fetchText }).ctx);
+  const [first] = await sql`select icon_url,icon_source from plugins where id=${id}`;
+  assert.match(first.icon_url, /^\/uploads\/.+\.png$/);
+  assert.equal(first.icon_source, "auto");
+  await sql`update plugins set icon_url='/uploads/manual.png',icon_source='manual' where id=${id}`;
+  await checkPlugin(id, ctx({ fetchText }).ctx);
+  assert.equal((await sql`select icon_url from plugins where id=${id}`)[0].icon_url, "/uploads/manual.png");
+});
+
+test("expired review bytes are removed, history remains, and a later check can reacquire the same SHA", async () => {
+  const { runMaintenance } = await import("../../src/modules/plugins/pipeline/maintenance.ts");
+  const id = await newPlugin();
+  await addSource(id, { page: "/expiry" });
+  srv.set("/expiry", { body: page("1.0", "/expiry.zip") });
+  serveZip("/expiry.zip", { version: "1.0", extra: [{ name: "hello-test/expiry.txt", data: "expiry" }] });
+  await checkPlugin(id, ctx({ sandbox: unavailableSandbox }).ctx);
+  const [first] = await releases(id);
+  await sql`update plugin_releases set review_expires_at=now()-interval '1 hour',created_at=now()-interval '40 days' where id=${first.id}`;
+  await runMaintenance(cfg, () => {});
+  const [expired] = await sql`select state,file_deleted_at from plugin_releases where id=${first.id}`;
+  assert.equal(expired.state, "rejected");
+  assert.ok(expired.file_deleted_at);
+  assert.equal((await checkPlugin(id, ctx().ctx)).status, "updated");
+  const [restored] = await sql`select id,state,file_deleted_at from plugin_releases where plugin_id=${id}`;
+  assert.deepEqual(restored, { id: first.id, state: "published", file_deleted_at: null });
 });
 
 test("PL-T09: HTML instead of ZIP is rejected; the current release is untouched", async () => {
