@@ -1,37 +1,23 @@
-import Link from "next/link";
-import { SectionHeading } from "@/components/molecules";
+import { FeatureCard, SectionHeading } from "@/components/molecules";
 import { PRICING_SERVICE_LABELS, PRICING_SERVICES, type PricingConfig, type PricingService } from "@/modules/pricing/types";
-
-import { PricingCalculator } from "./pricing-calculator";
-import { PricingTabs } from "./pricing-tabs";
+import { pricingHref } from "@/modules/pricing/routes";
 
 const ICONS: Record<PricingService, string> = { "web-design": "layout", seo: "trending-up", content: "pen" };
 
-/** One tab per service, each with its pricing table, calculator and request form. */
-export function PricingServicesSection({ pricing, initial }: { pricing: PricingConfig; initial: PricingService }) {
+/** The overview links to real, independently indexable pricing pages. */
+export function PricingServicesSection({ pricing }: { pricing: PricingConfig }) {
   return (
-    <section id="pricing-services" aria-label="تعرفه خدمات" className="relative pb-16 lg:pb-24">
-      <p className="container-site py-6 leading-8 text-ink-2">
-        پیش از برآورد هزینه، جزئیات <Link href="/web-design" className="font-medium text-brand-hover underline underline-offset-4">خدمات طراحی سایت</Link> و <Link href="/seo" className="font-medium text-brand-hover underline underline-offset-4">خدمات سئو</Link> را ببینید تا گزینه‌های متناسب با نیازتان را انتخاب کنید.
-      </p>
-      <PricingTabs
-        label="خدمات"
-        initial={initial}
-        tabs={PRICING_SERVICES.map((service) => {
-          const label = PRICING_SERVICE_LABELS[service];
-          return {
-            id: service,
-            label,
-            icon: ICONS[service],
-            panel: (
-              <div className="container-site pt-10 lg:pt-16">
-                <SectionHeading eyebrow="تعرفه و برآورد هزینه" title={`تعرفه *${label}*`} text={pricing[service].intro || undefined} />
-                <PricingCalculator service={service} label={label} pricing={pricing[service]} />
-              </div>
-            ),
-          };
-        })}
-      />
+    <section id="pricing-services" className="section">
+      <div className="container-site">
+        <SectionHeading eyebrow="انتخاب خدمت" title="تعرفهٔ کدام *خدمت* را می‌خواهید؟" text="بسته‌های قیمت، توضیحات و ابزار برآورد هزینهٔ هر خدمت را در صفحهٔ مخصوص آن ببینید." />
+        <ul className="mt-6 grid gap-4 md:grid-cols-3 lg:mt-8 lg:gap-5">
+          {PRICING_SERVICES.map((service) => (
+            <li key={service} className="min-w-0">
+              <FeatureCard icon={ICONS[service]} title={`تعرفه ${PRICING_SERVICE_LABELS[service]}`} text={pricing[service].intro} href={pricingHref(service)} />
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

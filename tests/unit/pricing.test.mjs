@@ -7,6 +7,8 @@ import { computeEstimate, initialChoices, isCountOnly } from "../../src/modules/
 import { formatPrice, formatTotal, parseAmount, parseDigits } from "../../src/modules/pricing/format.ts";
 import { cleanPrice, normalizeSelection, normalizeServicePricing } from "../../src/modules/pricing/normalize.ts";
 import { PRICE_MAX, QTY_LIMIT } from "../../src/modules/pricing/types.ts";
+import { defaultServicePricing } from "../../src/modules/pricing/defaults.ts";
+import { pricingJsonLd } from "../../src/modules/pricing/json-ld.ts";
 
 const pricing = normalizeServicePricing({
   plans: [
@@ -135,4 +137,29 @@ test("money formatting and parsing", () => {
   assert.equal(parseAmount(""), 0);
   assert.equal(parseDigits("۱۲a3"), 123);
   assert.equal(parseDigits("abc"), null);
+});
+
+test("existing prices survive adding editorial content, and unsafe block links are removed", () => {
+  assert.equal(normalizeServicePricing({ plans: pricing.plans }).content, null);
+  const input = {
+    ...pricing,
+    content: { v: 1, doc: { type: "doc", content: [
+      { type: "paragraph", attrs: { id: "pricing-copy" }, content: [{ type: "text", text: "Pricing explanation", marks: [{ type: "link", attrs: { href: "javascript:alert(1)" } }] }] },
+      { type: "table", attrs: { id: "price-comparison" }, content: [{ type: "tableRow", content: [{ type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Basic plan" }] }] }] }] },
+    ] } },
+  };
+  const clean = normalizeServicePricing(input);
+  assert.deepEqual(clean.plans, pricing.plans);
+  assert.equal(clean.content.doc.content[1].type, "table");
+  assert.ok(!JSON.stringify(clean.content).includes("javascript:"));
+  assert.deepEqual(normalizeServicePricing(clean), clean);
+});
+
+test("a service pricing page only describes its own real offers at its canonical URL", () => {
+  const config = Object.fromEntries(["web-design", "seo", "content"].map(service => [service, { ...defaultServicePricing(service), plans: pricing.plans }]));
+  const result = pricingJsonLd(config, "https://example.test", ["seo"]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].url, "https://example.test/pricing/seo");
+  assert.equal(result[0].hasOfferCatalog.itemListElement.length, 1, "negotiable plans have no invented numeric offer");
+  assert.equal(result[0].hasOfferCatalog.itemListElement[0].price, 200_000_000, "toman converted to IRR");
 });

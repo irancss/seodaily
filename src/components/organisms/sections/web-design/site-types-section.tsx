@@ -1,4 +1,5 @@
 import { FeatureCard, SectionHeading } from "@/components/molecules";
+import Link from "next/link";
 import type { Service } from "@/db/schema";
 import { vars } from "@/lib/utils";
 import { serviceHref } from "@/modules/services/routes";
@@ -16,12 +17,12 @@ export function WebDesignSiteTypesSection({ services }: Props) {
           title="چه نوع سایتی *نیاز* دارید؟"
           text="نوع سایت از هدف کسب‌وکار شما مشخص می‌شود. برای هر گزینه، صفحه‌ای با جزئیات بیشتر در نظر گرفته شده است."
         />
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-6">
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:mt-8 lg:grid-cols-3 lg:gap-5">
           {services.map((s, i) => (
             <li key={s.slug} className="reveal" style={vars({ i: i % 3 })}>
               <FeatureCard icon={s.icon} title={s.title} text={s.summary} href={serviceHref(s.slug)}>
                 {s.englishTitle && (
-                  <span dir="ltr" className="mt-auto self-start pt-5 text-xs leading-[1.6] font-semibold tracking-wide text-muted">
+                  <span dir="ltr" className="mt-auto self-start pt-3 text-xs leading-[1.6] font-semibold tracking-wide text-muted">
                     {s.englishTitle}
                   </span>
                 )}
@@ -29,6 +30,7 @@ export function WebDesignSiteTypesSection({ services }: Props) {
             </li>
           ))}
         </ul>
+        <p className="mt-6 leading-8 text-ink-2">برای مقایسهٔ بسته‌ها و برآورد هزینهٔ امکانات موردنیاز، <Link href="/pricing/web-design" className="font-medium text-brand-hover underline underline-offset-4">تعرفه طراحی سایت</Link> را ببینید.</p>
       </div>
     </section>
   );

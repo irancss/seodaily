@@ -24,7 +24,11 @@ function defaultTree(): MenuItem[] {
       item("استراتژی محتوا", "/services/content-strategy"),
       item("سئو داخلی", "/services/on-page-seo"),
     ]),
-    item("تعرفه‌ها", "/pricing"),
+    item("تعرفه‌ها", "/pricing", [
+      item("تعرفه طراحی سایت", "/pricing/web-design"),
+      item("تعرفه سئو", "/pricing/seo"),
+      item("تعرفه تولید محتوا", "/pricing/content"),
+    ]),
     item("نمونه‌کارها", "/portfolio"),
     item("درباره ما", "/about"),
     item("تماس با ما", "/contact"),

@@ -43,6 +43,7 @@ function quantity(
 
 function webDesign(): ServicePricing {
   return {
+    content: null,
     intro:
       "هزینه طراحی سایت به نوع سایت، سبک طراحی، تعداد صفحات و امکاناتی که نیاز دارید بستگی دارد. گزینه‌ها را انتخاب کنید تا برآورد اولیه را همین‌جا ببینید.",
     note: NOTE,
@@ -99,6 +100,7 @@ function webDesign(): ServicePricing {
 
 function seo(): ServicePricing {
   return {
+    content: null,
     intro:
       "هزینه سئو به وضعیت فعلی سایت، رقابتی بودن کلمات کلیدی و دامنه کار بستگی دارد. خدمات موردنیاز را انتخاب کنید تا برآورد اولیه را ببینید.",
     note: NOTE,
@@ -145,6 +147,7 @@ function seo(): ServicePricing {
 
 function content(): ServicePricing {
   return {
+    content: null,
     intro:
       "هزینه تولید محتوا بر اساس تعداد و طول مقاله‌ها و خدمات تکمیلی محاسبه می‌شود؛ قیمت طول مقاله و خدمات تکمیلی برای هر مقاله است.",
     note: NOTE,

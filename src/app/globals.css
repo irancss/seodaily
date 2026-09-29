@@ -318,17 +318,10 @@
 
 /* =====================================================================
    Visual & motion layer
-   Everything animates transform/opacity only (compositor-friendly) and is
-   switched off for people who prefer reduced motion. Scroll effects use
-   CSS scroll-driven animations — no JavaScript, and browsers without
-   support simply show the content without the effect.
+   Keep content, counters and decorative backgrounds stable during scroll.
+   Entrance effects are finite; only the progress bar follows scrolling.
+   Motion is switched off for people who prefer reduced motion.
    ===================================================================== */
-
-@property --n {
-  syntax: "<integer>";
-  initial-value: 0;
-  inherits: false;
-}
 
 :root {
   --gradient-brand: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
@@ -368,7 +361,6 @@
     z-index: -1;
     border-radius: 9999px;
     pointer-events: none;
-    will-change: transform;
   }
   .orb-blue {
     background: radial-gradient(circle at center, rgb(37 99 235 / 0.55), rgb(37 99 235 / 0) 68%);
@@ -604,10 +596,10 @@
   }
 
   /* ---------- sticky header ---------- */
-  /* Plain rgb() on purpose: animating Tailwind's color-mix() background
-     renders a wrong (yellow) colour in Chromium's scroll-driven animations. */
+  /* A stable opaque surface avoids continuously filtering the page behind it. */
   .header-lift {
-    background-color: rgb(255 255 255 / 0.82);
+    background-color: #fff;
+    box-shadow: 0 4px 16px rgb(15 23 42 / 0.04);
   }
 
   /* ---------- scroll progress ---------- */
@@ -939,26 +931,6 @@
     transform: none;
   }
 }
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-14px);
-  }
-}
-@keyframes drift {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(-40px, 30px, 0) scale(1.08);
-  }
-  100% {
-    transform: translate3d(30px, -20px, 0) scale(0.96);
-  }
-}
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -973,13 +945,6 @@
   }
   to {
     transform: translateX(0);
-  }
-}
-@keyframes ping {
-  75%,
-  100% {
-    transform: scale(2.4);
-    opacity: 0;
   }
 }
 @keyframes rotate-words {
@@ -1008,35 +973,9 @@
     stroke-dashoffset: 0;
   }
 }
-@keyframes count-up {
-  from {
-    --n: 0;
-  }
-  to {
-    --n: var(--to);
-  }
-}
 @keyframes grow-x {
   to {
     transform: scaleX(1);
-  }
-}
-@keyframes grow-y {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-@keyframes header-lift {
-  from {
-    box-shadow: 0 8px 24px rgb(15 23 42 / 0);
-    background-color: rgb(255 255 255 / 0.82);
-  }
-  to {
-    box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
-    background-color: rgb(255 255 255 / 0.94);
   }
 }
 @keyframes toast-in {
@@ -1070,21 +1009,6 @@
   .animate-scale {
     animation: scale-in 0.9s var(--ease-out) backwards;
     animation-delay: calc(var(--i, 0) * 90ms);
-  }
-  .float {
-    animation: float 7s ease-in-out infinite;
-    animation-delay: calc(var(--i, 0) * -1.7s);
-  }
-  .orb {
-    animation: drift 22s ease-in-out infinite alternate;
-    animation-delay: calc(var(--i, 0) * -7s);
-  }
-  .live-dot::after {
-    animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
-  }
-  .fab-call::before {
-    animation: ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
-    opacity: 0.35;
   }
   .btn-primary:hover::after {
     animation: sweep 0.8s var(--ease-out);
@@ -1124,55 +1048,19 @@
     }
   }
 
-  /* Scroll-driven effects. */
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: fade-up linear backwards;
-      animation-timeline: view();
-      animation-range: entry calc(var(--i, 0) * 6%) entry calc(70% + var(--i, 0) * 6%);
-    }
-    .reveal-scale {
-      animation: scale-in linear backwards;
-      animation-timeline: view();
-      animation-range: entry calc(var(--i, 0) * 6%) entry calc(80% + var(--i, 0) * 6%);
-    }
-    .count {
-      counter-reset: n var(--n);
-      animation: count-up linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 45%;
-    }
-    .grow-x {
-      transform: scaleX(0);
-      animation: grow-x linear both;
-      animation-timeline: view();
-      animation-range: entry 20% cover 55%;
-    }
-    .grow-y {
-      transform-origin: top;
-      animation: grow-y linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 60%;
-    }
+  /* One compositor-only scroll effect; section content is always visible. */
+  @supports (animation-timeline: scroll(root)) {
     .scroll-progress {
       animation: grow-x linear both;
       animation-timeline: scroll(root);
     }
-    .header-lift {
-      animation: header-lift linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 120px;
-    }
   }
 }
 
-/* Without scroll timelines the progress bar stays hidden; grow lines show fully. */
-@supports not (animation-timeline: view()) {
+/* Without scroll timelines the progress bar stays hidden. */
+@supports not (animation-timeline: scroll(root)) {
   .scroll-progress {
     display: none;
-  }
-  .grow-x {
-    transform: none;
   }
 }
 

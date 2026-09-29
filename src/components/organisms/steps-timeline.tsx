@@ -4,7 +4,7 @@ type Step = { title: string; description?: string };
 
 /**
  * Numbered process steps. Up to four sit in one row on desktop (a column on
- * mobile), joined by line segments that draw themselves while scrolling;
+ * mobile), joined by stable line segments;
  * longer processes become a grid of numbered cards.
  */
 export function StepsTimeline({ steps, className }: { steps: Step[]; className?: string }) {

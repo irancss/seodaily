@@ -29,21 +29,21 @@ export function FeatureCard({
 }) {
   const body = (
     <>
-      <div className="flex items-start justify-between gap-4">
-        {icon && <IconTile name={icon} tone="gradient" className="size-12 rounded-[14px] lg:size-14" />}
+      <div className="flex items-start gap-3">
+        {icon && <IconTile name={icon} tone="gradient" className="size-11 rounded-[14px] sm:size-12" />}
+        <h3 className="card-title t-h3 min-w-0 flex-1 self-center transition-colors">{title}</h3>
         {index !== undefined && (
-          <span aria-hidden="true" className="text-2xl leading-none font-bold text-line-strong lg:text-3xl">
+          <span aria-hidden="true" className="shrink-0 text-2xl leading-none font-bold text-line-strong">
             {String(index + 1).padStart(2, "0")}
           </span>
         )}
         {href && index === undefined && <ArrowBadge size={40} />}
       </div>
-      <h3 className="card-title t-h3 mt-5 transition-colors lg:mt-6">{title}</h3>
-      {text && <p className="mt-2 text-base leading-[1.9] text-ink-2">{text}</p>}
+      {text && <p className="mt-3 text-base leading-[1.9] text-ink-2">{text}</p>}
       {children}
     </>
   );
-  const classes = cx("card-fancy flex h-full flex-col rounded-xl p-6 lg:p-8", className);
+  const classes = cx("card-fancy flex h-full min-w-0 flex-col rounded-xl p-5 sm:p-6", className);
 
   if (href) {
     return (

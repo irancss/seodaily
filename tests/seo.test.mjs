@@ -8,7 +8,7 @@ import { test } from "node:test";
 
 const BASE = (process.env.BASE_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
 const ORIGIN = (process.env.SITE_ORIGIN || "https://seodaily.ir").replace(/\/+$/, "");
-const IMPORTANT = ["/", "/web-design", "/seo", "/services", "/pricing", "/about", "/contact", "/services/technical-seo", "/services/seo-audit"];
+const IMPORTANT = ["/", "/web-design", "/seo", "/services", "/pricing", "/pricing/web-design", "/pricing/seo", "/pricing/content", "/about", "/contact", "/services/technical-seo", "/services/seo-audit"];
 
 const get = (path, init) => fetch(BASE + path, { redirect: "manual", ...init });
 const local = (url) => url.replace(ORIGIN, BASE);

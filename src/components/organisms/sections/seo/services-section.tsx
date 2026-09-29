@@ -51,6 +51,7 @@ export function SeoServicesSection({ services }: Props) {
             </li>
           ))}
         </ul>
+        <p className="mt-6 leading-8 text-ink-2">بسته‌ها، محدودهٔ خدمات و دورهٔ پرداخت را در صفحهٔ <Link href="/pricing/seo" className="font-medium text-brand-hover underline underline-offset-4">تعرفه سئو سایت</Link> مقایسه کنید.</p>
       </div>
     </section>
   );

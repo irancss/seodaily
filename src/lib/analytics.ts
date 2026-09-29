@@ -62,11 +62,11 @@ export function trackOnce(scope: object, key: string, event: AnalyticsEvent) {
 
 /** The analytics target of a same-site link to the contact page or the calculator, or null. */
 export function ctaTarget(href: string, currentPath: string): "contact" | "pricing" | null {
-  const match = /^\/(contact|pricing)\/?(?:[?#]|$)/.exec(href);
+  const match = /^\/(contact|pricing(?:\/(?:web-design|seo|content))?)\/?(?:[?#]|$)/.exec(href);
   if (!match) return null;
   // A link to the page you are on (a tab or an anchor) is navigation, not intent.
   const path = href.split(/[?#]/)[0].replace(/\/$/, "");
-  return path === currentPath.replace(/\/$/, "") ? null : (match[1] as "contact" | "pricing");
+  return path === currentPath.replace(/\/$/, "") ? null : match[1] === "contact" ? "contact" : "pricing";
 }
 
 /** Where on the page a link sits, from the nearest landmark or marked block. */

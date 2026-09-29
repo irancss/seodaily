@@ -14,7 +14,7 @@ export function HomeWhyUsSection({ stats }: { stats: StatItem[] }) {
           title="فقط *ظاهر سایت* مهم نیست"
           text="سایتی که خوب دیده شود اما ساختار درستی نداشته باشد، کمکی به رشد کسب‌وکار نمی‌کند. این اصول در همه پروژه‌ها کنار هم در نظر گرفته می‌شوند."
         />
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4 lg:gap-6">
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:mt-8 lg:grid-cols-4 lg:gap-5">
           {WHY_US.map((item, i) => (
             <li key={item.title} className="reveal" style={vars({ i })}>
               <FeatureCard icon={item.icon} title={item.title} text={item.text} />

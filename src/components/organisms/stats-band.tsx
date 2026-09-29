@@ -3,7 +3,7 @@ import { cx, vars } from "@/lib/utils";
 
 export type StatItem = { value: number; suffix?: string; label: string };
 
-/** Dark strip of numbers that count up as they scroll into view. */
+/** Dark strip of stable summary numbers. */
 export function StatsBand({ items, className }: { items: StatItem[]; className?: string }) {
   if (items.length === 0) return null;
   return (

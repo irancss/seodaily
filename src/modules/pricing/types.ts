@@ -3,6 +3,7 @@
 // «توافقی» (shown as such and left out of totals).
 
 import type { LeadEstimate } from "@/db/schema";
+import type { BlockDocument } from "@/modules/blocks/schema";
 
 export const PRICING_SERVICES = ["web-design", "seo", "content"] as const satisfies readonly LeadEstimate["service"][];
 export type PricingService = (typeof PRICING_SERVICES)[number];
@@ -70,6 +71,8 @@ export type PricingGroup = {
 
 export type ServicePricing = {
   intro: string;
+  /** Independent editorial content, including headings and comparison tables. */
+  content: BlockDocument | null;
   /** Shown under the calculator total, e.g. VAT or payment terms. */
   note: string;
   plans: PricingPlan[];

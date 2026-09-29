@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     publishedCategories(),
   ]);
 
-  const pages = ["/", "/web-design", "/seo", "/services", "/pricing", ...(projects.length > 0 ? ["/portfolio"] : []), "/about", "/contact"];
+  const pages = ["/", "/web-design", "/seo", "/services", "/pricing", "/pricing/web-design", "/pricing/seo", "/pricing/content", ...(projects.length > 0 ? ["/portfolio"] : []), "/about", "/contact"];
   const url = (path: string) => (path === "/" ? base : `${base}${path}`);
   const canonicalPlugins = plugins.filter((p) => isPluginSelfCanonical(base, p.slug, p.canonicalUrl));
   const [blogRows, blogCats] = await Promise.all([blogSitemapRows(), blogCategories()]);

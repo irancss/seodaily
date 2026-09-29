@@ -2,11 +2,12 @@ import { ButtonLink, Icon } from "@/components/atoms";
 import { PageHero } from "@/components/organisms/page-hero";
 import { PRICING_POINTS } from "@/modules/pages/pricing-content";
 import type { PageText } from "@/modules/settings/types";
+import { PRICING_SERVICE_LABELS, type PricingService } from "@/modules/pricing/types";
 
-export function PricingHeroSection({ text }: { text: PageText }) {
+export function PricingHeroSection({ text, service }: { text: PageText; service?: PricingService }) {
   return (
     <PageHero
-      breadcrumb={[{ label: "صفحه اصلی", href: "/" }, { label: "تعرفه‌ها" }]}
+      breadcrumb={[{ label: "صفحه اصلی", href: "/" }, ...(service ? [{ label: "تعرفه‌ها", href: "/pricing" }, { label: `تعرفه ${PRICING_SERVICE_LABELS[service]}` }] : [{ label: "تعرفه‌ها" }])]}
       badge={text.badge}
       title={text.title}
       subtitle={text.subtitle}
@@ -14,7 +15,7 @@ export function PricingHeroSection({ text }: { text: PageText }) {
         <>
           <a href="#pricing-services" className="btn btn-white h-[52px] px-7">
             <Icon name="calculator" />
-            محاسبه هزینه
+            {service ? "بسته‌ها و برآورد هزینه" : "انتخاب خدمت"}
           </a>
           <ButtonLink href="/contact" variant="glass">
             درخواست مشاوره

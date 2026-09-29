@@ -25,7 +25,7 @@ export default async function EditPlugin({ params }: Props) {
   if (!data) notFound();
   const { plugin, categoryIds, sources, releases } = data;
   const blockers = await publishBlockers(id);
-  const draftDiffers = JSON.stringify(plugin.contentDraft) !== JSON.stringify(plugin.contentPublished);
+  const draftDiffers = Boolean(plugin.draftData) || JSON.stringify(plugin.contentDraft) !== JSON.stringify(plugin.contentPublished);
   const current = releases.find((r) => r.id === plugin.currentReleaseId);
   const reviewing = releases.filter((r) => r.state === "review").length;
   const meta = Object.fromEntries(META_FIELDS.map((f) => [f, String(plugin[f] ?? "")])) as Record<MetaField, string>;
@@ -50,7 +50,7 @@ export default async function EditPlugin({ params }: Props) {
       />
       <PluginsSubnav />
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+      <div id="plugin-publishing" className="mb-6 grid scroll-mt-6 gap-4 lg:grid-cols-3">
         <Card title="وضعیت انتشار" className="lg:col-span-2">
           <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
             <div className="flex gap-2">
@@ -79,9 +79,9 @@ export default async function EditPlugin({ params }: Props) {
             </div>
           </dl>
           {draftDiffers && plugin.status === "published" && <p className="mt-4 rounded-md bg-warning-bg px-3 py-2 text-sm text-warning">پیش‌نویس تغییراتی دارد که هنوز منتشر نشده است.</p>}
-          {plugin.status !== "published" && blockers.length > 0 && (
-            <div className="mt-4 rounded-md bg-page p-3 text-sm">
-              <p className="font-semibold">پیش از انتشار:</p>
+          {blockers.length > 0 && (
+            <div id="plugin-publish-blockers" className="mt-4 rounded-md bg-page p-3 text-sm">
+              <p className="font-semibold">برای فعال شدن دکمهٔ انتشار، این موارد را تکمیل و پیش‌نویس را ذخیره کنید:</p>
               <ul className="mt-1 list-disc ps-5 text-ink-2">
                 {blockers.map((b) => (
                   <li key={b}>{b}</li>
@@ -90,11 +90,11 @@ export default async function EditPlugin({ params }: Props) {
             </div>
           )}
           <div className="mt-4 flex flex-wrap gap-2">
-            {plugin.status !== "archived" && (blockers.length === 0 || plugin.status === "published") && (
+            {plugin.status !== "archived" && (
               <form action={publishPluginAction} method="post">
                 <input type="hidden" name="revision" value={plugin.revision} />
                 <input type="hidden" name="id" value={id} />
-                <SubmitButton>{plugin.status === "published" ? "انتشار تغییرات پیش‌نویس" : "انتشار در سایت"}</SubmitButton>
+                <SubmitButton disabled={blockers.length > 0} aria-describedby={blockers.length ? "plugin-publish-blockers" : "plugin-publish-help"}>{plugin.status === "published" ? "انتشار تغییرات پیش‌نویس" : "انتشار در سایت"}</SubmitButton>
               </form>
             )}
             {plugin.status === "published" && (
@@ -116,6 +116,7 @@ export default async function EditPlugin({ params }: Props) {
               </form>
             )}
           </div>
+          <p id="plugin-publish-help" className="mt-3 text-xs leading-[1.9] text-muted">انتشار، آخرین پیش‌نویس ذخیره‌شده را در سایت نمایش می‌دهد. ابتدا تغییرات فرم را ذخیره کنید؛ تأیید فایل افزونه در بخش «منابع و نسخه‌ها» انجام می‌شود.</p>
         </Card>
         <Card title="منابع و نسخه‌ها">
           <p className="text-sm leading-[1.9] text-ink-2">

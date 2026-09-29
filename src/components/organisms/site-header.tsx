@@ -10,13 +10,14 @@ import { DesktopNav } from "./desktop-nav";
 import { MobileDrawer } from "./mobile-drawer";
 
 /**
- * Sticky glass header. The desktop menu needs more room when it has many
+ * Opaque sticky header: scrolling content does not need to be blurred each frame.
+ * The desktop menu needs more room when it has many
  * top-level items, so it then switches on at the xl breakpoint instead of lg.
  */
 export function SiteHeader({ siteName, logo, menus, phone }: { siteName: string; logo?: string; menus: Menus; phone: string }) {
   const wide = menus.desktop.length > 6;
   return (
-    <header className="header-lift sticky top-0 z-30 shrink-0 border-b border-line/70 backdrop-blur-xl">
+    <header className="header-lift sticky top-0 z-30 shrink-0 border-b border-line/70">
       <div className="container-site flex h-16 items-center gap-4 lg:h-[76px]">
         <BrandMark name={siteName} logo={logo} />
 

@@ -127,8 +127,8 @@ test("contact form: validation, success, persistence and no duplicate on resubmi
 test("pricing calculator: required choice, server-computed total, stored estimate", async () => {
   const page = await newPage();
   const phone = `0935${String(Date.now()).slice(-7)}`;
-  await page.goto(`${BASE}/pricing`);
-  const panel = page.locator("#panel-web-design");
+  await page.goto(`${BASE}/pricing/web-design`);
+  const panel = page.locator("#pricing-services");
   await panel.getByRole("button", { name: "ثبت درخواست برآورد" }).waitFor();
 
   // Submitting without the required choice shows the group error and saves nothing.
@@ -158,7 +158,7 @@ test("pricing calculator: required choice, server-computed total, stored estimat
   await page.locator('header a[href="/contact"]').first().click();
   await page.waitForURL(/\/contact$/);
   await page.goBack();
-  await page.waitForURL(/\/pricing$/);
+  await page.waitForURL(/\/pricing\/web-design$/);
   await panel.getByRole("button", { name: "ثبت درخواست برآورد" }).waitFor();
   assert.equal((await events(page)).filter((e) => e.event === "generate_lead").length, 1, "one conversion after Back");
   await page.context().close();
@@ -484,12 +484,12 @@ test("admin: a price set in the pricing editor reaches the public calculator, an
   await page.getByLabel("قیمت (تومان)").nth(row).fill("27500000");
   await page.getByRole("button", { name: /^ذخیره تعرفه/ }).click();
   await toast(page, "تعرفه‌ها ذخیره شد.");
-  const pricing = await (await page.request.get(`${BASE}/pricing`)).text();
+  const pricing = await (await page.request.get(`${BASE}/pricing/web-design`)).text();
   assert.ok(pricing.includes("۲۷٬۵۰۰٬۰۰۰"), "new price on the public calculator");
 
   await page.getByRole("button", { name: "بازگشت به ساختار پیش‌فرض" }).first().click();
   await toast(page, "ساختار پیش‌فرض");
-  assert.ok(!(await (await page.request.get(`${BASE}/pricing`)).text()).includes("۲۷٬۵۰۰٬۰۰۰"), "default prices back");
+  assert.ok(!(await (await page.request.get(`${BASE}/pricing/web-design`)).text()).includes("۲۷٬۵۰۰٬۰۰۰"), "default prices back");
   await page.context().close();
 });
 

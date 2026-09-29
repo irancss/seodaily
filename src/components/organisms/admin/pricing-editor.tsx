@@ -21,6 +21,7 @@ import {
 
 import { AddButton, CheckboxInput, moveItem, newId, PriceInput, RowTools, TextInput } from "./pricing-editor-fields";
 import { blankOption, PricingGroupEditor } from "./pricing-group-editor";
+import { BlockEditor } from "./block-editor/block-editor";
 
 const PERIODS = ["یک‌بار", "ماهانه", "سه‌ماهه", "سالانه"];
 
@@ -93,7 +94,7 @@ export function PricingEditor({ service, initial }: { service: PricingService; i
         <Card title="متن‌ها">
           <div className="grid gap-5">
             <TextInput
-              label="معرفی (زیر عنوان تب)"
+              label="معرفی کوتاه صفحهٔ تعرفه"
               value={data.intro}
               onChange={(intro) => setData((d) => ({ ...d, intro }))}
               multiline
@@ -132,7 +133,7 @@ export function PricingEditor({ service, initial }: { service: PricingService; i
                       <CheckboxInput label="پلن ویژه (پررنگ‌تر نمایش داده شود)" checked={plan.highlighted} onChange={(highlighted) => setPlan(i, { highlighted })} />
                     </div>
                     <div className="sm:col-span-2">
-                      <TextInput label="توضیح کوتاه" value={plan.description} onChange={(description) => setPlan(i, { description })} />
+                      <TextInput label="توضیح کوتاه" value={plan.description} onChange={(description) => setPlan(i, { description })} multiline rows={3} />
                     </div>
                     <div className="sm:col-span-2">
                       <TextInput
@@ -161,6 +162,10 @@ export function PricingEditor({ service, initial }: { service: PricingService; i
               <AddButton label="افزودن پلن" onClick={() => setPlans((plans) => [...plans, blankPlan()])} />
             </div>
           )}
+        </Card>
+
+        <Card title={`متن و جدول‌های صفحهٔ تعرفه ${label}`} description="این محتوا فقط در صفحهٔ همین خدمت، بعد از بسته‌ها و برآورد هزینه نمایش داده می‌شود. می‌توانید متن، تیتر، جدول مقایسه و پرسش‌وپاسخ اضافه کنید.">
+          <BlockEditor name="content" initial={initial.content} label={`محتوای تعرفه ${label}`} onDocumentChange={(content) => setData((d) => ({ ...d, content }))} />
         </Card>
 
         <Card

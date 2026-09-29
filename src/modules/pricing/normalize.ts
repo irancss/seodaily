@@ -1,3 +1,5 @@
+import { validateBlockDocument } from "@/modules/blocks/validate";
+
 import {
   FEATURES_MAX,
   GROUP_TYPES,
@@ -138,6 +140,7 @@ export function normalizeServicePricing(input: unknown): ServicePricing {
   const raw = obj(input) ?? {};
   return {
     intro: text(raw.intro, 1000),
+    content: raw.content ? validateBlockDocument(raw.content).document : null,
     note: text(raw.note, 300),
     plans: normalizePlans(raw.plans),
     groups: normalizeGroups(raw.groups),

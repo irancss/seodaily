@@ -54,6 +54,11 @@ test("CTA links: contact and pricing pages, not the page you are on", () => {
   assert.equal(ctaTarget("/contact?service=seo", "/services/seo"), "contact");
   assert.equal(ctaTarget("/pricing#seo", "/"), "pricing");
   assert.equal(ctaTarget("/pricing/", "/about"), "pricing");
+  assert.equal(ctaTarget("/pricing/seo", "/seo"), "pricing");
+  assert.equal(ctaTarget("/pricing/web-design#pricing-services", "/web-design"), "pricing");
+  assert.equal(ctaTarget("/pricing/content", "/blog"), "pricing");
+  assert.equal(ctaTarget("/pricing/seo#pricing-services", "/pricing/seo"), null);
+  assert.equal(ctaTarget("/pricing/unknown", "/"), null);
   assert.equal(ctaTarget("/pricing?service=seo", "/pricing"), null);
   assert.equal(ctaTarget("#estimate-seo", "/pricing"), null);
   assert.equal(ctaTarget("/contacts", "/"), null);

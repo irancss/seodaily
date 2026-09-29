@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { SubmitButton } from "@/components/atoms";
 import { Card } from "@/components/molecules";
@@ -84,6 +85,7 @@ function Toggle({ name, label, defaultChecked, hint }: { name: string; label: st
 }
 
 export function PluginForm({ plugin, categories, options }: { plugin: PluginFormData; categories: { id: number; title: string }[]; options: { id: number; name: string; status: string }[] }) {
+  const router = useRouter();
   const [state, action] = useActionState(savePluginAction, initial);
   const [checked, setChecked] = useState<number[]>(plugin.categoryIds);
   const [primary, setPrimary] = useState<number | null>(plugin.primaryCategoryId);
@@ -97,10 +99,12 @@ export function PluginForm({ plugin, categories, options }: { plugin: PluginForm
     if (state.status === "ok") {
       toast.success(state.message ?? "ذخیره شد.");
       for (const p of state.problems ?? []) toast.info(p);
+      // Refresh the publication blockers and revision outside this client form.
+      router.refresh();
     } else if (state.status === "error" && state.message) {
       toast.error(state.message);
     }
-  }, [state]);
+  }, [state, router]);
 
   const primaryOptions = categories.filter((c) => checked.includes(c.id));
   const effectivePrimary = primary && checked.includes(primary) ? primary : (primaryOptions[0]?.id ?? "");
@@ -267,8 +271,9 @@ export function PluginForm({ plugin, categories, options }: { plugin: PluginForm
         )}
       </Card>
 
-      <div className="sticky bottom-3 z-10 flex items-center gap-3 rounded-xl border border-line bg-white/95 p-3 shadow-sm backdrop-blur">
+      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-white/95 p-3 shadow-sm backdrop-blur">
         <SubmitButton>ذخیره پیش‌نویس</SubmitButton>
+        <a href="#plugin-publishing" className="btn btn-secondary h-11 px-4 text-sm">بررسی وضعیت و انتشار</a>
         <span className="text-xs text-muted">ذخیره، صفحه عمومی را تغییر نمی‌دهد تا «انتشار» را بزنید.</span>
       </div>
     </form>

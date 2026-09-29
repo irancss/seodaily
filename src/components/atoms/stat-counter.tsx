@@ -1,6 +1,6 @@
 /**
- * Number that counts up as it scrolls into view (pure CSS, see `.count` in
- * globals.css). The digits and suffix are drawn by CSS, so the page text
+ * Stable final number (pure CSS, see `.count` in globals.css), without
+ * changing text layout on each scroll frame. The digits and suffix are drawn by CSS, so the page text
  * (and what search engines read) holds the value exactly once, in the
  * visually hidden span.
  */

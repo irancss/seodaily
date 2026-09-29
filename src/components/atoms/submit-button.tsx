@@ -5,12 +5,13 @@ import { useFormStatus } from "react-dom";
 
 import { cx } from "@/lib/utils";
 
-export function SubmitButton({ children = "ذخیره", variant = "primary", className }: { children?: ReactNode; variant?: "primary" | "danger" | "secondary"; className?: string }) {
+export function SubmitButton({ children = "ذخیره", variant = "primary", className, disabled = false, "aria-describedby": describedBy }: { children?: ReactNode; variant?: "primary" | "danger" | "secondary"; className?: string; disabled?: boolean; "aria-describedby"?: string }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
+      aria-describedby={describedBy}
       className={cx(
         "btn h-11 px-5 text-sm",
         variant === "primary" && "btn-primary",
