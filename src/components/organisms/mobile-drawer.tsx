@@ -72,11 +72,13 @@ function TreeNode({ item, pathname }: { item: MenuItem; pathname: string }) {
 export function MobileDrawer({
   items,
   siteName,
+  logo,
   phone,
   className,
 }: {
   items: MenuItem[];
   siteName: string;
+  logo?: string;
   phone: string;
   className?: string;
 }) {
@@ -111,7 +113,7 @@ export function MobileDrawer({
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-5">
-            <BrandMark name={siteName} />
+            <BrandMark name={siteName} logo={logo} />
             <button
               type="button"
               aria-label="بستن منو"

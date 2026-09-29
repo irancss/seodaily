@@ -5,6 +5,8 @@ export type LinkItem = { title: string; url: string };
 export type GeneralSettings = {
   siteName: string;
   siteUrl: string;
+  headerLogo: string;
+  footerLogo: string;
   footerDescription: string;
   footerNote: string;
   industries: LinkItem[];

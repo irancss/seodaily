@@ -5,6 +5,8 @@ import type { ContactSettings, GeneralSettings, PageKey, PageText } from "./type
 export const DEFAULT_GENERAL: GeneralSettings = {
   siteName: "سئو دیلی",
   siteUrl: "",
+  headerLogo: "",
+  footerLogo: "",
   footerDescription:
     "طراحی سایت و سئو برای کسب‌وکارهایی که می‌خواهند حضور آنلاین خود را اصولی و قابل توسعه بسازند.",
   footerNote: "طراحی سایت و سئو",

@@ -1,4 +1,4 @@
-export function ImageField({ label, name, current, hint }: { label: string; name: string; current?: string; hint?: string }) {
+export function ImageField({ label, name, current, hint, logoPreview }: { label: string; name: string; current?: string; hint?: string; logoPreview?: "light" | "dark" }) {
   const id = `image-${name}`;
   return (
     <div className="flex flex-col gap-2">
@@ -7,7 +7,7 @@ export function ImageField({ label, name, current, hint }: { label: string; name
       </label>
       {current && (
         <div className="flex items-center gap-4">
-          <img src={current} alt="" className="h-20 w-32 rounded-sm border border-line object-cover" />
+          <img src={current} alt="" className={`h-20 w-32 rounded-sm border border-line ${logoPreview ? `object-contain p-2 ${logoPreview === "dark" ? "bg-inverse" : "bg-white"}` : "object-cover"}`} />
           <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-error">
             <input type="checkbox" name={`${name}_remove`} className="accent-error" />
             حذف تصویر

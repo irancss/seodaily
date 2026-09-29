@@ -264,6 +264,74 @@ test("admin: contact phone change reaches the public footer, then is restored", 
   await page.context().close();
 });
 
+test("admin: independent header and footer logos survive other settings, reject invalid files and restore defaults", async () => {
+  const page = await adminPage();
+  const visitor = await newPage();
+  const general = async () => (await sql`select value from settings where key = 'general'`)[0].value;
+  const submit = async (key) => {
+    await page.locator(`form:has(input[name=${key}]) button[type=submit]`).click();
+    await page.waitForURL(/[?&](ok|error)=/);
+  };
+  const upload = async (key, buffer = PNG) => {
+    await page.goto(`${BASE}/admin/settings`);
+    await page.setInputFiles(`input[name=${key}]`, { name: "logo.png", mimeType: "image/png", buffer });
+    await submit(key);
+  };
+  const imageUrl = async (selector) => new URL(await visitor.locator(selector).getAttribute("src"), BASE).searchParams.get("url");
+  try {
+    await upload("headerLogo");
+    assert.match(page.url(), /ok=/);
+    const header = (await general()).headerLogo;
+    await upload("footerLogo");
+    const footer = (await general()).footerLogo;
+    assert.notEqual(header, footer, "logos have independent files");
+    await visitor.goto(`${BASE}/about`);
+    assert.equal(await imageUrl('header > div > a[href="/"] img'), header);
+    assert.equal(await imageUrl('footer a[href="/"] img'), footer);
+    await visitor.locator('header > div > a[href="/"] img').evaluate((img) => img.decode());
+    await visitor.locator('footer a[href="/"] img').scrollIntoViewIfNeeded();
+    await visitor.locator('footer a[href="/"] img').evaluate((img) => img.decode());
+    assert.equal(await visitor.locator('header > div > a[href="/"] img').getAttribute("alt"), (await general()).siteName);
+    for (const width of [360, 768]) {
+      await visitor.setViewportSize({ width, height: 800 });
+      await visitor.getByRole("button", { name: "باز کردن منو", exact: true }).click();
+      assert.equal(await imageUrl('dialog a[href="/"] img'), header);
+      await visitor.getByRole("button", { name: "بستن منو", exact: true }).click();
+      assert.ok(await visitor.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}px: no horizontal overflow`);
+    }
+    // An unrelated settings save must retain both logos.
+    await page.goto(`${BASE}/admin/settings`);
+    await submit("siteName");
+    assert.equal((await general()).headerLogo, header);
+    assert.equal((await general()).footerLogo, footer);
+    // MIME and extension alone cannot turn an SVG/script into an accepted logo.
+    await upload("headerLogo", Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'));
+    assert.match(page.url(), /error=/);
+    assert.equal((await general()).headerLogo, header);
+    assert.equal((await page.request.get(BASE + header)).status(), 200);
+    await upload("headerLogo");
+    assert.notEqual((await general()).headerLogo, header);
+    assert.equal((await page.request.get(BASE + header)).status(), 404, "replaced file is removed");
+    assert.equal((await general()).footerLogo, footer);
+    for (const key of ["headerLogo", "footerLogo"]) {
+      const old = (await general())[key];
+      await page.goto(`${BASE}/admin/settings`);
+      await page.check(`input[name=${key}_remove]`);
+      await submit(key);
+      assert.equal((await general())[key], "");
+      assert.equal((await page.request.get(BASE + old)).status(), 404);
+      await visitor.goto(`${BASE}/about`);
+      const region = key === "headerLogo" ? "header > div" : "footer";
+      assert.equal(await visitor.locator(`${region} a[href="/"] img`).count(), 0);
+      assert.equal(await visitor.locator(`${region} a[href="/"]`).first().textContent(), (await general()).siteName);
+      if (key === "headerLogo") assert.equal(await imageUrl('footer a[href="/"] img'), footer);
+    }
+  } finally {
+    await visitor.context().close();
+    await page.context().close();
+  }
+});
+
 test("admin: a GTM container loads once on public pages, never in the panel, and only in its exact format", async () => {
   const page = await adminPage();
   const save = async (value) => {

@@ -35,6 +35,7 @@ export async function saveGeneral(form: FormData) {
 
   try {
     await writeSetting("general", {
+      ...current,
       siteName: str(form, "siteName", 80) || current.siteName,
       siteUrl,
       footerDescription: str(form, "footerDescription", 400),
@@ -66,5 +67,27 @@ export async function saveContact(form: FormData) {
       .filter((r) => r.title && r.url)
       .map((r) => ({ title: r.title, url: cleanUrl(r.url) })),
   });
+  saved("/admin/settings");
+}
+
+/** Each logo has its own form, keeping requests within the image upload limit. */
+export async function saveLogo(key: "headerLogo" | "footerLogo", form: FormData) {
+  await requireAdmin();
+  if (key !== "headerLogo" && key !== "footerLogo") throw new Error("Invalid logo setting");
+  const current = await getGeneral();
+  let image: StagedImage;
+  try {
+    image = await stageImage(form.get(key), current[key], form.get(`${key}_remove`) === "on");
+  } catch (error) {
+    if (error instanceof UploadError) failed("/admin/settings", error.message);
+    throw error;
+  }
+  try {
+    await writeSetting("general", { ...current, [key]: image.url });
+  } catch (error) {
+    await image.rollback();
+    throw error;
+  }
+  await image.commit();
   saved("/admin/settings");
 }

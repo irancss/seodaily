@@ -25,7 +25,7 @@ export function SiteShell({ general, contact, menus, jsonLd, children }: Props) 
       >
         پرش به محتوا
       </a>
-      <SiteHeader siteName={general.siteName} menus={menus} phone={contact.phone} />
+      <SiteHeader siteName={general.siteName} logo={general.headerLogo} menus={menus} phone={contact.phone} />
       <main id="content" className="flex grow flex-col">
         {children}
       </main>

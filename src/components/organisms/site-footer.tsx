@@ -48,7 +48,7 @@ export function SiteFooter({ general, contact }: { general: GeneralSettings; con
 
       <div className="container-site grid gap-10 pt-14 pb-10 lg:grid-cols-[1.6fr_1fr_1fr_1.4fr] lg:gap-12 lg:pt-20 lg:pb-14">
         <div className="flex flex-col items-start gap-5">
-          <BrandMark name={general.siteName} inverse />
+          <BrandMark name={general.siteName} logo={general.footerLogo} inverse />
           <p className="max-w-[360px] text-sm leading-[1.9] text-inverse-muted">{general.footerDescription}</p>
           <Link href="/contact" className="btn btn-glass h-11 px-5 text-sm">
             درخواست مشاوره
