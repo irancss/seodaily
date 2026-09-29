@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FeatureCard, SectionHeading } from "@/components/molecules";
 import { StatsBand, type StatItem } from "@/components/organisms/stats-band";
 import { vars } from "@/lib/utils";
@@ -20,6 +21,9 @@ export function HomeWhyUsSection({ stats }: { stats: StatItem[] }) {
             </li>
           ))}
         </ul>
+        <p className="mt-6 text-center leading-8 text-ink-2">
+          در صفحهٔ <Link href="/about" className="font-medium text-brand-hover underline underline-offset-4">درباره سئو دیلی</Link> با روش برنامه‌ریزی، اجرای پروژه و گزارش نتیجه آشنا شوید.
+        </p>
         <StatsBand items={stats} className="mt-10 lg:mt-16" />
       </div>
     </section>

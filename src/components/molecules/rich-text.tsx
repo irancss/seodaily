@@ -2,15 +2,17 @@ import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 
 import { cx } from "@/lib/utils";
+import { contentHref } from "@/lib/content-links";
 
 const LINK = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 
-/** Inline text with `[anchor](/path)` links: site paths become <Link>, http(s) opens in a new tab, anything else stays text. */
-function inline(text: string): ReactNode[] {
+/** Site paths and same-origin URLs become <Link>; external http(s) opens in a new tab. */
+function inline(text: string, siteUrl: string): ReactNode[] {
   const out: ReactNode[] = [];
   let last = 0;
   for (const m of text.matchAll(LINK)) {
-    const [whole, label, href] = m;
+    const [whole, label, originalHref] = m;
+    const href = contentHref(originalHref, siteUrl);
     const at = m.index ?? 0;
     if (at > last) out.push(text.slice(last, at));
     if (href.startsWith("/") && !href.startsWith("//")) {
@@ -39,7 +41,7 @@ function inline(text: string): ReactNode[] {
  * blank lines separate paragraphs, lines starting with «- » form a list and
  * `[anchor](/path)` makes a link.
  */
-export function RichText({ text, className }: { text: string; className?: string }) {
+export function RichText({ text, className, siteUrl = "" }: { text: string; className?: string; siteUrl?: string }) {
   const blocks = text
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
@@ -57,7 +59,7 @@ export function RichText({ text, className }: { text: string; className?: string
               {items.map((item, j) => (
                 <li key={j} className="flex gap-3">
                   <span aria-hidden="true" className="mt-[0.85em] size-1.5 shrink-0 rounded-full bg-brand" />
-                  <span>{inline(item.replace(/^[-•]\s+/, ""))}</span>
+                  <span>{inline(item.replace(/^[-•]\s+/, ""), siteUrl)}</span>
                 </li>
               ))}
             </ul>
@@ -67,13 +69,13 @@ export function RichText({ text, className }: { text: string; className?: string
         const para = lines.filter((l) => !/^[-•]\s+/.test(l));
         return (
           <Fragment key={i}>
-            <p>{inline(para.join(" "))}</p>
+            <p>{inline(para.join(" "), siteUrl)}</p>
             {items.length > 0 && (
               <ul className="flex flex-col gap-2.5">
                 {items.map((item, j) => (
                   <li key={j} className="flex gap-3">
                     <span aria-hidden="true" className="mt-[0.85em] size-1.5 shrink-0 rounded-full bg-brand" />
-                    <span>{inline(item.replace(/^[-•]\s+/, ""))}</span>
+                    <span>{inline(item.replace(/^[-•]\s+/, ""), siteUrl)}</span>
                   </li>
                 ))}
               </ul>

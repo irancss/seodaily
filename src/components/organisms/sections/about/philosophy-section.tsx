@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { IconTile } from "@/components/atoms";
 import { vars } from "@/lib/utils";
 import { VALUES } from "@/modules/pages/about-content";
@@ -42,6 +43,9 @@ export function AboutPhilosophySection() {
             </li>
           ))}
         </ul>
+        <p className="mt-6 max-w-3xl leading-8 text-ink-2">
+          در <Link href="/web-design" className="font-medium text-brand-hover underline underline-offset-4">طراحی سایت</Link>، صفحات و امکانات را بر اساس نیاز مشتریان شما می‌سازیم. در <Link href="/seo" className="font-medium text-brand-hover underline underline-offset-4">خدمات سئو</Link>، پیدا شدن همین صفحات و کیفیت پاسخ آن‌ها به جست‌وجوها را بررسی می‌کنیم.
+        </p>
       </div>
     </section>
   );

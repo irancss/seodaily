@@ -5,13 +5,15 @@ import type { ReactNode } from "react";
 
 import { BLOCK_DOC_VERSION, ENTITY_LINK_RE, SITE_PAGES, type BlockDocument, type BlockNode } from "@/modules/blocks/schema";
 import { nodeText, outline } from "@/modules/blocks/text";
+import { getSiteUrl } from "@/modules/seo/metadata";
+import { contentHref } from "@/lib/content-links";
 
 import { CopyCodeButton } from "./copy-code-button";
 
 /** entity:plugin:12 → "/plugins/elementor-pro"; missing or unpublished → null (rendered as text). */
 export type HrefMap = Record<string, string | null>;
 
-type Ctx = { hrefs: HrefMap; anchors: Map<string, string>; imageIndex: { n: number }; priorityImages: number };
+type Ctx = { hrefs: HrefMap; anchors: Map<string, string>; imageIndex: { n: number }; priorityImages: number; siteUrl: string };
 
 function resolveHref(href: string, hrefs: HrefMap): string | null {
   const m = ENTITY_LINK_RE.exec(href);
@@ -43,7 +45,8 @@ function inline(nodes: BlockNode[] | undefined, ctx: Ctx): ReactNode[] {
       else if (mark.type === "strike") out = <s>{out}</s>;
       else if (mark.type === "code") out = <code>{out}</code>;
       else if (mark.type === "link") {
-        const href = resolveHref(String(mark.attrs?.href ?? ""), ctx.hrefs);
+        const resolved = resolveHref(String(mark.attrs?.href ?? ""), ctx.hrefs);
+        const href = resolved ? contentHref(resolved, ctx.siteUrl) : null;
         if (href) out = <SmartLink href={href}>{out}</SmartLink>;
       }
     }
@@ -152,7 +155,8 @@ function block(n: BlockNode, ctx: Ctx, key: number): ReactNode {
         <FaqList key={key} items={(n.content ?? []).map((item) => ({ question: String(item.attrs?.question ?? ""), answer: blocks(item.content, ctx) }))} />
       );
     case "cta": {
-      const href = resolveHref(String(a.href ?? ""), ctx.hrefs);
+      const resolved = resolveHref(String(a.href ?? ""), ctx.hrefs);
+      const href = resolved ? contentHref(resolved, ctx.siteUrl) : null;
       return (
         <div key={key} className="block-cta">
           {a.title ? <p className="block-cta-title">{String(a.title)}</p> : null}
@@ -175,7 +179,7 @@ function block(n: BlockNode, ctx: Ctx, key: number): ReactNode {
  * nothing instead of failing the page. `anchorPrefix` keeps heading ids of
  * several documents on one page unique.
  */
-export function BlockRenderer({
+export async function BlockRenderer({
   document,
   hrefs = {},
   anchorPrefix = "",
@@ -192,7 +196,7 @@ export function BlockRenderer({
 }) {
   if (!document || document.v !== BLOCK_DOC_VERSION || !Array.isArray(document.doc?.content)) return null;
   const anchors = new Map(outline(document, anchorPrefix, stableAnchors).map((o) => [o.blockId, o.anchor]));
-  const ctx: Ctx = { hrefs, anchors, imageIndex: { n: 0 }, priorityImages };
+  const ctx: Ctx = { hrefs, anchors, imageIndex: { n: 0 }, priorityImages, siteUrl: await getSiteUrl() };
   return <div className={`block-content ${className}`}>{blocks(document.doc.content, ctx)}</div>;
 }
 

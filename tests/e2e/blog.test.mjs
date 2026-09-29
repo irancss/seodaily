@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { before, after, test } from "node:test";
 import { chromium } from "playwright-core";
 import postgres from "postgres";
-import { readFileSync } from "node:fs";
+import { readFileSync, unlinkSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createRequire } from "node:module";
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 const BASE = process.env.BASE_URL || "http://127.0.0.1:3000";
@@ -84,8 +87,29 @@ test("blog public: pagination, normalized search, sitemap, responsive article, n
   await page.emulateMedia({ reducedMotion: "reduce" }); await page.reload(); await section.scrollIntoViewIfNeeded(); assert.ok(await section.getByRole("button", { name: "ادامه حرکت خودکار" }).count());
   const nojs = await browser.newPage({ javaScriptEnabled: false }); await nojs.goto(`${BASE}/`); assert.equal(await nojs.locator('section[aria-labelledby=home-blog-title] article').count(), 8); assert.equal(await nojs.locator('section[aria-labelledby=home-blog-title] h2 a').count(), 8); await nojs.close();
   const sitemap = await (await page.request.get(`${BASE}/sitemap.xml`)).text(); assert.ok(sitemap.includes(`/blog/${slug}-final`));
+  // Exercise the crawler with published content, including decorative image
+  // links, related cards and category pages; the pre-E2E CI crawl is empty.
+  const report = join(tmpdir(), `seo-blog-${RUN}.json`);
+  try { execFileSync(process.execPath, ["scripts/seo-audit.mjs", report], { env: { ...process.env, AUDIT_STRICT: "true" }, timeout: 90000, stdio: "pipe" }); }
+  finally { try { unlinkSync(report); } catch { /* No report if the process failed before writing. */ } }
   const unauthorized = await page.request.get(`${BASE}/admin/blog`); assert.ok(unauthorized.url().includes("/admin/login"));
   await sql`update blog_articles set status='trash' where id in ${sql(created)}`;
+  await page.close();
+});
+
+test("absolute links to the site render as followable internal article and CTA links", async () => {
+  const [row] = await sql`select published from blog_articles where id=${articleId}`;
+  const data = { ...row.published, content: { v: 1, doc: { type: "doc", content: [{ type: "paragraph", attrs: { id: "link-test" }, content: [
+    { type: "text", text: "Internal editorial link", marks: [{ type: "link", attrs: { href: "https://seodaily.ir/contact" } }] },
+    { type: "text", text: "External editorial link", marks: [{ type: "link", attrs: { href: "https://example.test/reference" } }] },
+  ] }] } }, endCta: true, ctaTitle: "Next step", ctaLabel: "Internal CTA link", ctaHref: "https://seodaily.ir/services" };
+  await sql`update blog_articles set published=${sql.json(data)} where id=${articleId}`;
+  const page = await browser.newPage(); await page.goto(`${BASE}/blog/${slug}-final`);
+  for (const [label, href] of [["Internal editorial link", "/contact"], ["Internal CTA link", "/services"]]) {
+    const link = page.getByRole("link", { name: label, exact: true }); assert.equal(await link.getAttribute("href"), href);
+    assert.equal(await link.getAttribute("target"), null); assert.ok(!/nofollow/.test(await link.getAttribute("rel") || ""));
+  }
+  const external = page.getByRole("link", { name: "External editorial link" }); assert.equal(await external.getAttribute("target"), "_blank"); assert.match(await external.getAttribute("rel"), /noopener/);
   await page.close();
 });
 

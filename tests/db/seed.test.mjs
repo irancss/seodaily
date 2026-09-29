@@ -7,6 +7,8 @@ import { execFileSync } from "node:child_process";
 import { after, test } from "node:test";
 
 import postgres from "postgres";
+import { contentColumns, previousServiceContent, serviceContent } from "../../scripts/service-content/index.mjs";
+import { pageCopy } from "../../scripts/editorial-copy.mjs";
 
 const BASE = process.env.DATABASE_URL;
 if (!BASE) throw new Error("Set DATABASE_URL (a disposable server; test databases are created next to it).");
@@ -105,5 +107,31 @@ test("migrations: a second run is a no-op and the schema matches drizzle/", asyn
   const [{ n }] = await db.sql`select count(*)::int as n from drizzle.__drizzle_migrations`;
   const files = execFileSync("sh", ["-c", "ls drizzle/*.sql | wc -l"], { encoding: "utf8" }).trim();
   assert.equal(n, Number(files), "every migration file applied exactly once");
+  await db.sql.end();
+});
+
+test("editorial upgrade repairs an earlier automatic seed, preserves custom fields and is repeatable", async () => {
+  const db = await freshDb();
+  assert.ok(run("migrate", db.url).ok); assert.ok(run("seed", db.url).ok);
+  const old = contentColumns(previousServiceContent["keyword-research"]);
+  const jsonColumns = new Set(["sections", "problems", "includes", "process", "situations", "business_types", "deliverables", "faqs", "related_slugs"]);
+  const values = Object.fromEntries(Object.entries(old).map(([key, value]) => [key, jsonColumns.has(key) ? db.sql.json(value) : value]));
+  await db.sql`update services set ${db.sql(values)}, updated_at=created_at+interval '1 minute' where slug='keyword-research'`;
+  await db.sql`update services set summary='Owner custom summary', published=false where slug='keyword-research'`;
+  await db.sql`update settings set value='2'::jsonb where key='seed:service-content-version'`;
+  await db.sql`delete from settings where key='seed:editorial-copy-v3'`;
+  await db.sql`insert into settings(key,value) values ('pages',${db.sql.json({ home: { subtitle: pageCopy.home.subtitle[0], metaTitle: "Owner custom title" }, contact: { subtitle: "Owner contact text" } })}) on conflict(key) do update set value=excluded.value`;
+  await db.sql`insert into settings(key,value) values ('general',${db.sql.json({headerLogo:"/uploads/owner-logo.png"})}) on conflict(key) do update set value=excluded.value`;
+  assert.ok(run("seed", db.url).ok);
+  const [service] = await db.sql`select summary,hero_description,overview,published from services where slug='keyword-research'`;
+  assert.equal(service.summary, "Owner custom summary"); assert.equal(service.published, false);
+  assert.equal(service.hero_description, serviceContent["keyword-research"].heroDescription);
+  assert.equal(service.overview, serviceContent["keyword-research"].overview);
+  const [pages] = await db.sql`select value from settings where key='pages'`;
+  assert.equal(pages.value.home.subtitle, pageCopy.home.subtitle[1]);
+  assert.equal(pages.value.home.metaTitle, "Owner custom title"); assert.equal(pages.value.contact.subtitle, "Owner contact text");
+  assert.equal((await db.sql`select value from settings where key='general'`)[0].value.headerLogo, "/uploads/owner-logo.png");
+  const before = await db.sql`select id,updated_at from services order by id`;
+  assert.ok(run("seed", db.url).ok); assert.deepEqual(await db.sql`select id,updated_at from services order by id`, before);
   await db.sql.end();
 });

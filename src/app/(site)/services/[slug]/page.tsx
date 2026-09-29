@@ -52,7 +52,7 @@ export default async function ServicePage({ params }: Props) {
 
   return (
     <>
-      <ServicePageTemplate service={service} categoryTitle={categoryTitle} related={related} faqJsonLd={faqJsonLd(service.faqs)} phone={contact.phone} />
+      <ServicePageTemplate service={service} categoryTitle={categoryTitle} related={related} faqJsonLd={faqJsonLd(service.faqs)} phone={contact.phone} siteUrl={base} />
 
       <JsonLd data={serviceLd} />
       <JsonLd

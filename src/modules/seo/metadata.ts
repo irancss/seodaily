@@ -74,7 +74,9 @@ export async function buildMetadata({ title: rawTitle, description, path, image,
       description,
       ...(ogImage ? { images: [absoluteUrl(base, ogImage)] } : {}),
     },
-    ...(noindex ? { robots: { index: false, follow: false } } : {}),
+    // Public empty/search pages may be excluded from results while their useful
+    // links remain followable. Admin/preview routes set their own strict policy.
+    ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
