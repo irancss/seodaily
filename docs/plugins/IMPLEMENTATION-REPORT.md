@@ -1,6 +1,8 @@
 # گزارش پیاده‌سازی — کتابخانه هوشمند افزونه‌های وردپرس
 
-شاخه `feature/plugins-library` · وضعیت انتشار در بخش «انتشار و راستی‌آزمایی» پایین همین فایل.
+پیاده‌سازی اولیه روی شاخه `feature/plugins-library` انجام شد. اصلاحات و بررسی نهایی روی
+`fix/plugins-library-readiness` در [PR شمارهٔ ۲۱](https://github.com/irancss/seodaily/pull/21)
+قرار دارند. مرجع جاری وضعیت باگ‌ها و شواهد تست: [REMEDIATION-REPORT.md](REMEDIATION-REPORT.md).
 
 وضعیت‌ها: IMPLEMENTED · TESTED LOCAL · PUSHED · CI PASSED · DEPLOYED · VERIFIED LIVE · BLOCKED · NOT VERIFIED
 
@@ -18,8 +20,8 @@
 | Fetch امن (SSRF، rebinding، redirect، سقف‌ها) | `pipeline/safe-fetch.ts` | PL-T08 | TESTED LOCAL |
 | دریافت streaming به فضای خصوصی، اعتبارسنجی ZIP | `safe-fetch.fetchToFile`، `pipeline/zip.ts`، `storage.ts` | PL-T09 | TESTED LOCAL |
 | خواندن header/readme بدون اجرای PHP | `pipeline/header.ts` | unit zip | TESTED LOCAL |
-| اسکن ClamAV | `pipeline/scan.ts` (INSTREAM، سن امضا، Limits) | PL-T10 | IMPLEMENTED · روی سرور BLOCKED (B2) |
-| آزمون ایزوله WP-CLI | `pipeline/sandbox.ts` (interface، UNAVAILABLE) | — | BLOCKED (B3) |
+| اسکن ClamAV | `pipeline/scan.ts` + سرویس Compose و ارسال image در deploy | PL-T10؛ ClamAV واقعی با فایل سالم و EICAR | TESTED LOCAL؛ استقرار production تأیید نشده (B2) |
+| آزمون ایزوله WP-CLI | client واقعی `pipeline/sandbox.ts` و بسته `deploy/sandbox/` | پروتکل و فرمان‌ها؛ دو نمونه نصب/فعال‌سازی در Docker محلی | IMPLEMENTED؛ VM و پذیرش gVisor باقی است (B3) |
 | Checksum رسمی WordPress.org | `check.ts` (`officialChecksums`) | PL-T12 | TESTED LOCAL (fixture) |
 | Gate انتشار، انتشار bind به hash، اتمیک | `pipeline/releases.ts` | PL-T13 | TESTED LOCAL |
 | سقف ۳ نسخه قابل دانلود، پاک‌سازی reference-aware | `releases.ts`، `maintenance.ts` | PL-T14/T15 | TESTED LOCAL |
@@ -28,7 +30,7 @@
 | «بررسی همین الان» (enqueue)، پایش | `source-actions.ts`، `admin/(panel)/plugins/monitor` | E2E | TESTED LOCAL |
 | هشدارها فقط در پنل | صفحه منابع و پایش؛ هیچ badge عمومی | بازبینی | IMPLEMENTED |
 | نسخه منبع در صفحه، نسخه بسته جدا + هشدار اختلاف | `check.ts`، صفحه نسخه‌ها | PL-T06 | TESTED LOCAL |
-| آیکون خودکار + override، گالری | آپلود مدیر؛ آیکون رسمی WordPress.org فقط به‌عنوان یادداشت کار | — | IMPLEMENTED (دانلود خودکار آیکون: پیشنهاد، نه اعمال) |
+| آیکون خودکار + override، گالری | دریافت امن آیکون رسمی و ذخیره با validator تصاویر؛ حفظ تصویر مدیر | integration آیکون معتبر و override | TESTED LOCAL |
 | صفحه کتابخانه (hero، جست‌وجو، دسته، تازه‌ها، پرطرفدار، صفحه‌بندی، فیلتر ساده) | `plugins/page.tsx`، `plugin-filters.tsx` | PL-T31، E2E | TESTED LOCAL |
 | سکشن ۶ افزونه آخر در Home | `sections/home/plugins-section.tsx` | E2E | TESTED LOCAL |
 | دانلودشمار = پایه + ثبت‌شده، audit پایه | `catalog.setBaseDownloadCount`، `grants.markServed` | PL-T27 | TESTED LOCAL |
@@ -72,7 +74,7 @@ worker (همان Image) ─► صف PostgreSQL (SKIP LOCKED + lease + fencing)
 پنل: `/admin/plugins`، `/admin/plugins/new`، `/admin/plugins/{id}`، `/admin/plugins/{id}/sources`، `/admin/plugins/{id}/preview`، `/admin/plugins/categories[/…]`، `/admin/plugins/blocks[/…]`، `/admin/plugins/monitor`، `/admin/plugins/users[/{id}]`، `/admin/plugins-export`.
 داخلی: `POST /api/internal/revalidate`.
 
-## آزمون‌ها (آخرین اجرای محلی)
+## آزمون‌های پیاده‌سازی اولیه (سابقه؛ نتیجه جاری در گزارش اصلاحات)
 
 | مجموعه | نتیجه |
 | --- | --- |
@@ -95,4 +97,9 @@ worker (همان Image) ─► صف PostgreSQL (SKIP LOCKED + lease + fencing)
 
 ## انتشار و راستی‌آزمایی
 
-(این بخش پس از CI و استقرار به‌روز می‌شود.)
+اصلاحات `86f3a45` در [CI مستقل](https://github.com/irancss/seodaily/actions/runs/36514220676)
+موفق بودند. PR اصلاحات هنوز با main ادغام و روی production مستقر نشده است؛
+نتیجه فعلی همان PR برای commit نهایی ملاک است. Migration افزایشی
+`0005_plugin_readiness` snapshot پیش‌نویس، canonical/noindex دسته، بازه‌های تحویل
+دانلود و انقضای فایل منتظر بررسی را اضافه می‌کند. استقرار و راستی‌آزمایی production
+و VM جداگانه با موفقیت CI یکی محسوب نمی‌شوند.

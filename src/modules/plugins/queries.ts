@@ -366,8 +366,6 @@ export const sitemapPlugins = cached(async () => {
     .from(plugins)
     .where(and(published, eq(plugins.noindex, false)))
     .orderBy(desc(plugins.id));
-  // A page canonicalised to another URL is not listed.
-  return rows
-    .filter((r) => !r.canonicalUrl || r.canonicalUrl.replace(/\/+$/, "").endsWith(`/plugins/${r.slug}`))
-    .map((r) => ({ slug: r.slug, updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : null }));
+  // The sitemap compares complete URLs against the configured site origin.
+  return rows.map((r) => ({ slug: r.slug, canonicalUrl: r.canonicalUrl, updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : null }));
 }, "plugins:sitemap");

@@ -199,6 +199,32 @@ test("PL-T30/T31/T32: public pages, global block, category, sitemap, home, SEO d
   await page.context().close();
 });
 
+test("PL-T32: external canonicals and noindex categories stay out of the actual sitemap", async () => {
+  const invalidate = async () => {
+    const res = await fetch(`${BASE}/api/internal/revalidate`, { method: "POST", headers: { "x-internal-secret": process.env.INTERNAL_API_SECRET } });
+    assert.equal(res.status, 200);
+  };
+  const has = (xml, slug) => xml.includes(`/plugins/${slug}</loc>`);
+  try {
+    await sql`update plugins set canonical_url=${`https://other.example/plugins/${SLUG}`} where id=${pluginId}`;
+    await sql`update plugin_categories set canonical_url=${`https://other.example/plugins/${CAT}`} where slug=${CAT}`;
+    await invalidate();
+    let sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    assert.equal(has(sitemap, SLUG), false, "same path on another origin is not self-canonical");
+    assert.equal(has(sitemap, CAT), false, "category canonical excludes it too");
+    await sql`update plugins set canonical_url=${`https://seodaily.ir/plugins/${SLUG}`} where id=${pluginId}`;
+    await sql`update plugin_categories set canonical_url='', noindex=true where slug=${CAT}`;
+    await invalidate();
+    sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    assert.equal(has(sitemap, SLUG), true, "explicit self-canonical remains listed");
+    assert.equal(has(sitemap, CAT), false, "noindex category remains excluded");
+  } finally {
+    await sql`update plugins set canonical_url='' where id=${pluginId}`;
+    await sql`update plugin_categories set canonical_url='', noindex=false where slug=${CAT}`;
+    await invalidate();
+  }
+});
+
 test("PL-T22/T23/T24/T26: phone check once per browser, 10-minute link, HEAD/Range not counted, full download counted once", async () => {
   const page = await newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`${BASE}/plugins/${SLUG}`);
